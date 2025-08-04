@@ -655,7 +655,7 @@ function loadKakaoMap() {
             });
 
             const geocoder = new kakao.maps.services.Geocoder();
-            const address = '서울특별시 서초구 양재동 12'; // 주소 변경 가능
+            const address = '서울특별시 서초구 동산로 35'; // 주소 변경 가능
 
             geocoder.addressSearch(address, function (result, status) {
                 if (status === kakao.maps.services.Status.OK) {
