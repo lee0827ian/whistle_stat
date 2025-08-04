@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>축구팀 통계 관리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c5530, #4a7c59);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2c5530;
+        }
+
+        .team-name {
+            font-size: 2.5em;
+            color: #2c5530;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .season {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #4a7c59, #2c5530);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #2c5530;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .players-table, .matches-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .players-table th, .players-table td,
+        .matches-table th, .matches-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+
+        .players-table th, .matches-table th {
+            background: #2c5530;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        .players-table tr:hover, .matches-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .attendance-rate {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8em;
+        }
+
+        .rate-high { background: #28a745; }
+        .rate-medium { background: #ffc107; color: #333; }
+        .rate-low { background: #dc3545; }
+
+        .mvp-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .result-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8em;
+        }
+
+        .result-win { background: #28a745; }
+        .result-draw { background: #ffc107; color: #333; }
+        .result-loss { background: #dc3545; }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .top-scorers {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .scorer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .scorer-rank {
+            background: #2c5530;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .scorer-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .scorer-name {
+            font-weight: bold;
+            color: #2c5530;
+        }
+
+        .scorer-goals {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4a7c59;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .team-name {
+                font-size: 2em;
+            }
+
+            .players-table th, .players-table td,
+            .matches-table th, .matches-table td {
+                padding: 6px;
+                font-size: 0.8em;
+            }
+        }
+
+        .filter-controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border: 2px solid #2c5530;
+            background: white;
+            color: #2c5530;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #2c5530;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="team-name">우리 축구팀</div>
+            <div class="season">2025 시즌</div>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-title">경기 수</div>
+                <div class="stat-value">28</div>
+                <div class="stat-subtitle">총 경기</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">승률</div>
+                <div class="stat-value">62.5%</div>
+                <div class="stat-subtitle">17승 1무 10패</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">득점</div>
+                <div class="stat-value">154</div>
+                <div class="stat-subtitle">경기당 5.5골</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">득실차</div>
+                <div class="stat-value">+20</div>
+                <div class="stat-subtitle">154득 134실</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">선수별 통계</div>
+                <div class="filter-controls">
+                    <button class="filter-btn active" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" onclick="filterPlayers('attendance')">참석률 순</button>
+                    <button class="filter-btn" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                </div>
+                <div class="table-container">
+                    <table class="players-table">
+                        <thead>
+                            <tr>
+                                <th>이름</th>
+                                <th>출전</th>
+                                <th>참석률</th>
+                                <th>골</th>
+                                <th>MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">최근 경기 결과</div>
+                <div class="table-container">
+                    <table class="matches-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>상대</th>
+                                <th>결과</th>
+                                <th>스코어</th>
+                                <th>MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="top-scorers">
+            <div class="section-title">득점왕 TOP 10</div>
+            <div id="topScorers"></div>
+        </div>
+    </div>
+
+    <script>
+        // 실제 데이터
+        const matches = [
+            { date: '2025-07-27', opponent: 'Dream FC', result: 'win', score: '6:2', mvp: '이정호' },
+            { date: '2025-07-20', opponent: '서리풀 FC', result: 'win', score: '5:0', mvp: '권창호' },
+            { date: '2025-07-13', opponent: '용원 FC', result: 'win', score: '9:3', mvp: '반기훈' },
+            { date: '2025-07-06', opponent: 'JROCK FC', result: 'win', score: '8:4', mvp: '안창영' },
+            { date: '2025-06-29', opponent: '차나마나FC', result: 'win', score: '4:1', mvp: '유지현' },
+            { date: '2025-06-22', opponent: '블루스카이', result: 'win', score: '9:8', mvp: '신규환' },
+            { date: '2025-06-15', opponent: 'FC집으로', result: 'loss', score: '4:7', mvp: '서원덕' },
+            { date: '2025-06-08', opponent: '미소 FC', result: 'loss', score: '2:4', mvp: '반기훈' },
+            { date: '2025-06-01', opponent: '가양2동조기축구회', result: 'loss', score: '2:8', mvp: '박지성' },
+            { date: '2025-05-25', opponent: 'SCFC', result: 'win', score: '10:7', mvp: '오진석' },
+            { date: '2025-05-18', opponent: '명륜 FC', result: 'win', score: '6:2', mvp: '신규환' },
+            { date: '2025-05-10', opponent: 'MNN FC', result: 'loss', score: '1:5', mvp: '안태수' },
+            { date: '2025-05-03', opponent: '지축몬', result: 'win', score: '4:3', mvp: '권창호' },
+            { date: '2025-04-27', opponent: '쥬블리fc', result: 'loss', score: '1:7', mvp: '박지성' },
+            { date: '2025-04-20', opponent: '남우', result: 'win', score: '19:13', mvp: '강재웅' },
+            { date: '2025-04-13', opponent: 'humble fc', result: 'loss', score: '0:11', mvp: '박지성' },
+            { date: '2025-04-06', opponent: 'R.S', result: 'win', score: '3:2', mvp: '신규환' },
+            { date: '2025-03-30', opponent: '라인fc', result: 'loss', score: '2:7', mvp: '신규환' },
+            { date: '2025-03-23', opponent: 'UMD', result: 'win', score: '4:3', mvp: '안창영' },
+            { date: '2025-03-16', opponent: '발모아 fc', result: 'win', score: '7:1', mvp: '조인혁' },
+            { date: '2025-03-09', opponent: 'fc 인터블루', result: 'loss', score: '1:13', mvp: '서원덕' },
+            { date: '2025-03-02', opponent: 'fc EXIT', result: 'draw', score: '5:5', mvp: '서원덕' },
+            { date: '2025-02-23', opponent: '덴탈fc', result: 'win', score: '5:4', mvp: '신규환' },
+            { date: '2025-02-09', opponent: '투리스', result: 'loss', score: '4:12', mvp: '이상보' },
+            { date: '2025-02-02', opponent: 'fc차나마나', result: 'loss', score: '3:4', mvp: '이상보' },
+            { date: '2025-01-26', opponent: '중앙fc', result: 'win', score: '3:2', mvp: '김기호' },
+            { date: '2025-01-19', opponent: '양동fc', result: 'win', score: '11:0', mvp: '이상보' },
+            { date: '2025-01-11', opponent: 'renafc', result: 'win', score: '8:4', mvp: '권창호' }
+        ];
+
+        const playerStats = {
+            '오진석': { appearances: 24, goals: 31, mvp: 1 },
+            '권창호': { appearances: 13, goals: 14, mvp: 3 },
+            '신규환': { appearances: 23, goals: 12, mvp: 6 },
+            '조인혁': { appearances: 9, goals: 11, mvp: 1 },
+            '김기호': { appearances: 17, goals: 11, mvp: 1 },
+            '반기훈': { appearances: 8, goals: 5, mvp: 2 },
+            '안창영': { appearances: 13, goals: 4, mvp: 2 },
+            '이정호': { appearances: 5, goals: 4, mvp: 1 },
+            '안태수': { appearances: 19, goals: 3, mvp: 1 },
+            '이항규': { appearances: 2, goals: 3, mvp: 0 },
+            '강재웅': { appearances: 6, goals: 3, mvp: 1 },
+            '김경배': { appearances: 15, goals: 2, mvp: 0 },
+            '서원덕': { appearances: 18, goals: 2, mvp: 3 },
+            '윤종진': { appearances: 4, goals: 2, mvp: 0 },
+            '윤준배': { appearances: 8, goals: 1, mvp: 0 },
+            '김태종': { appearances: 3, goals: 1, mvp: 0 },
+            '이광수': { appearances: 9, goals: 1, mvp: 0 },
+            '박윤제': { appearances: 4, goals: 1, mvp: 0 },
+            '박지성': { appearances: 26, goals: 1, mvp: 3 },
+            '이상보': { appearances: 18, goals: 1, mvp: 3 },
+            '고영규': { appearances: 4, goals: 1, mvp: 0 },
+            // 무득점 선수들
+            '강용기': { appearances: 23, goals: 0, mvp: 0 },
+            '유지현': { appearances: 15, goals: 0, mvp: 1 },
+            '김영주': { appearances: 14, goals: 0, mvp: 0 },
+            '이경윤': { appearances: 5, goals: 0, mvp: 0 },
+            '김병태': { appearances: 4, goals: 0, mvp: 0 },
+            '김진호': { appearances: 3, goals: 0, mvp: 0 },
+            '조상현': { appearances: 1, goals: 0, mvp: 0 },
+            '곽웅': { appearances: 1, goals: 0, mvp: 0 },
+            '김경현': { appearances: 1, goals: 0, mvp: 0 },
+            '서형원': { appearances: 1, goals: 0, mvp: 0 },
+            '강명국': { appearances: 1, goals: 0, mvp: 0 },
+            // 미출전 선수들
+            '윤정광': { appearances: 0, goals: 0, mvp: 0 },
+            '이치석': { appearances: 0, goals: 0, mvp: 0 },
+            '임태현': { appearances: 0, goals: 0, mvp: 0 },
+            '손의창': { appearances: 0, goals: 0, mvp: 0 },
+            '김종우': { appearances: 0, goals: 0, mvp: 0 },
+            '이지훈': { appearances: 0, goals: 0, mvp: 0 },
+            '강현제': { appearances: 0, goals: 0, mvp: 0 },
+            '김동규': { appearances: 0, goals: 0, mvp: 0 },
+            '안수영': { appearances: 0, goals: 0, mvp: 0 }
+        };
+
+        let currentFilter = 'all';
+
+        function updatePlayersTable() {
+            const tbody = document.getElementById('playersTableBody');
+            tbody.innerHTML = '';
+
+            let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
+                name,
+                ...stats,
+                attendanceRate: ((stats.appearances / 28) * 100).toFixed(1)
+            }));
+
+            // 필터링 및 정렬
+            switch(currentFilter) {
+                case 'goals':
+                    playersArray.sort((a, b) => b.goals - a.goals);
+                    break;
+                case 'attendance':
+                    playersArray.sort((a, b) => b.attendanceRate - a.attendanceRate);
+                    break;
+                case 'mvp':
+                    playersArray.sort((a, b) => b.mvp - a.mvp);
+                    break;
+                default:
+                    playersArray.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            playersArray.forEach(player => {
+                const row = document.createElement('tr');
+                
+                let rateClass = 'rate-low';
+                if (player.attendanceRate >= 70) rateClass = 'rate-high';
+                else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
+
+                row.innerHTML = `
+                    <td>${player.name}</td>
+                    <td>${player.appearances}</td>
+                    <td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>
+                    <td>${player.goals}</td>
+                    <td>${player.mvp > 0 ? `<span class="mvp-badge">${player.mvp}회</span>` : '0'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateMatchesTable() {
+            const tbody = document.getElementById('matchesTableBody');
+            tbody.innerHTML = '';
+
+            matches.slice(0, 15).forEach(match => {
+                const row = document.createElement('tr');
+                
+                let resultClass = 'result-loss';
+                let resultText = '패';
+                if (match.result === 'win') {
+                    resultClass = 'result-win';
+                    resultText = '승';
+                } else if (match.result === 'draw') {
+                    resultClass = 'result-draw';
+                    resultText = '무';
+                }
+
+                row.innerHTML = `
+                    <td>${match.date}</td>
+                    <td>${match.opponent}</td>
+                    <td><span class="result-badge ${resultClass}">${resultText}</span></td>
+                    <td>${match.score}</td>
+                    <td>${match.mvp ? `<span class="mvp-badge">${match.mvp}</span>` : ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateTopScorers() {
+            const container = document.getElementById('topScorers');
+            const topScorers = Object.entries(playerStats)
+                .sort(([,a], [,b]) => b.goals - a.goals)
+                .slice(0, 10);
+
+            container.innerHTML = topScorers.map(([name, stats], index) => `
+                <div class="scorer-item">
+                    <div class="scorer-rank">${index + 1}</div>
+                    <div class="scorer-info">
+                        <div class="scorer-name">${name}</div>
+                    </div>
+                    <div class="scorer-goals">${stats.goals}골</div>
+                </div>
+            `).join('');
+        }
+
+        function filterPlayers(filter) {
+            currentFilter = filter;
+            
+            // 버튼 활성화 상태 업데이트
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updatePlayersTable();
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePlayersTable();
+            updateMatchesTable();
+            updateTopScorers();
+        });
+    </script>
+</body>
+</html>
