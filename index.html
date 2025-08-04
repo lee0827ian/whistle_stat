@@ -191,29 +191,30 @@
         }
 
         .schedule-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin: 10px 0;
             background: linear-gradient(135deg, #4a7c59, #2c5530);
             color: white;
-            border-radius: 8px;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            text-align: center;
         }
 
         .schedule-date {
             font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 8px;
+        }
+
+        .schedule-time-venue {
             font-size: 1.1em;
+            margin-bottom: 12px;
+            opacity: 0.95;
         }
 
         .schedule-opponent {
-            font-size: 1.2em;
+            font-size: 1.4em;
             font-weight: bold;
-        }
-
-        .schedule-venue {
-            font-size: 0.9em;
-            opacity: 0.9;
+            letter-spacing: 1px;
         }
 
         .map-container {
@@ -229,6 +230,20 @@
             height: 300px;
             border-radius: 8px;
             border: 2px solid #2c5530;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 300px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2c5530;
+            font-size: 1.1em;
+            border: 2px dashed #2c5530;
+            flex-direction: column;
         }
 
         .venue-info {
@@ -255,6 +270,10 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
             .main-content {
                 grid-template-columns: 1fr;
             }
@@ -279,6 +298,64 @@
 
             .section {
                 height: auto;
+                padding: 15px;
+            }
+
+            .next-matches-section {
+                padding: 15px;
+            }
+
+            .schedule-item {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .schedule-date {
+                font-size: 1.2em;
+            }
+
+            .schedule-time-venue {
+                font-size: 1em;
+            }
+
+            .schedule-opponent {
+                font-size: 1.3em;
+            }
+
+            .filter-controls {
+                gap: 5px;
+            }
+
+            .filter-btn {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+
+            #map, .map-placeholder {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-overview {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .schedule-item {
+                padding: 12px;
+            }
+
+            .schedule-date {
+                font-size: 1.1em;
+            }
+
+            .schedule-opponent {
+                font-size: 1.2em;
             }
         }
 
@@ -389,17 +466,18 @@
                 <div class="schedule-container">
                     <h3 style="color: #2c5530; margin-bottom: 15px;">다음 경기</h3>
                     <div class="schedule-item">
-                        <div>
-                            <div class="schedule-date">8월 3일 (토)</div>
-                            <div class="schedule-venue">12:00 | 양재근린공원</div>
-                        </div>
+                        <div class="schedule-date">8월 3일 (토)</div>
+                        <div class="schedule-time-venue">12:00 | 양재근린공원</div>
                         <div class="schedule-opponent">VS 하나FC</div>
                     </div>
                 </div>
 
                 <div class="map-container">
                     <h3 style="color: #2c5530; margin-bottom: 15px;">경기 구장</h3>
-                    <div id="map"></div>
+                    <div id="map-placeholder" class="map-placeholder">
+                        🗺️<br>양재근린공원<br>
+                        <small>지도 로딩 중...</small>
+                    </div>
                     <div class="venue-info">
                         <div class="venue-name">양재근린공원 축구장</div>
                         <div class="venue-address">📍 서울특별시 서초구 양재동 12</div>
@@ -410,9 +488,6 @@
         </div>
     </div>
 
-    <!-- 카카오맵 API -->
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=81a34b205e9939bb76b463eec9ab5321"></script>
-    
     <script>
         // 실제 데이터
         const matches = [
@@ -565,39 +640,52 @@
             });
         }
 
-        // 카카오맵 초기화
-        function initMap() {
-            var mapContainer = document.getElementById('map');
-            var mapOption = {
-                center: new kakao.maps.LatLng(37.4653, 127.0348), // 양재근린공원 좌표
-                level: 3 // 지도 확대 레벨
+        // 카카오맵 초기화 (지연 로딩)
+        function loadKakaoMap() {
+            const script = document.createElement('script');
+            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=81a34b205e9939bb76b463eec9ab5321&autoload=false';
+            script.onload = function() {
+                kakao.maps.load(function() {
+                    const mapContainer = document.getElementById('map-placeholder');
+                    mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #2c5530;"></div>';
+                    
+                    const mapOption = {
+                        center: new kakao.maps.LatLng(37.4656, 127.0347), // 양재근린공원 정확한 좌표
+                        level: 3
+                    };
+
+                    const map = new kakao.maps.Map(document.getElementById('map'), mapOption);
+
+                    const markerPosition = new kakao.maps.LatLng(37.4656, 127.0347);
+                    const marker = new kakao.maps.Marker({
+                        position: markerPosition
+                    });
+
+                    marker.setMap(map);
+
+                    const infowindow = new kakao.maps.InfoWindow({
+                        content: '<div style="padding:5px;font-size:12px;text-align:center;">양재근린공원 축구장</div>'
+                    });
+
+                    infowindow.open(map, marker);
+                });
             };
-
-            // 지도 생성
-            var map = new kakao.maps.Map(mapContainer, mapOption);
-
-            // 마커 생성
-            var markerPosition = new kakao.maps.LatLng(37.4653, 127.0348);
-            var marker = new kakao.maps.Marker({
-                position: markerPosition
-            });
-
-            // 마커를 지도에 표시
-            marker.setMap(map);
-
-            // 인포윈도우 생성
-            var infowindow = new kakao.maps.InfoWindow({
-                content: '<div style="padding:5px;font-size:12px;">양재근린공원 축구장</div>'
-            });
-
-            // 마커에 인포윈도우 표시
-            infowindow.open(map, marker);
+            script.onerror = function() {
+                console.error('카카오맵 API 로드 실패');
+                document.getElementById('map-placeholder').innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
+                        <div>🗺️</div>
+                        <div style="margin-top:10px;">양재근린공원</div>
+                        <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
+                    </div>
+                `;
+            };
+            document.head.appendChild(script);
         }
 
         function filterPlayers(filter) {
             currentFilter = filter;
             
-            // 버튼 활성화 상태 업데이트
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -611,12 +699,8 @@
             updatePlayersTable();
             updateMatchesTable();
             
-            // 카카오맵 API가 로드되면 지도 초기화
-            if (typeof kakao !== 'undefined' && kakao.maps) {
-                initMap();
-            } else {
-                console.error('카카오맵 API가 로드되지 않았습니다. API 키를 확인해주세요.');
-            }
+            // 지도 로드 (3초 후)
+            setTimeout(loadKakaoMap, 3000);
         });
     </script>
 </body>
