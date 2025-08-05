@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #2c5530, #4a7c59);
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6, #60a5fa, #fbbf24, #f59e0b);
             min-height: 100vh;
             padding: 20px;
         }
@@ -31,12 +31,12 @@
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 3px solid #2c5530;
+            border-bottom: 3px solid #1e40af;
         }
 
         .team-name {
             font-size: 2.5em;
-            color: #2c5530;
+            color: #1e40af;
             margin-bottom: 10px;
             font-weight: bold;
         }
@@ -54,7 +54,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #4a7c59, #2c5530);
+            background: linear-gradient(135deg, #1e40af, #60a5fa);
             padding: 25px;
             border-radius: 15px;
             color: white;
@@ -96,7 +96,7 @@
 
         .section-title {
             font-size: 1.5em;
-            color: #2c5530;
+            color: #1e40af;
             margin-bottom: 20px;
             font-weight: bold;
             text-align: center;
@@ -117,7 +117,7 @@
         }
 
         .players-table th, .matches-table th {
-            background: #2c5530;
+            background: #1e40af;
             color: white;
             font-weight: bold;
             position: sticky;
@@ -136,17 +136,22 @@
             font-size: 0.8em;
         }
 
-        .rate-high { background: #28a745; }
-        .rate-medium { background: #ffc107; color: #333; }
+        .rate-high { background: #1e40af; }
+        .rate-medium { background: #fbbf24; color: #333; }
         .rate-low { background: #dc3545; }
 
         .mvp-badge {
-            background: #ffd700;
+            background: #fbbf24;
             color: #333;
             padding: 2px 6px;
             border-radius: 3px;
             font-size: 0.7em;
             font-weight: bold;
+            white-space: nowrap;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .result-badge {
@@ -157,8 +162,8 @@
             font-size: 0.8em;
         }
 
-        .result-win { background: #28a745; }
-        .result-draw { background: #ffc107; color: #333; }
+        .result-win { background: #1e40af; }
+        .result-draw { background: #fbbf24; color: #333; }
         .result-loss { background: #dc3545; }
 
         .table-container {
@@ -191,7 +196,7 @@
         }
 
         .schedule-item {
-            background: linear-gradient(135deg, #4a7c59, #2c5530);
+            background: linear-gradient(135deg, #1e40af, #60a5fa);
             color: white;
             border-radius: 12px;
             padding: 20px;
@@ -229,7 +234,7 @@
             width: 100%;
             height: 300px;
             border-radius: 8px;
-            border: 2px solid #2c5530;
+            border: 2px solid #1e40af;
         }
 
         .map-placeholder {
@@ -240,9 +245,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #2c5530;
+            color: #1e40af;
             font-size: 1.1em;
-            border: 2px dashed #2c5530;
+            border: 2px dashed #1e40af;
             flex-direction: column;
         }
 
@@ -253,7 +258,7 @@
 
         .venue-name {
             font-weight: bold;
-            color: #2c5530;
+            color: #1e40af;
             font-size: 1.2em;
             margin-bottom: 5px;
         }
@@ -292,9 +297,29 @@
 
             .players-table th, .players-table td,
             .matches-table th, .matches-table td {
-                padding: 6px;
-                font-size: 0.8em;
+                padding: 6px 4px;
+                font-size: 0.75em;
             }
+
+            /* 모바일에서 MVP 이름 표시 개선 */
+            .mvp-badge {
+                font-size: 0.65em;
+                padding: 1px 4px;
+                max-width: 60px;
+            }
+
+            /* 모바일에서 테이블 컬럼 너비 조정 */
+            .players-table th:nth-child(1), .players-table td:nth-child(1) { width: 20%; }
+            .players-table th:nth-child(2), .players-table td:nth-child(2) { width: 15%; }
+            .players-table th:nth-child(3), .players-table td:nth-child(3) { width: 20%; }
+            .players-table th:nth-child(4), .players-table td:nth-child(4) { width: 15%; }
+            .players-table th:nth-child(5), .players-table td:nth-child(5) { width: 30%; }
+
+            .matches-table th:nth-child(1), .matches-table td:nth-child(1) { width: 20%; }
+            .matches-table th:nth-child(2), .matches-table td:nth-child(2) { width: 20%; }
+            .matches-table th:nth-child(3), .matches-table td:nth-child(3) { width: 15%; }
+            .matches-table th:nth-child(4), .matches-table td:nth-child(4) { width: 20%; }
+            .matches-table th:nth-child(5), .matches-table td:nth-child(5) { width: 25%; }
 
             .section {
                 height: auto;
@@ -357,6 +382,19 @@
             .schedule-opponent {
                 font-size: 1.2em;
             }
+
+            /* 모바일에서 더 작은 화면 대응 */
+            .players-table th, .players-table td,
+            .matches-table th, .matches-table td {
+                padding: 4px 2px;
+                font-size: 0.7em;
+            }
+
+            .mvp-badge {
+                font-size: 0.6em;
+                padding: 1px 3px;
+                max-width: 50px;
+            }
         }
 
         .filter-controls {
@@ -368,9 +406,9 @@
 
         .filter-btn {
             padding: 8px 15px;
-            border: 2px solid #2c5530;
+            border: 2px solid #1e40af;
             background: white;
-            color: #2c5530;
+            color: #1e40af;
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.9em;
@@ -378,7 +416,7 @@
         }
 
         .filter-btn.active {
-            background: #2c5530;
+            background: #1e40af;
             color: white;
         }
     </style>
@@ -393,23 +431,23 @@
         <div class="stats-overview">
             <div class="stat-card">
                 <div class="stat-title">경기 수</div>
-                <div class="stat-value">28</div>
+                <div class="stat-value">29</div>
                 <div class="stat-subtitle">총 경기</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">승률</div>
-                <div class="stat-value">62.5%</div>
-                <div class="stat-subtitle">17승 1무 10패</div>
+                <div class="stat-value">62.1%</div>
+                <div class="stat-subtitle">18승 1무 10패</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">득점</div>
-                <div class="stat-value">154</div>
-                <div class="stat-subtitle">경기당 5.5골</div>
+                <div class="stat-value">152</div>
+                <div class="stat-subtitle">경기당 5.2골</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">득실차</div>
-                <div class="stat-value">+20</div>
-                <div class="stat-subtitle">154득 134실</div>
+                <div class="stat-value">+14</div>
+                <div class="stat-subtitle">152득 138실</div>
             </div>
         </div>
 
@@ -464,16 +502,16 @@
             <div class="section-title">다음 경기 일정 및 구장 위치</div>
             <div class="schedule-and-map">
                 <div class="schedule-container">
-                    <h3 style="color: #2c5530; margin-bottom: 15px;">다음 경기</h3>
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">최근 경기</h3>
                     <div class="schedule-item">
-                        <div class="schedule-date">8월 3일 (토)</div>
-                        <div class="schedule-time-venue">12:00 | 양재근린공원</div>
-                        <div class="schedule-opponent">VS 하나FC</div>
+                        <div class="schedule-date">8월 3일 (토) - 완료</div>
+                        <div class="schedule-time-venue">양재근린공원</div>
+                        <div class="schedule-opponent">VS 하나FC 6:4 승</div>
                     </div>
                 </div>
 
                 <div class="map-container">
-                    <h3 style="color: #2c5530; margin-bottom: 15px;">경기 구장</h3>
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">경기 구장</h3>
                     <div id="map-placeholder" class="map-placeholder">
                         🗺️<br>양재근린공원<br>
                         <small>지도 로딩 중...</small>
@@ -489,8 +527,9 @@
     </div>
 
     <script>
-        // 실제 데이터
+        // 실제 데이터 (29경기로 업데이트)
         const matches = [
+            { date: '2025-08-03', opponent: '하나FC', result: 'win', score: '6:4', mvp: '박지성' },
             { date: '2025-07-27', opponent: 'Dream FC', result: 'win', score: '6:2', mvp: '이정호' },
             { date: '2025-07-20', opponent: '서리풀 FC', result: 'win', score: '5:0', mvp: '권창호' },
             { date: '2025-07-13', opponent: '용원 FC', result: 'win', score: '9:3', mvp: '반기훈' },
@@ -522,31 +561,31 @@
         ];
 
         const playerStats = {
-            '오진석': { appearances: 24, goals: 31, mvp: 1 },
+            '오진석': { appearances: 25, goals: 32, mvp: 1 },
             '권창호': { appearances: 13, goals: 14, mvp: 3 },
             '신규환': { appearances: 23, goals: 12, mvp: 6 },
-            '조인혁': { appearances: 9, goals: 11, mvp: 1 },
+            '조인혁': { appearances: 10, goals: 11, mvp: 1 },
             '김기호': { appearances: 17, goals: 11, mvp: 1 },
             '반기훈': { appearances: 8, goals: 5, mvp: 2 },
             '안창영': { appearances: 13, goals: 4, mvp: 2 },
-            '이정호': { appearances: 5, goals: 4, mvp: 1 },
-            '안태수': { appearances: 19, goals: 3, mvp: 1 },
+            '이정호': { appearances: 6, goals: 4, mvp: 1 },
+            '안태수': { appearances: 20, goals: 3, mvp: 1 },
             '이항규': { appearances: 2, goals: 3, mvp: 0 },
             '강재웅': { appearances: 6, goals: 3, mvp: 1 },
             '김경배': { appearances: 15, goals: 2, mvp: 0 },
-            '서원덕': { appearances: 18, goals: 2, mvp: 3 },
+            '서원덕': { appearances: 19, goals: 2, mvp: 3 },
             '윤종진': { appearances: 4, goals: 2, mvp: 0 },
             '윤준배': { appearances: 8, goals: 1, mvp: 0 },
             '김태종': { appearances: 3, goals: 1, mvp: 0 },
-            '이광수': { appearances: 9, goals: 1, mvp: 0 },
+            '이광수': { appearances: 10, goals: 1, mvp: 0 },
             '박윤제': { appearances: 4, goals: 1, mvp: 0 },
-            '박지성': { appearances: 26, goals: 1, mvp: 3 },
+            '박지성': { appearances: 27, goals: 1, mvp: 4 },
             '이상보': { appearances: 18, goals: 1, mvp: 3 },
             '고영규': { appearances: 4, goals: 1, mvp: 0 },
             // 무득점 선수들
             '강용기': { appearances: 23, goals: 0, mvp: 0 },
-            '유지현': { appearances: 15, goals: 0, mvp: 1 },
-            '김영주': { appearances: 14, goals: 0, mvp: 0 },
+            '유지현': { appearances: 16, goals: 0, mvp: 1 },
+            '김영주': { appearances: 15, goals: 0, mvp: 0 },
             '이경윤': { appearances: 5, goals: 0, mvp: 0 },
             '김병태': { appearances: 4, goals: 0, mvp: 0 },
             '김진호': { appearances: 3, goals: 0, mvp: 0 },
@@ -576,7 +615,7 @@
             let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
                 name,
                 ...stats,
-                attendanceRate: ((stats.appearances / 28) * 100).toFixed(1)
+                attendanceRate: ((stats.appearances / 29) * 100).toFixed(1)
             }));
 
             // 필터링 및 정렬
@@ -606,7 +645,7 @@
                     <td>${player.appearances}</td>
                     <td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>
                     <td>${player.goals}</td>
-                    <td>${player.mvp > 0 ? `<span class="mvp-badge">${player.mvp}회</span>` : '0'}</td>
+                    <td>${player.mvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.mvp}회">${player.mvp}회</span>` : '0'}</td>
                 `;
                 tbody.appendChild(row);
             });
@@ -634,69 +673,69 @@
                     <td>${match.opponent}</td>
                     <td><span class="result-badge ${resultClass}">${resultText}</span></td>
                     <td>${match.score}</td>
-                    <td>${match.mvp ? `<span class="mvp-badge">${match.mvp}</span>` : ''}</td>
+                    <td>${match.mvp ? `<span class="mvp-badge" title="${match.mvp}">${match.mvp}</span>` : ''}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // 카카오맵 초기화 (지연 로딩)
-function loadKakaoMap() {
-    const script = document.createElement('script');
-    script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=47eed652b004605d8a8e3e39df268f24&autoload=false&libraries=services';
-    script.onload = function () {
-        kakao.maps.load(function () {
-            const mapContainer = document.getElementById('map-placeholder');
-            mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #2c5530;"></div>';
+        // 카카오맵 초기화 (지연 로딩) - 이전 버전 코드 사용
+        function loadKakaoMap() {
+            const script = document.createElement('script');
+            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=47eed652b004605d8a8e3e39df268f24&autoload=false&libraries=services';
+            script.onload = function () {
+                kakao.maps.load(function () {
+                    const mapContainer = document.getElementById('map-placeholder');
+                    mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
 
-            const map = new kakao.maps.Map(document.getElementById('map'), {
-                center: new kakao.maps.LatLng(37.4656, 127.0347), // 초기 중심 좌표
-                level: 3
-            });
-
-            const geocoder = new kakao.maps.services.Geocoder();
-            const address = '서울특별시 서초구 동산로 35'; // 주소 변경 가능
-
-            geocoder.addressSearch(address, function (result, status) {
-                if (status === kakao.maps.services.Status.OK) {
-                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-
-                    map.setCenter(coords);
-
-                    const marker = new kakao.maps.Marker({
-                        map: map,
-                        position: coords
+                    const map = new kakao.maps.Map(document.getElementById('map'), {
+                        center: new kakao.maps.LatLng(37.4656, 127.0347), // 초기 중심 좌표
+                        level: 3
                     });
 
-                    const infowindow = new kakao.maps.InfoWindow({
-                        content: '<div style="padding:5px;font-size:12px;text-align:center;">양재근린공원 축구장</div>'
+                    const geocoder = new kakao.maps.services.Geocoder();
+                    const address = '서울특별시 서초구 동산로 35'; // 주소 변경 가능
+
+                    geocoder.addressSearch(address, function (result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+
+                            map.setCenter(coords);
+
+                            const marker = new kakao.maps.Marker({
+                                map: map,
+                                position: coords
+                            });
+
+                            const infowindow = new kakao.maps.InfoWindow({
+                                content: '<div style="padding:5px;font-size:12px;text-align:center;">양재근린공원 축구장</div>'
+                            });
+
+                            infowindow.open(map, marker);
+                        } else {
+                            document.getElementById('map').innerHTML = `
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
+                                    주소 검색 실패: ${status}
+                                </div>
+                            `;
+                        }
                     });
+                });
+            };
 
-                    infowindow.open(map, marker);
-                } else {
-                    document.getElementById('map').innerHTML = `
-                        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
-                            주소 검색 실패: ${status}
-                        </div>
-                    `;
-                }
-            });
-        });
-    };
+            script.onerror = function () {
+                console.error('카카오맵 API 로드 실패');
+                document.getElementById('map-placeholder').innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
+                        <div>🗺️</div>
+                        <div style="margin-top:10px;">양재근린공원</div>
+                        <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
+                    </div>
+                `;
+            };
 
-    script.onerror = function () {
-        console.error('카카오맵 API 로드 실패');
-        document.getElementById('map-placeholder').innerHTML = `
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
-                <div>🗺️</div>
-                <div style="margin-top:10px;">양재근린공원</div>
-                <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
-            </div>
-        `;
-    };
-
-    document.head.appendChild(script);
-}
+            document.head.appendChild(script);
+        }
 
         function filterPlayers(filter) {
             currentFilter = filter;
