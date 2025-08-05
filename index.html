@@ -698,7 +698,7 @@
                     });
 
                     const geocoder = new kakao.maps.services.Geocoder();
-                    const address = '서울특별시 서초구 동산로 35'; // 주소 변경 가능
+                    const address = '서울특별시 구로구 고척로45길 37'; // 주소 변경 가능
 
                     geocoder.addressSearch(address, function (result, status) {
                         if (status === kakao.maps.services.Status.OK) {
@@ -712,7 +712,7 @@
                             });
 
                             const infowindow = new kakao.maps.InfoWindow({
-                                content: '<div style="padding:5px;font-size:12px;text-align:center;">양재근린공원 축구장</div>'
+                                content: '<div style="padding:5px;font-size:12px;text-align:center;">고척근린공원 축구장</div>'
                             });
 
                             infowindow.open(map, marker);
@@ -732,7 +732,7 @@
                 document.getElementById('map-placeholder').innerHTML = `
                     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
                         <div>🗺️</div>
-                        <div style="margin-top:10px;">양재근린공원</div>
+                        <div style="margin-top:10px;">고척근린공원</div>
                         <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
                     </div>
                 `;
