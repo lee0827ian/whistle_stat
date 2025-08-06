@@ -677,7 +677,7 @@
         <div class="header">
             <div class="team-name">WHISTLE</div>
             <div class="season-selector">
-                <select id="seasonSelect" onchange="changeSeason()">
+                <select id="seasonSelect" onchange="changeSeason()" onclick="onSeasonSelectClick()">
                     <option value="2025">🏆 2025 시즌 (현재)</option>
                     <option value="2024">2024 시즌</option>
                     <option value="2023">2023 시즌</option>
@@ -904,7 +904,7 @@
             return validatedData;
         }
 
-        // 버튼 상태 업데이트 함수
+        // 버튼 상태 업데이트 함수 (수정됨)
         function updateButtonStates() {
             const allTimeButton = document.getElementById('allTimeButton');
             const seasonSelect = document.getElementById('seasonSelect');
@@ -918,19 +918,31 @@
             }
         }
 
-        // 역대 기록 토글 함수
+        // 드롭다운 클릭 시에도 체크하는 함수 (새로 추가)
+        function onSeasonSelectClick() {
+            // 역대 기록 뷰에서 드롭다운을 클릭한 경우, 현재 값으로도 전환되도록
+            if (isAllTimeView) {
+                setTimeout(() => {
+                    changeSeason(); // 약간의 지연 후 changeSeason 호출
+                }, 10);
+            }
+        }
+
+        // 역대 기록 토글 함수 (수정됨)
         async function toggleAllTimeView() {
             if (isAllTimeView) {
                 // 현재 역대 기록 뷰라면 시즌 뷰로 돌아가기
                 isAllTimeView = false;
-                currentSeason = '2025'; // 기본 시즌으로
-                document.getElementById('seasonSelect').value = '2025';
+                
+                // 현재 선택된 시즌으로 강제 전환
+                const seasonSelect = document.getElementById('seasonSelect');
+                currentSeason = seasonSelect.value; // 현재 드롭다운 값 사용
                 
                 document.getElementById('mainContent').style.display = 'grid';
                 document.getElementById('allTimeContent').style.display = 'none';
                 
                 updateButtonStates();
-                await loadData();
+                await loadData(); // 현재 선택된 시즌 데이터 로딩
             } else {
                 // 현재 시즌 뷰라면 역대 기록 뷰로
                 isAllTimeView = true;
@@ -1268,22 +1280,27 @@
             });
         }
 
-        // 시즌 변경 함수 (드롭다운용)
+        // 시즌 변경 함수 (수정됨)
         async function changeSeason() {
-            if (isAllTimeView) {
-                // 역대 기록 뷰에서 드롭다운 변경 시 시즌 뷰로 전환
-                isAllTimeView = false;
-                updateButtonStates();
-                
-                document.getElementById('mainContent').style.display = 'grid';
-                document.getElementById('allTimeContent').style.display = 'none';
-            }
-            
             const seasonSelect = document.getElementById('seasonSelect');
-            currentSeason = seasonSelect.value;
+            const newSeason = seasonSelect.value;
             
-            // 개별 시즌 로딩
-            await loadData();
+            // 역대 기록 뷰에서 드롭다운 변경 시 또는 시즌이 실제로 변경된 경우
+            if (isAllTimeView || currentSeason !== newSeason) {
+                if (isAllTimeView) {
+                    // 역대 기록 뷰에서 시즌 뷰로 전환
+                    isAllTimeView = false;
+                    updateButtonStates();
+                    
+                    document.getElementById('mainContent').style.display = 'grid';
+                    document.getElementById('allTimeContent').style.display = 'none';
+                }
+                
+                currentSeason = newSeason;
+                
+                // 개별 시즌 로딩
+                await loadData();
+            }
         }
 
         // 통계 자동 계산 함수
