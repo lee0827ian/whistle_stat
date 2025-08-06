@@ -1,204 +1,760 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>휘슬 STAT 관리</title>
-  <!-- (기존 스타일 전체 유지 - 생략 가능) -->
-  <style>
-    /* 💡 기존 CSS는 동일하므로 생략합니다. */
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>휘슬 STAT 관리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6, #60a5fa, #fbbf24, #f59e0b);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #1e40af;
+        }
+        
+        .team-name {
+            font-size: 2.5em;
+            color: #1e40af;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .season {
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1e40af, #60a5fa);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+        
+        .stat-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            height: 580px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .players-table, .matches-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .players-table th, .players-table td, .matches-table th, .matches-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+        
+        .players-table th, .matches-table th {
+            background: #1e40af;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .players-table tr:hover, .matches-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .attendance-rate {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8em;
+        }
+        
+        .rate-high {
+            background: #1e40af;
+        }
+        
+        .rate-medium {
+            background: #fbbf24;
+            color: #333;
+        }
+        
+        .rate-low {
+            background: #dc3545;
+        }
+        
+        .mvp-badge {
+            background: #fbbf24;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            font-weight: bold;
+            white-space: nowrap;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .result-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8em;
+        }
+        
+        .result-win {
+            background: #1e40af;
+        }
+        
+        .result-draw {
+            background: #fbbf24;
+            color: #333;
+        }
+        
+        .result-loss {
+            background: #dc3545;
+        }
+        
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        /* 다음 경기 일정 및 지도 섹션 스타일 */
+        .next-matches-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .schedule-and-map {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .schedule-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .schedule-item {
+            background: linear-gradient(135deg, #1e40af, #60a5fa);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .schedule-date {
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 8px;
+        }
+        
+        .schedule-time-venue {
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+        
+        .schedule-opponent {
+            font-size: 1.4em;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .map-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        #map {
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
+            border: 2px solid #1e40af;
+        }
+        
+        .map-placeholder {
+            width: 100%;
+            height: 300px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e40af;
+            font-size: 1.1em;
+            border: 2px dashed #1e40af;
+            flex-direction: column;
+        }
+        
+        .venue-info {
+            margin-top: 15px;
+            text-align: left;
+        }
+        
+        .venue-name {
+            font-weight: bold;
+            color: #1e40af;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        
+        .venue-address {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .venue-phone {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .filter-controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            border: 2px solid #1e40af;
+            background: white;
+            color: #1e40af;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #1e40af;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-and-map {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .team-name {
+                font-size: 2em;
+            }
+            
+            .players-table th, .players-table td, .matches-table th, .matches-table td {
+                padding: 6px 4px;
+                font-size: 0.75em;
+            }
+            
+            /* 모바일에서 MVP 이름 표시 개선 */
+            .mvp-badge {
+                font-size: 0.65em;
+                padding: 1px 4px;
+                max-width: 60px;
+            }
+            
+            /* 모바일에서 테이블 컬럼 너비 조정 */
+            .players-table th:nth-child(1), .players-table td:nth-child(1) {
+                width: 20%;
+            }
+            
+            .players-table th:nth-child(2), .players-table td:nth-child(2) {
+                width: 15%;
+            }
+            
+            .players-table th:nth-child(3), .players-table td:nth-child(3) {
+                width: 20%;
+            }
+            
+            .players-table th:nth-child(4), .players-table td:nth-child(4) {
+                width: 15%;
+            }
+            
+            .players-table th:nth-child(5), .players-table td:nth-child(5) {
+                width: 30%;
+            }
+            
+            .matches-table th:nth-child(1), .matches-table td:nth-child(1) {
+                width: 18%;
+                white-space: nowrap;
+                font-size: 0.7em;
+            }
+            
+            .matches-table th:nth-child(2), .matches-table td:nth-child(2) {
+                width: 22%;
+            }
+            
+            .matches-table th:nth-child(3), .matches-table td:nth-child(3) {
+                width: 12%;
+            }
+            
+            .matches-table th:nth-child(4), .matches-table td:nth-child(4) {
+                width: 18%;
+            }
+            
+            .matches-table th:nth-child(5), .matches-table td:nth-child(5) {
+                width: 30%;
+            }
+            
+            .section {
+                height: auto;
+                padding: 15px;
+            }
+            
+            .next-matches-section {
+                padding: 15px;
+            }
+            
+            .schedule-item {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .schedule-date {
+                font-size: 1.2em;
+            }
+            
+            .schedule-time-venue {
+                font-size: 1em;
+            }
+            
+            .schedule-opponent {
+                font-size: 1.3em;
+            }
+            
+            .filter-controls {
+                gap: 5px;
+            }
+            
+            .filter-btn {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+            
+            #map, .map-placeholder {
+                height: 250px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-overview {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .stat-card {
+                padding: 20px;
+            }
+            
+            .schedule-item {
+                padding: 12px;
+            }
+            
+            .schedule-date {
+                font-size: 1.1em;
+            }
+            
+            .schedule-opponent {
+                font-size: 1.2em;
+            }
+            
+            /* 모바일에서 더 작은 화면 대응 */
+            .players-table th, .players-table td, .matches-table th, .matches-table td {
+                padding: 4px 2px;
+                font-size: 0.7em;
+            }
+            
+            .mvp-badge {
+                font-size: 0.6em;
+                padding: 1px 3px;
+                max-width: 50px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <!-- ... 상단 구성 동일 ... -->
-    <!-- 경기 수, 승률, 득점, 득실차는 고정 수치가 아닌 JS에서 계산하도록 할 수도 있음 -->
-    
-    <!-- 선수별 통계 / 경기 결과 영역 -->
-    <div class="main-content">
-      <div class="section">
-        <div class="section-title">선수별 통계</div>
-        <div class="filter-controls">
-          <button class="filter-btn active" onclick="filterPlayers('all')">전체</button>
-          <button class="filter-btn" onclick="filterPlayers('goals')">골 순</button>
-          <button class="filter-btn" onclick="filterPlayers('attendance')">참석률 순</button>
-          <button class="filter-btn" onclick="filterPlayers('mvp')">MVP 횟수</button>
+    <div class="container">
+        <div class="header">
+            <div class="team-name">WHISTLE</div>
+            <div class="season">2025 시즌</div>
         </div>
-        <div class="table-container">
-          <table class="players-table">
-            <thead>
-              <tr>
-                <th>이름</th>
-                <th>출전</th>
-                <th>참석률</th>
-                <th>골</th>
-                <th>MVP</th>
-              </tr>
-            </thead>
-            <tbody id="playersTableBody"></tbody>
-          </table>
-        </div>
-      </div>
 
-      <div class="section">
-        <div class="section-title">최근 경기 결과</div>
-        <div class="table-container">
-          <table class="matches-table">
-            <thead>
-              <tr>
-                <th>날짜</th>
-                <th>상대</th>
-                <th>결과</th>
-                <th>스코어</th>
-                <th>MVP</th>
-              </tr>
-            </thead>
-            <tbody id="matchesTableBody"></tbody>
-          </table>
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-title">경기 수</div>
+                <div class="stat-value">29</div>
+                <div class="stat-subtitle">총 경기</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">승률</div>
+                <div class="stat-value">62.1%</div>
+                <div class="stat-subtitle">18승 1무 10패</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">득점</div>
+                <div class="stat-value">152</div>
+                <div class="stat-subtitle">경기당 5.2골</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">득실차</div>
+                <div class="stat-value">+14</div>
+                <div class="stat-subtitle">152득 138실</div>
+            </div>
         </div>
-      </div>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">선수별 통계</div>
+                <div class="filter-controls">
+                    <button class="filter-btn active" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" onclick="filterPlayers('attendance')">참석률 순</button>
+                    <button class="filter-btn" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                </div>
+                <div class="table-container">
+                    <table class="players-table">
+                        <thead>
+                            <tr>
+                                <th>이름</th>
+                                <th>출전</th>
+                                <th>참석률</th>
+                                <th>골</th>
+                                <th>MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">최근 경기 결과</div>
+                <div class="table-container">
+                    <table class="matches-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>상대</th>
+                                <th>결과</th>
+                                <th>스코어</th>
+                                <th>MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 다음 경기 일정 및 지도 섹션 -->
+        <div class="next-matches-section">
+            <div class="section-title">다음 경기 일정 및 구장 위치</div>
+            <div class="schedule-and-map">
+                <div class="schedule-container">
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
+                    <div class="schedule-item">
+                        <div class="schedule-date">8월 10일 (일) 12:00</div>
+                        <div class="schedule-time-venue">고척근린공원</div>
+                        <div class="schedule-opponent">VS AGAIN FC</div>
+                    </div>
+                </div>
+                <div class="map-container">
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
+                    <div id="map-placeholder" class="map-placeholder">
+                        🗺️<br>고척근린공원<br>
+                        <small>지도 로딩 중...</small>
+                    </div>
+                    <div class="venue-info">
+                        <div class="venue-name">고척근린공원 축구장</div>
+                        <div class="venue-address">📍 서울특별시 구로구 고척로45길 37</div>
+                        <div class="venue-phone">📞 주차 요금은 5분당 150원, 1시간에 1,800원</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 다음 경기 일정 및 지도 섹션 동일 -->
-  </div>
+    <script>
+        // JSON에서 로딩할 데이터 변수들
+        let matches = [];
+        let playerStats = {};
+        let currentFilter = 'all';
 
-  <!-- 스크립트 영역 -->
-  <script>
-    let matches = [];
-    let playerStats = {};
-    let currentFilter = 'all';
-
-    function updatePlayersTable() {
-      const tbody = document.getElementById('playersTableBody');
-      tbody.innerHTML = '';
-
-      let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
-        name,
-        ...stats,
-        attendanceRate: ((stats.appearances / matches.length) * 100).toFixed(1)
-      }));
-
-      switch (currentFilter) {
-        case 'goals':
-          playersArray.sort((a, b) => b.goals - a.goals);
-          break;
-        case 'attendance':
-          playersArray.sort((a, b) => b.attendanceRate - a.attendanceRate);
-          break;
-        case 'mvp':
-          playersArray.sort((a, b) => b.mvp - a.mvp);
-          break;
-        default:
-          playersArray.sort((a, b) => a.name.localeCompare(b.name));
-      }
-
-      playersArray.forEach(player => {
-        let rateClass = 'rate-low';
-        if (player.attendanceRate >= 70) rateClass = 'rate-high';
-        else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${player.name}</td>
-          <td>${player.appearances}</td>
-          <td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>
-          <td>${player.goals}</td>
-          <td>${player.mvp > 0 ? `<span class="mvp-badge">${player.mvp}회</span>` : '0'}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    function updateMatchesTable() {
-      const tbody = document.getElementById('matchesTableBody');
-      tbody.innerHTML = '';
-
-      matches.slice(0, 15).forEach(match => {
-        let resultClass = 'result-loss';
-        let resultText = '패';
-        if (match.result === 'win') {
-          resultClass = 'result-win';
-          resultText = '승';
-        } else if (match.result === 'draw') {
-          resultClass = 'result-draw';
-          resultText = '무';
+        // JSON 데이터 로딩 함수
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                const data = await response.json();
+                
+                matches = data.matches;
+                playerStats = data.players;
+                
+                // 데이터 로딩 후 테이블 업데이트
+                updatePlayersTable();
+                updateMatchesTable();
+                
+            } catch (error) {
+                console.error('데이터 로딩 실패:', error);
+                
+                // JSON 로딩 실패 시 기본 데이터 사용 (옵션)
+                console.log('기본 데이터를 사용합니다.');
+                loadDefaultData();
+                updatePlayersTable();
+                updateMatchesTable();
+            }
         }
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td style="white-space: nowrap;">${match.date}</td>
-          <td>${match.opponent}</td>
-          <td><span class="result-badge ${resultClass}">${resultText}</span></td>
-          <td>${match.score}</td>
-          <td>${match.mvp ? `<span class="mvp-badge">${match.mvp}</span>` : ''}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+        // 기본 데이터 (JSON 로딩 실패 시 백업용)
+        function loadDefaultData() {
+            matches = [
+                { date: '2025-08-03', opponent: '하나FC', result: 'win', score: '6:4', mvp: '박지성' },
+                { date: '2025-07-27', opponent: 'Dream FC', result: 'win', score: '6:2', mvp: '이정호' },
+                // ... 나머지 경기 데이터
+            ];
+            
+            playerStats = {
+                '오진석': { appearances: 25, goals: 32, mvp: 1 },
+                '권창호': { appearances: 13, goals: 14, mvp: 3 },
+                // ... 나머지 선수 데이터
+            };
+        }
 
-    function filterPlayers(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      updatePlayersTable();
-    }
+        function updatePlayersTable() {
+            const tbody = document.getElementById('playersTableBody');
+            tbody.innerHTML = '';
 
-    async function loadData() {
-      try {
-        const response = await fetch('match_data.json');
-        const data = await response.json();
-        matches = data.matches;
-        playerStats = data.players;
+            let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
+                name,
+                ...stats,
+                attendanceRate: ((stats.appearances / 29) * 100).toFixed(1)
+            }));
 
-        updatePlayersTable();
-        updateMatchesTable();
-      } catch (error) {
-        console.error('⚠️ 데이터 로딩 실패:', error);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadData();
-      setTimeout(loadKakaoMap, 3000); // 기존 지도 로딩
-    });
-
-    function loadKakaoMap() {
-      const script = document.createElement('script');
-      script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=47eed652b004605d8a8e3e39df268f24&autoload=false&libraries=services';
-      script.onload = () => {
-        kakao.maps.load(() => {
-          const mapContainer = document.getElementById('map-placeholder');
-          mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
-
-          const map = new kakao.maps.Map(document.getElementById('map'), {
-            center: new kakao.maps.LatLng(37.4656, 127.0347),
-            level: 3
-          });
-
-          const geocoder = new kakao.maps.services.Geocoder();
-          const address = '서울특별시 구로구 고척로45길 37';
-
-          geocoder.addressSearch(address, (result, status) => {
-            if (status === kakao.maps.services.Status.OK) {
-              const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-              map.setCenter(coords);
-              const marker = new kakao.maps.Marker({ map, position: coords });
-              const infowindow = new kakao.maps.InfoWindow({
-                content: '<div style="padding:5px;font-size:12px;text-align:center;">고척근린공원 축구장</div>'
-              });
-              infowindow.open(map, marker);
-            } else {
-              document.getElementById('map').innerHTML = `<div style="text-align:center;color:#666;">주소 검색 실패: ${status}</div>`;
+            // 필터링 및 정렬
+            switch(currentFilter) {
+                case 'goals':
+                    playersArray.sort((a, b) => b.goals - a.goals);
+                    break;
+                case 'attendance':
+                    playersArray.sort((a, b) => b.attendanceRate - a.attendanceRate);
+                    break;
+                case 'mvp':
+                    playersArray.sort((a, b) => b.mvp - a.mvp);
+                    break;
+                default:
+                    playersArray.sort((a, b) => a.name.localeCompare(b.name));
             }
-          });
+
+            playersArray.forEach(player => {
+                const row = document.createElement('tr');
+                
+                let rateClass = 'rate-low';
+                if (player.attendanceRate >= 70) rateClass = 'rate-high';
+                else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
+
+                row.innerHTML = `
+                    <td>${player.name}</td>
+                    <td>${player.appearances}</td>
+                    <td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>
+                    <td>${player.goals}</td>
+                    <td>${player.mvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.mvp}회">${player.mvp}회</span>` : '0'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateMatchesTable() {
+            const tbody = document.getElementById('matchesTableBody');
+            tbody.innerHTML = '';
+
+            matches.slice(0, 15).forEach(match => {
+                const row = document.createElement('tr');
+                
+                let resultClass = 'result-loss';
+                let resultText = '패';
+                if (match.result === 'win') {
+                    resultClass = 'result-win';
+                    resultText = '승';
+                } else if (match.result === 'draw') {
+                    resultClass = 'result-draw';
+                    resultText = '무';
+                }
+
+                row.innerHTML = `
+                    <td style="white-space: nowrap;">${match.date}</td>
+                    <td>${match.opponent}</td>
+                    <td><span class="result-badge ${resultClass}">${resultText}</span></td>
+                    <td>${match.score}</td>
+                    <td>${match.mvp ? `<span class="mvp-badge" title="${match.mvp}">${match.mvp}</span>` : ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 카카오맵 초기화 (지연 로딩)
+        function loadKakaoMap() {
+            const script = document.createElement('script');
+            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=47eed652b004605d8a8e3e39df268f24&autoload=false&libraries=services';
+            script.onload = function () {
+                kakao.maps.load(function () {
+                    const mapContainer = document.getElementById('map-placeholder');
+                    mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
+                    
+                    const map = new kakao.maps.Map(document.getElementById('map'), {
+                        center: new kakao.maps.LatLng(37.4656, 127.0347),
+                        level: 3
+                    });
+
+                    const geocoder = new kakao.maps.services.Geocoder();
+                    const address = '서울특별시 구로구 고척로45길 37';
+
+                    geocoder.addressSearch(address, function (result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                            map.setCenter(coords);
+
+                            const marker = new kakao.maps.Marker({
+                                map: map,
+                                position: coords
+                            });
+
+                            const infowindow = new kakao.maps.InfoWindow({
+                                content: '<div style="padding:5px;font-size:12px;text-align:center;">고척근린공원 축구장</div>'
+                            });
+                            infowindow.open(map, marker);
+                        } else {
+                            document.getElementById('map').innerHTML = `
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
+                                    주소 검색 실패: ${status}
+                                </div>
+                            `;
+                        }
+                    });
+                });
+            };
+            
+            script.onerror = function () {
+                console.error('카카오맵 API 로드 실패');
+                document.getElementById('map-placeholder').innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
+                        <div>🗺️</div>
+                        <div style="margin-top:10px;">고척근린공원</div>
+                        <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
+                    </div>
+                `;
+            };
+            document.head.appendChild(script);
+        }
+
+        function filterPlayers(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            updatePlayersTable();
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData(); // JSON 데이터 먼저 로딩
+            setTimeout(loadKakaoMap, 3000);
         });
-      };
-      script.onerror = () => {
-        console.error('카카오맵 로드 실패');
-        document.getElementById('map-placeholder').innerHTML = `<div>지도를 불러올 수 없습니다</div>`;
-      };
-      document.head.appendChild(script);
-    }
-  </script>
+    </script>
 </body>
 </html>
