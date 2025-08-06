@@ -41,6 +41,34 @@
             font-weight: bold;
         }
         
+        /* 시즌 선택기 스타일 추가 */
+        .season-selector {
+            margin-bottom: 15px;
+        }
+
+        .season-selector label {
+            color: #1e40af;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+
+        .season-selector select {
+            padding: 8px 15px;
+            border: 2px solid #1e40af;
+            border-radius: 8px;
+            font-size: 1em;
+            color: #1e40af;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .season-selector select:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(30, 64, 175, 0.3);
+        }
+        
         .season {
             font-size: 1.2em;
             color: #666;
@@ -314,6 +342,14 @@
             color: white;
         }
         
+        /* 데이터 없음 메시지 스타일 */
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -333,6 +369,15 @@
             
             .team-name {
                 font-size: 2em;
+            }
+            
+            .season-selector {
+                margin-bottom: 10px;
+            }
+            
+            .season-selector select {
+                min-width: 120px;
+                font-size: 0.9em;
             }
             
             .players-table th, .players-table td, .matches-table th, .matches-table td {
@@ -470,7 +515,15 @@
     <div class="container">
         <div class="header">
             <div class="team-name">WHISTLE</div>
-            <div class="season">2025 시즌</div>
+            <div class="season-selector">
+                <label for="seasonSelect">시즌 선택:</label>
+                <select id="seasonSelect" onchange="changeSeason()">
+                    <option value="2025">2025 시즌</option>
+                    <option value="2024">2024 시즌</option>
+                    <option value="2023">2023 시즌</option>
+                </select>
+            </div>
+            <div class="season" id="currentSeason">2025 시즌</div>
         </div>
 
         <div class="stats-overview">
@@ -517,6 +570,7 @@
                             </tr>
                         </thead>
                         <tbody id="playersTableBody">
+                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -536,6 +590,7 @@
                             </tr>
                         </thead>
                         <tbody id="matchesTableBody">
+                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -571,14 +626,39 @@
     </div>
 
     <script>
+        // 현재 선택된 시즌
+        let currentSeason = '2025';
+        
         // JSON에서 로딩할 데이터 변수들
         let matches = [];
         let playerStats = {};
         let currentFilter = 'all';
 
+        // 시즌 변경 함수
+        function changeSeason() {
+            const seasonSelect = document.getElementById('seasonSelect');
+            currentSeason = seasonSelect.value;
+            
+            // 현재 시즌 표시 업데이트
+            document.getElementById('currentSeason').textContent = `${currentSeason} 시즌`;
+            
+            // 선택된 시즌 데이터 로딩
+            loadData();
+        }
+
         // 통계 자동 계산 함수
         function updateStats() {
-            if (matches.length === 0) return; // 데이터가 없으면 리턴
+            if (matches.length === 0) {
+                // 데이터가 없는 경우 0으로 표시
+                document.getElementById('totalMatches').textContent = '0';
+                document.getElementById('winRate').textContent = '0%';
+                document.getElementById('winRateSubtitle').textContent = '0승 0무 0패';
+                document.getElementById('totalGoals').textContent = '0';
+                document.getElementById('goalsPerMatch').textContent = '경기당 0골';
+                document.getElementById('goalDifference').textContent = '0';
+                document.getElementById('goalDifferenceDetail').textContent = '0득 0실';
+                return;
+            }
             
             const totalMatches = matches.length;
             const wins = matches.filter(match => match.result === 'win').length;
@@ -613,19 +693,26 @@
         // JSON 데이터 로딩 함수
         async function loadData() {
             try {
-                const response = await fetch('match_data.json');
+                const response = await fetch(`${currentSeason}_data.json`);
                 const data = await response.json();
                 
-                matches = data.matches;
-                playerStats = data.players;
+                matches = data.matches || [];
+                playerStats = data.players || {};
                 
                 // 데이터 로딩 후 모든 업데이트
-                updateStats();        // 통계 자동 계산
+                updateStats();
                 updatePlayersTable();
                 updateMatchesTable();
                 
             } catch (error) {
-                console.error('데이터 로딩 실패:', error);
+                console.error(`${currentSeason} 시즌 데이터 로딩 실패:`, error);
+                
+                // 데이터가 없는 경우 빈 상태로 표시
+                matches = [];
+                playerStats = {};
+                updateStats();
+                updatePlayersTable();
+                updateMatchesTable();
             }
         }
 
@@ -633,10 +720,15 @@
             const tbody = document.getElementById('playersTableBody');
             tbody.innerHTML = '';
 
+            if (Object.keys(playerStats).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
             let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
                 name,
                 ...stats,
-                attendanceRate: ((stats.appearances / matches.length) * 100).toFixed(1)
+                attendanceRate: matches.length > 0 ? ((stats.appearances / matches.length) * 100).toFixed(1) : '0.0'
             }));
 
             // 필터링 및 정렬
@@ -675,6 +767,11 @@
         function updateMatchesTable() {
             const tbody = document.getElementById('matchesTableBody');
             tbody.innerHTML = '';
+
+            if (matches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 경기 기록이 없습니다.</td></tr>';
+                return;
+            }
 
             matches.slice(0, 15).forEach(match => {
                 const row = document.createElement('tr');
@@ -766,7 +863,17 @@
 
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            loadData(); // JSON 데이터 먼저 로딩
+            // URL 파라미터에서 시즌 확인 (옵션)
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonParam = urlParams.get('season');
+            
+            if (seasonParam && ['2023', '2024', '2025'].includes(seasonParam)) {
+                currentSeason = seasonParam;
+                document.getElementById('seasonSelect').value = seasonParam;
+                document.getElementById('currentSeason').textContent = `${seasonParam} 시즌`;
+            }
+            
+            loadData(); // 선택된 시즌 데이터 로딩
             setTimeout(loadKakaoMap, 3000);
         });
     </script>
