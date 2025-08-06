@@ -363,6 +363,11 @@
             padding: 20px;
         }
         
+        /* 역대 기록용 특별 스타일 */
+        .all-time-highlight {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -536,7 +541,8 @@
             <div class="team-name">WHISTLE</div>
             <div class="season-selector">
                 <select id="seasonSelect" onchange="changeSeason()">
-                    <option value="2025">2025 시즌</option>
+                    <option value="2025">🏆 2025 시즌 (현재)</option>
+                    <option value="all-time">📊 역대 기록</option>
                     <option value="2024">2024 시즌</option>
                     <option value="2023">2023 시즌</option>
                     <option value="2022">2022 시즌</option>
@@ -582,7 +588,7 @@
                 <div class="table-container">
                     <table class="players-table">
                         <thead>
-                            <tr>
+                            <tr id="playersTableHeader">
                                 <th>이름</th>
                                 <th>출전</th>
                                 <th>참석률</th>
@@ -647,7 +653,10 @@
     </div>
 
     <script>
-        // 현재 선택된 시즌
+        // 시즌 목록 (확장 가능)
+        const AVAILABLE_SEASONS = ['2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+        
+        // 현재 선택된 시즌 (2025가 기본)
         let currentSeason = '2025';
         
         // JSON에서 로딩할 데이터 변수들
@@ -655,13 +664,162 @@
         let playerStats = {};
         let currentFilter = 'all';
 
-        // 시즌 변경 함수 (중복 텍스트 업데이트 제거)
-        function changeSeason() {
+        // 역대 기록 로딩 함수
+        async function loadAllTimeStats() {
+            const allTimeStats = {};
+            
+            for (const season of AVAILABLE_SEASONS) {
+                try {
+                    const response = await fetch(`${season}_data.json`);
+                    const data = await response.json();
+                    
+                    Object.entries(data.players).forEach(([name, stats]) => {
+                        if (!allTimeStats[name]) {
+                            allTimeStats[name] = {
+                                totalAppearances: 0,
+                                totalGoals: 0,
+                                totalMvp: 0
+                            };
+                        }
+                        
+                        allTimeStats[name].totalAppearances += stats.appearances;
+                        allTimeStats[name].totalGoals += stats.goals;
+                        allTimeStats[name].totalMvp += stats.mvp;
+                    });
+                    
+                } catch (error) {
+                    console.error(`${season} 시즌 데이터 로딩 실패:`, error);
+                }
+            }
+            
+            return allTimeStats;
+        }
+
+        // 역대 기록 순위 표시 함수
+        function updateAllTimeRankings(allTimeStats) {
+            const statsOverview = document.querySelector('.stats-overview');
+            
+            // 득점왕 순위 (TOP 1)
+            const topScorers = Object.entries(allTimeStats)
+                .map(([name, stats]) => ({name, ...stats}))
+                .filter(player => player.totalGoals > 0)
+                .sort((a, b) => b.totalGoals - a.totalGoals);
+            
+            // MVP 순위 (TOP 1)
+            const topMvps = Object.entries(allTimeStats)
+                .map(([name, stats]) => ({name, ...stats}))
+                .filter(player => player.totalMvp > 0)
+                .sort((a, b) => b.totalMvp - a.totalMvp);
+                
+            // 출장 순위 (TOP 1)
+            const topAppearances = Object.entries(allTimeStats)
+                .map(([name, stats]) => ({name, ...stats}))
+                .filter(player => player.totalAppearances > 0)
+                .sort((a, b) => b.totalAppearances - a.totalAppearances);
+            
+            // 전체 통계
+            const totalPlayers = Object.keys(allTimeStats).filter(name => 
+                allTimeStats[name].totalAppearances > 0
+            ).length;
+            
+            statsOverview.innerHTML = `
+                <div class="stat-card all-time-highlight">
+                    <div class="stat-title">역대 득점왕</div>
+                    <div class="stat-value">${topScorers[0]?.name || '-'}</div>
+                    <div class="stat-subtitle">${topScorers[0]?.totalGoals || 0}골</div>
+                </div>
+                <div class="stat-card all-time-highlight">
+                    <div class="stat-title">역대 MVP</div>
+                    <div class="stat-value">${topMvps[0]?.name || '-'}</div>
+                    <div class="stat-subtitle">${topMvps[0]?.totalMvp || 0}회</div>
+                </div>
+                <div class="stat-card all-time-highlight">
+                    <div class="stat-title">최다 출장</div>
+                    <div class="stat-value">${topAppearances[0]?.name || '-'}</div>
+                    <div class="stat-subtitle">${topAppearances[0]?.totalAppearances || 0}경기</div>
+                </div>
+                <div class="stat-card all-time-highlight">
+                    <div class="stat-title">등록 선수</div>
+                    <div class="stat-value">${totalPlayers}</div>
+                    <div class="stat-subtitle">명</div>
+                </div>
+            `;
+        }
+
+        // 역대 기록 테이블 업데이트
+        function updateAllTimeTable(allTimeStats) {
+            const tbody = document.getElementById('playersTableBody');
+            tbody.innerHTML = '';
+
+            // 득점순으로 정렬된 배열
+            const playersByGoals = Object.entries(allTimeStats)
+                .map(([name, stats]) => ({name, ...stats}))
+                .filter(player => player.totalAppearances > 0) // 출장 경험이 있는 선수만
+                .sort((a, b) => b.totalGoals - a.totalGoals);
+
+            if (playersByGoals.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">역대 기록 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
+            playersByGoals.forEach((player, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td><strong>${player.name}</strong></td>
+                    <td><strong>${player.totalAppearances}</strong></td>
+                    <td><strong>${player.totalGoals}</strong></td>
+                    <td>${player.totalMvp > 0 ? `<span class="mvp-badge">${player.totalMvp}회</span>` : '0'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 테이블 헤더 동적 변경
+        function updateTableHeaders(isAllTime = false) {
+            const headerRow = document.getElementById('playersTableHeader');
+            
+            if (isAllTime) {
+                headerRow.innerHTML = `
+                    <th>이름</th>
+                    <th>총 출장</th>
+                    <th>총 득점</th>
+                    <th>총 MVP</th>
+                `;
+            } else {
+                headerRow.innerHTML = `
+                    <th>이름</th>
+                    <th>출전</th>
+                    <th>참석률</th>
+                    <th>골</th>
+                    <th>MVP</th>
+                `;
+            }
+        }
+
+        // 시즌 변경 함수
+        async function changeSeason() {
             const seasonSelect = document.getElementById('seasonSelect');
             currentSeason = seasonSelect.value;
             
-            // 선택된 시즌 데이터 로딩
-            loadData();
+            if (currentSeason === 'all-time') {
+                // 역대 기록 로딩
+                const allTimeStats = await loadAllTimeStats();
+                updateAllTimeRankings(allTimeStats);
+                updateTableHeaders(true);
+                updateAllTimeTable(allTimeStats);
+                
+                // 섹션 타이틀 변경
+                document.querySelector('.section-title').textContent = '역대 선수 기록';
+                document.querySelector('.matches-table').parentElement.parentElement.style.display = 'none';
+                
+            } else {
+                // 개별 시즌 로딩
+                updateTableHeaders(false);
+                document.querySelector('.section-title').textContent = '선수별 통계';
+                document.querySelector('.matches-table').parentElement.parentElement.style.display = 'block';
+                loadData();
+            }
         }
 
         // 통계 자동 계산 함수
@@ -699,13 +857,29 @@
             const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
             
             // DOM 업데이트
-            document.getElementById('totalMatches').textContent = totalMatches;
-            document.getElementById('winRate').textContent = `${winRate}%`;
-            document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
-            document.getElementById('totalGoals').textContent = totalGoalsFor;
-            document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
-            document.getElementById('goalDifference').textContent = goalDifference > 0 ? `+${goalDifference}` : goalDifference;
-            document.getElementById('goalDifferenceDetail').textContent = `${totalGoalsFor}득 ${totalGoalsAgainst}실`;
+            const statsOverview = document.querySelector('.stats-overview');
+            statsOverview.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-title">경기 수</div>
+                    <div class="stat-value">${totalMatches}</div>
+                    <div class="stat-subtitle">총 경기</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">승률</div>
+                    <div class="stat-value">${winRate}%</div>
+                    <div class="stat-subtitle">${wins}승 ${draws}무 ${losses}패</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">득점</div>
+                    <div class="stat-value">${totalGoalsFor}</div>
+                    <div class="stat-subtitle">경기당 ${goalsPerMatch}골</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">득실차</div>
+                    <div class="stat-value">${goalDifference > 0 ? `+${goalDifference}` : goalDifference}</div>
+                    <div class="stat-subtitle">${totalGoalsFor}득 ${totalGoalsAgainst}실</div>
+                </div>
+            `;
         }
 
         // JSON 데이터 로딩 함수
@@ -876,21 +1050,32 @@
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
+            
+            if (currentSeason === 'all-time') {
+                // 역대 기록에서는 필터링 기능 비활성화
+                return;
+            }
             updatePlayersTable();
         }
 
-        // 페이지 로드 시 초기화 (중복 텍스트 업데이트 제거)
+        // 페이지 로드 시 초기화 (2025가 기본)
         document.addEventListener('DOMContentLoaded', function() {
             // URL 파라미터에서 시즌 확인 (옵션)
             const urlParams = new URLSearchParams(window.location.search);
             const seasonParam = urlParams.get('season');
             
-            if (seasonParam && ['2019','2020','2021','2022', '2023', '2024', '2025'].includes(seasonParam)) {
+            if (seasonParam && [...AVAILABLE_SEASONS, 'all-time'].includes(seasonParam)) {
                 currentSeason = seasonParam;
                 document.getElementById('seasonSelect').value = seasonParam;
+                
+                if (seasonParam === 'all-time') {
+                    changeSeason(); // 역대 기록 로딩
+                    return;
+                }
             }
             
-            loadData(); // 선택된 시즌 데이터 로딩
+            // 기본적으로 2025 시즌 로딩
+            loadData();
             setTimeout(loadKakaoMap, 3000);
         });
     </script>
