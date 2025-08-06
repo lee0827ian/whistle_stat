@@ -521,6 +521,7 @@
                     <option value="2025">2025 시즌</option>
                     <option value="2024">2024 시즌</option>
                     <option value="2023">2023 시즌</option>
+                    <option value="2022">2022 시즌</option>
                 </select>
             </div>
             <div class="season" id="currentSeason">2025 시즌</div>
@@ -867,7 +868,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const seasonParam = urlParams.get('season');
             
-            if (seasonParam && ['2023', '2024', '2025'].includes(seasonParam)) {
+            if (seasonParam && ['2022', '2023', '2024', '2025'].includes(seasonParam)) {
                 currentSeason = seasonParam;
                 document.getElementById('seasonSelect').value = seasonParam;
                 document.getElementById('currentSeason').textContent = `${seasonParam} 시즌`;
