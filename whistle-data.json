@@ -1,29 +1,4 @@
 {
-  "teamInfo": {
-    "name": "WHISTLE",
-    "season": "2025 시즌"
-  },
-  "stats": {
-    "totalMatches": 29,
-    "wins": 18,
-    "draws": 1,
-    "losses": 10,
-    "winRate": "62.1%",
-    "totalGoalsScored": 152,
-    "totalGoalsConceded": 138,
-    "goalDifference": 14,
-    "avgGoalsPerGame": 5.2
-  },
-  "nextMatch": {
-    "date": "8월 10일 (일) 12:00",
-    "venue": "고척근린공원",
-    "opponent": "AGAIN FC",
-    "venueInfo": {
-      "name": "고척근린공원 축구장",
-      "address": "서울특별시 구로구 고척로45길 37",
-      "phone": "주차 요금은 5분당 150원, 1시간에 1,800원"
-    }
-  },
   "matches": [
     {
       "date": "2025-08-03",
