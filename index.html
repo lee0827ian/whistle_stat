@@ -82,6 +82,34 @@
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
         }
         
+        /* 에러/로딩 메시지 스타일 */
+        .status-message {
+            margin: 15px 0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .status-loading {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 2px solid #dbeafe;
+        }
+        
+        .status-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 2px solid #fecaca;
+        }
+        
+        .status-success {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 2px solid #bbf7d0;
+        }
+        
         /* 기존 시즌 표시 숨김 */
         .season {
             display: none;
@@ -126,7 +154,24 @@
             margin-bottom: 40px;
         }
         
+        /* 역대 기록 전용 레이아웃 */
+        .all-time-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
         .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            height: 580px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .team-records-section {
             background: #f8f9fa;
             padding: 25px;
             border-radius: 15px;
@@ -231,13 +276,54 @@
             border: 1px solid #ddd;
         }
         
+        /* 팀 기록 카드 스타일 */
+        .team-record-card {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .team-record-win-streak {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+        
+        .team-record-max-goals {
+            background: linear-gradient(135deg, #06b6d4, #22d3ee);
+            color: white;
+        }
+        
+        .team-record-max-conceded {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+        }
+        
+        .team-record-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .team-record-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .team-record-detail {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
         /* 다음 경기 일정 및 지도 섹션 스타일 */
         .next-matches-section {
             background: #f8f9fa;
             padding: 25px;
             border-radius: 15px;
-            margin-top: 60px; /* 더 넉넉한 간격 */
-            border-top: 2px solid #e9ecef; /* 구분선 추가 */
+            margin-top: 60px;
+            border-top: 2px solid #e9ecef;
         }
         
         .schedule-and-map {
@@ -380,7 +466,7 @@
                 padding: 15px;
             }
             
-            .main-content {
+            .main-content, .all-time-content {
                 grid-template-columns: 1fr;
             }
             
@@ -458,13 +544,13 @@
                 width: 30%;
             }
             
-            .section {
+            .section, .team-records-section {
                 height: auto;
                 padding: 15px;
             }
             
             .next-matches-section {
-                margin-top: 40px; /* 모바일에서는 조금 줄인 간격 */
+                margin-top: 40px;
                 padding: 15px;
             }
             
@@ -559,6 +645,8 @@
                     <option value="2019">2019 시즌</option>
                 </select>
             </div>
+            <!-- 상태 메시지 표시 영역 -->
+            <div id="statusMessage" class="status-message"></div>
         </div>
 
         <div class="stats-overview">
@@ -584,7 +672,7 @@
             </div>
         </div>
 
-        <div class="main-content">
+        <div id="mainContent" class="main-content">
             <div class="section">
                 <div class="section-title">선수별 통계</div>
                 <div class="filter-controls">
@@ -632,6 +720,41 @@
             </div>
         </div>
 
+        <!-- 역대 기록 전용 레이아웃 (숨김 상태로 시작) -->
+        <div id="allTimeContent" class="all-time-content" style="display: none;">
+            <div class="section">
+                <div class="section-title">역대 선수 기록</div>
+                <div class="filter-controls">
+                    <button class="filter-btn active" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" onclick="filterPlayers('attendance')">참석률 순</button>
+                    <button class="filter-btn" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                </div>
+                <div class="table-container">
+                    <table class="players-table">
+                        <thead>
+                            <tr id="allTimePlayersTableHeader">
+                                <th>이름</th>
+                                <th>총 출장</th>
+                                <th>총 득점</th>
+                                <th>총 MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allTimePlayersTableBody">
+                            <tr><td colspan="4" class="no-data">데이터를 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="team-records-section">
+                <div class="section-title">역대 팀 기록</div>
+                <div id="teamRecordsContainer">
+                    <!-- 팀 기록 카드들이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </div>
+        </div>
+
         <!-- 다음 경기 일정 및 지도 섹션 -->
         <div class="next-matches-section">
             <div class="section-title">다음 경기 일정 및 구장 위치</div>
@@ -671,16 +794,107 @@
         let matches = [];
         let playerStats = {};
         let currentFilter = 'all';
+        
+        // 메모리 관리용 변수들
+        let mapScriptLoaded = false;
+        let mapInitialized = false;
+        let currentAbortController = null;
+        
+        // 한국어 정렬을 위한 Collator
+        const koreanCollator = new Intl.Collator('ko', { numeric: true });
 
-        // 역대 기록 로딩 함수
+        // 상태 메시지 표시 함수
+        function showStatusMessage(message, type = 'loading') {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = `status-message status-${type}`;
+            statusElement.style.display = 'block';
+        }
+
+        function hideStatusMessage() {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.style.display = 'none';
+        }
+
+        // 데이터 검증 함수
+        function validateSeasonData(data) {
+            const validatedData = {
+                matches: [],
+                players: {}
+            };
+
+            // 경기 데이터 검증
+            if (Array.isArray(data.matches)) {
+                validatedData.matches = data.matches.filter(match => {
+                    return match && 
+                           typeof match.date === 'string' &&
+                           typeof match.opponent === 'string' &&
+                           typeof match.result === 'string' &&
+                           typeof match.score === 'string' &&
+                           ['win', 'draw', 'loss'].includes(match.result) &&
+                           /^\d+:\d+$/.test(match.score);
+                }).map(match => ({
+                    date: match.date,
+                    opponent: match.opponent,
+                    result: match.result,
+                    score: match.score,
+                    mvp: match.mvp || ''
+                }));
+            }
+
+            // 선수 데이터 검증
+            if (data.players && typeof data.players === 'object') {
+                Object.entries(data.players).forEach(([name, stats]) => {
+                    if (typeof name === 'string' && stats && typeof stats === 'object') {
+                        validatedData.players[name] = {
+                            appearances: Math.max(0, parseInt(stats.appearances) || 0),
+                            goals: Math.max(0, parseInt(stats.goals) || 0),
+                            mvp: Math.max(0, parseInt(stats.mvp) || 0)
+                        };
+                    }
+                });
+            }
+
+            return validatedData;
+        }
+
+        // 강화된 에러 핸들링이 포함된 역대 기록 로딩 함수
         async function loadAllTimeStats() {
             const allTimeStats = {};
+            const allMatches = [];
+            let loadedSeasons = 0;
+            
+            showStatusMessage('역대 기록을 불러오는 중...', 'loading');
             
             for (const season of AVAILABLE_SEASONS) {
                 try {
-                    const response = await fetch(`${season}_data.json`);
-                    const data = await response.json();
+                    // 이전 요청 취소
+                    if (currentAbortController) {
+                        currentAbortController.abort();
+                    }
+                    currentAbortController = new AbortController();
                     
+                    const response = await fetch(`${season}_data.json`, {
+                        signal: currentAbortController.signal,
+                        headers: {
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const rawData = await response.json();
+                    const data = validateSeasonData(rawData);
+                    
+                    // 경기 데이터 수집 (팀 기록 계산용)
+                    allMatches.push(...data.matches.map(match => ({
+                        ...match,
+                        season: season
+                    })));
+                    
+                    // 선수 통계 누적
                     Object.entries(data.players).forEach(([name, stats]) => {
                         if (!allTimeStats[name]) {
                             allTimeStats[name] = {
@@ -695,12 +909,86 @@
                         allTimeStats[name].totalMvp += stats.mvp;
                     });
                     
+                    loadedSeasons++;
+                    
                 } catch (error) {
-                    console.error(`${season} 시즌 데이터 로딩 실패:`, error);
+                    if (error.name !== 'AbortError') {
+                        console.warn(`${season} 시즌 데이터 로딩 실패:`, error.message);
+                    }
                 }
             }
             
-            return allTimeStats;
+            if (loadedSeasons === 0) {
+                showStatusMessage('데이터를 불러올 수 없습니다. 인터넷 연결을 확인해주세요.', 'error');
+                return { stats: {}, matches: [], records: null };
+            } else if (loadedSeasons < AVAILABLE_SEASONS.length) {
+                showStatusMessage(`${loadedSeasons}/${AVAILABLE_SEASONS.length} 시즌 데이터 로딩 완료`, 'success');
+                setTimeout(hideStatusMessage, 3000);
+            } else {
+                hideStatusMessage();
+            }
+            
+            // 팀 기록 계산
+            const teamRecords = calculateTeamRecords(allMatches);
+            
+            return { stats: allTimeStats, matches: allMatches, records: teamRecords };
+        }
+
+        // 팀 기록 계산 함수
+        function calculateTeamRecords(matches) {
+            let maxWinStreak = 0;
+            let currentWinStreak = 0;
+            let winStreakStart = null;
+            let winStreakEnd = null;
+            let maxWinStreakStart = null;
+            let maxWinStreakEnd = null;
+            
+            let maxGoalsMatch = null;
+            let maxConcededMatch = null;
+            
+            // 날짜순으로 정렬
+            const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            sortedMatches.forEach(match => {
+                const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
+                
+                // 연승 계산
+                if (match.result === 'win') {
+                    if (currentWinStreak === 0) {
+                        winStreakStart = match.date;
+                    }
+                    currentWinStreak++;
+                    winStreakEnd = match.date;
+                    
+                    if (currentWinStreak > maxWinStreak) {
+                        maxWinStreak = currentWinStreak;
+                        maxWinStreakStart = winStreakStart;
+                        maxWinStreakEnd = winStreakEnd;
+                    }
+                } else {
+                    currentWinStreak = 0;
+                }
+                
+                // 최다 득점 경기
+                if (!maxGoalsMatch || goalsFor > parseInt(maxGoalsMatch.score.split(':')[0])) {
+                    maxGoalsMatch = match;
+                }
+                
+                // 최다 실점 경기
+                if (!maxConcededMatch || goalsAgainst > parseInt(maxConcededMatch.score.split(':')[1])) {
+                    maxConcededMatch = match;
+                }
+            });
+            
+            return {
+                maxWinStreak: {
+                    count: maxWinStreak,
+                    startDate: maxWinStreakStart,
+                    endDate: maxWinStreakEnd
+                },
+                maxGoalsMatch,
+                maxConcededMatch
+            };
         }
 
         // 역대 기록 순위 표시 함수
@@ -754,9 +1042,60 @@
             `;
         }
 
-        // 역대 기록 테이블 업데이트 (정렬 기능 추가)
+        // 팀 기록 표시 함수
+        function updateTeamRecords(teamRecords) {
+            const container = document.getElementById('teamRecordsContainer');
+            
+            if (!teamRecords) {
+                container.innerHTML = '<div class="no-data">팀 기록 데이터가 없습니다.</div>';
+                return;
+            }
+            
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('ko-KR', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            };
+            
+            container.innerHTML = `
+                <div class="team-record-card team-record-win-streak">
+                    <div class="team-record-title">🔥 최고 연승 기록</div>
+                    <div class="team-record-value">${teamRecords.maxWinStreak.count}연승</div>
+                    <div class="team-record-detail">
+                        ${teamRecords.maxWinStreak.startDate ? 
+                            `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` : 
+                            '기록 없음'}
+                    </div>
+                </div>
+                
+                <div class="team-record-card team-record-max-goals">
+                    <div class="team-record-title">⚽ 최다 득점 경기</div>
+                    <div class="team-record-value">${teamRecords.maxGoalsMatch ? teamRecords.maxGoalsMatch.score.split(':')[0] : 0}골</div>
+                    <div class="team-record-detail">
+                        ${teamRecords.maxGoalsMatch ? 
+                            `vs ${teamRecords.maxGoalsMatch.opponent}<br>${formatDate(teamRecords.maxGoalsMatch.date)}` : 
+                            '기록 없음'}
+                    </div>
+                </div>
+                
+                <div class="team-record-card team-record-max-conceded">
+                    <div class="team-record-title">😱 최다 실점 경기</div>
+                    <div class="team-record-value">${teamRecords.maxConcededMatch ? teamRecords.maxConcededMatch.score.split(':')[1] : 0}실점</div>
+                    <div class="team-record-detail">
+                        ${teamRecords.maxConcededMatch ? 
+                            `vs ${teamRecords.maxConcededMatch.opponent}<br>${formatDate(teamRecords.maxConcededMatch.date)}` : 
+                            '기록 없음'}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 안정적인 정렬을 위한 역대 기록 테이블 업데이트 함수
         function updateAllTimeTable(allTimeStats, sortBy = 'goals') {
-            const tbody = document.getElementById('playersTableBody');
+            const tbody = document.getElementById('allTimePlayersTableBody');
             tbody.innerHTML = '';
 
             // 출장 경험이 있는 선수만 필터링
@@ -764,29 +1103,31 @@
                 .map(([name, stats]) => ({name, ...stats}))
                 .filter(player => player.totalAppearances > 0);
 
-            // 정렬 기준에 따라 정렬
+            // 정렬 기준에 따라 안정적 정렬
             switch(sortBy) {
                 case 'goals':
                     playersBySort.sort((a, b) => {
                         if (b.totalGoals !== a.totalGoals) return b.totalGoals - a.totalGoals;
-                        return b.totalAppearances - a.totalAppearances; // 동점 시 출장 순
+                        if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
+                        return koreanCollator.compare(a.name, b.name);
                     });
                     break;
                 case 'attendance':
-                    // 역대 기록에서는 총 출장 횟수로 정렬
                     playersBySort.sort((a, b) => {
                         if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
-                        return b.totalGoals - a.totalGoals; // 동점 시 득점 순
+                        if (b.totalGoals !== a.totalGoals) return b.totalGoals - a.totalGoals;
+                        return koreanCollator.compare(a.name, b.name);
                     });
                     break;
                 case 'mvp':
                     playersBySort.sort((a, b) => {
                         if (b.totalMvp !== a.totalMvp) return b.totalMvp - a.totalMvp;
-                        return b.totalGoals - a.totalGoals; // 동점 시 득점 순
+                        if (b.totalGoals !== a.totalGoals) return b.totalGoals - a.totalGoals;
+                        return koreanCollator.compare(a.name, b.name);
                     });
                     break;
                 default: // 'all'
-                    playersBySort.sort((a, b) => a.name.localeCompare(b.name));
+                    playersBySort.sort((a, b) => koreanCollator.compare(a.name, b.name));
             }
 
             if (playersBySort.length === 0) {
@@ -833,28 +1174,6 @@
             });
         }
 
-        // 테이블 헤더 동적 변경
-        function updateTableHeaders(isAllTime = false) {
-            const headerRow = document.getElementById('playersTableHeader');
-            
-            if (isAllTime) {
-                headerRow.innerHTML = `
-                    <th>이름</th>
-                    <th>총 출장</th>
-                    <th>총 득점</th>
-                    <th>총 MVP</th>
-                `;
-            } else {
-                headerRow.innerHTML = `
-                    <th>이름</th>
-                    <th>출전</th>
-                    <th>참석률</th>
-                    <th>골</th>
-                    <th>MVP</th>
-                `;
-            }
-        }
-
         // 시즌 변경 함수
         async function changeSeason() {
             const seasonSelect = document.getElementById('seasonSelect');
@@ -862,20 +1181,26 @@
             
             if (currentSeason === 'all-time') {
                 // 역대 기록 로딩
-                const allTimeStats = await loadAllTimeStats();
-                updateAllTimeRankings(allTimeStats);
-                updateTableHeaders(true);
-                updateAllTimeTable(allTimeStats, currentFilter);
-                
-                // 섹션 타이틀 변경
-                document.querySelector('.section-title').textContent = '역대 선수 기록';
-                document.getElementById('matchesSection').style.display = 'none';
+                try {
+                    const { stats: allTimeStats, records: teamRecords } = await loadAllTimeStats();
+                    
+                    // 레이아웃 변경
+                    document.getElementById('mainContent').style.display = 'none';
+                    document.getElementById('allTimeContent').style.display = 'grid';
+                    
+                    updateAllTimeRankings(allTimeStats);
+                    updateAllTimeTable(allTimeStats, currentFilter);
+                    updateTeamRecords(teamRecords);
+                    
+                } catch (error) {
+                    showStatusMessage('역대 기록을 불러오는 중 오류가 발생했습니다.', 'error');
+                    console.error('역대 기록 로딩 오류:', error);
+                }
                 
             } else {
                 // 개별 시즌 로딩
-                updateTableHeaders(false);
-                document.querySelector('.section-title').textContent = '선수별 통계';
-                document.getElementById('matchesSection').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'grid';
+                document.getElementById('allTimeContent').style.display = 'none';
                 loadData();
             }
         }
@@ -884,13 +1209,29 @@
         function updateStats() {
             if (matches.length === 0) {
                 // 데이터가 없는 경우 0으로 표시
-                document.getElementById('totalMatches').textContent = '0';
-                document.getElementById('winRate').textContent = '0%';
-                document.getElementById('winRateSubtitle').textContent = '0승 0무 0패';
-                document.getElementById('totalGoals').textContent = '0';
-                document.getElementById('goalsPerMatch').textContent = '경기당 0골';
-                document.getElementById('goalDifference').textContent = '0';
-                document.getElementById('goalDifferenceDetail').textContent = '0득 0실';
+                const statsOverview = document.querySelector('.stats-overview');
+                statsOverview.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-title">경기 수</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-subtitle">총 경기</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">승률</div>
+                        <div class="stat-value">0%</div>
+                        <div class="stat-subtitle">0승 0무 0패</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">득점</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-subtitle">경기당 0골</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">득실차</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-subtitle">0득 0실</div>
+                    </div>
+                `;
                 return;
             }
             
@@ -905,8 +1246,10 @@
             
             matches.forEach(match => {
                 const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
-                totalGoalsFor += goalsFor;
-                totalGoalsAgainst += goalsAgainst;
+                if (!isNaN(goalsFor) && !isNaN(goalsAgainst)) {
+                    totalGoalsFor += goalsFor;
+                    totalGoalsAgainst += goalsAgainst;
+                }
             });
             
             // 계산된 값들
@@ -940,11 +1283,30 @@
             `;
         }
 
-        // JSON 데이터 로딩 함수
+        // 강화된 에러 핸들링이 포함된 JSON 데이터 로딩 함수
         async function loadData() {
             try {
-                const response = await fetch(`${currentSeason}_data.json`);
-                const data = await response.json();
+                showStatusMessage(`${currentSeason} 시즌 데이터를 불러오는 중...`, 'loading');
+                
+                // 이전 요청 취소
+                if (currentAbortController) {
+                    currentAbortController.abort();
+                }
+                currentAbortController = new AbortController();
+                
+                const response = await fetch(`${currentSeason}_data.json`, {
+                    signal: currentAbortController.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                }
+                
+                const rawData = await response.json();
+                const data = validateSeasonData(rawData);
                 
                 matches = data.matches || [];
                 playerStats = data.players || {};
@@ -954,8 +1316,23 @@
                 updatePlayersTable();
                 updateMatchesTable();
                 
+                hideStatusMessage();
+                
             } catch (error) {
-                console.error(`${currentSeason} 시즌 데이터 로딩 실패:`, error);
+                if (error.name !== 'AbortError') {
+                    let errorMessage = `${currentSeason} 시즌 데이터를 불러올 수 없습니다.`;
+                    
+                    if (error.message.includes('404')) {
+                        errorMessage += ' (파일이 존재하지 않습니다)';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        errorMessage += ' (인터넷 연결을 확인해주세요)';
+                    } else if (error.name === 'SyntaxError') {
+                        errorMessage += ' (파일 형식이 올바르지 않습니다)';
+                    }
+                    
+                    showStatusMessage(errorMessage, 'error');
+                    console.error(`${currentSeason} 시즌 데이터 로딩 실패:`, error);
+                }
                 
                 // 데이터가 없는 경우 빈 상태로 표시
                 matches = [];
@@ -966,6 +1343,7 @@
             }
         }
 
+        // 안정적인 정렬이 포함된 선수 테이블 업데이트
         function updatePlayersTable() {
             const tbody = document.getElementById('playersTableBody');
             tbody.innerHTML = '';
@@ -981,19 +1359,31 @@
                 attendanceRate: matches.length > 0 ? ((stats.appearances / matches.length) * 100).toFixed(1) : '0.0'
             }));
 
-            // 필터링 및 정렬
+            // 안정적인 정렬
             switch(currentFilter) {
                 case 'goals':
-                    playersArray.sort((a, b) => b.goals - a.goals);
+                    playersArray.sort((a, b) => {
+                        if (b.goals !== a.goals) return b.goals - a.goals;
+                        if (b.appearances !== a.appearances) return b.appearances - a.appearances;
+                        return koreanCollator.compare(a.name, b.name);
+                    });
                     break;
                 case 'attendance':
-                    playersArray.sort((a, b) => b.attendanceRate - a.attendanceRate);
+                    playersArray.sort((a, b) => {
+                        if (b.attendanceRate !== a.attendanceRate) return b.attendanceRate - a.attendanceRate;
+                        if (b.goals !== a.goals) return b.goals - a.goals;
+                        return koreanCollator.compare(a.name, b.name);
+                    });
                     break;
                 case 'mvp':
-                    playersArray.sort((a, b) => b.mvp - a.mvp);
+                    playersArray.sort((a, b) => {
+                        if (b.mvp !== a.mvp) return b.mvp - a.mvp;
+                        if (b.goals !== a.goals) return b.goals - a.goals;
+                        return koreanCollator.compare(a.name, b.name);
+                    });
                     break;
                 default:
-                    playersArray.sort((a, b) => a.name.localeCompare(b.name));
+                    playersArray.sort((a, b) => koreanCollator.compare(a.name, b.name));
             }
 
             playersArray.forEach(player => {
@@ -1047,46 +1437,18 @@
             });
         }
 
-        // 카카오맵 초기화 (지연 로딩)
+        // 메모리 관리가 개선된 카카오맵 초기화 함수
         function loadKakaoMap() {
+            if (mapScriptLoaded) {
+                initializeMap();
+                return;
+            }
+            
             const script = document.createElement('script');
             script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=47eed652b004605d8a8e3e39df268f24&autoload=false&libraries=services';
             script.onload = function () {
-                kakao.maps.load(function () {
-                    const mapContainer = document.getElementById('map-placeholder');
-                    mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
-                    
-                    const map = new kakao.maps.Map(document.getElementById('map'), {
-                        center: new kakao.maps.LatLng(37.4656, 127.0347),
-                        level: 3
-                    });
-
-                    const geocoder = new kakao.maps.services.Geocoder();
-                    const address = '서울특별시 구로구 고척로45길 37';
-
-                    geocoder.addressSearch(address, function (result, status) {
-                        if (status === kakao.maps.services.Status.OK) {
-                            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                            map.setCenter(coords);
-
-                            const marker = new kakao.maps.Marker({
-                                map: map,
-                                position: coords
-                            });
-
-                            const infowindow = new kakao.maps.InfoWindow({
-                                content: '<div style="padding:5px;font-size:12px;text-align:center;">고척근린공원 축구장</div>'
-                            });
-                            infowindow.open(map, marker);
-                        } else {
-                            document.getElementById('map').innerHTML = `
-                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
-                                    주소 검색 실패: ${status}
-                                </div>
-                            `;
-                        }
-                    });
-                });
+                mapScriptLoaded = true;
+                initializeMap();
             };
             
             script.onerror = function () {
@@ -1101,8 +1463,50 @@
             };
             document.head.appendChild(script);
         }
+        
+        function initializeMap() {
+            if (mapInitialized) return;
+            
+            kakao.maps.load(function () {
+                const mapContainer = document.getElementById('map-placeholder');
+                mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
+                
+                const map = new kakao.maps.Map(document.getElementById('map'), {
+                    center: new kakao.maps.LatLng(37.4656, 127.0347),
+                    level: 3
+                });
 
-        // 수정된 필터 함수 (역대 기록에서도 정렬 작동)
+                const geocoder = new kakao.maps.services.Geocoder();
+                const address = '서울특별시 구로구 고척로45길 37';
+
+                geocoder.addressSearch(address, function (result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                        map.setCenter(coords);
+
+                        const marker = new kakao.maps.Marker({
+                            map: map,
+                            position: coords
+                        });
+
+                        const infowindow = new kakao.maps.InfoWindow({
+                            content: '<div style="padding:5px;font-size:12px;text-align:center;">고척근린공원 축구장</div>'
+                        });
+                        infowindow.open(map, marker);
+                        
+                        mapInitialized = true;
+                    } else {
+                        document.getElementById('map').innerHTML = `
+                            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
+                                주소 검색 실패: ${status}
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+
+        // 필터 함수 (역대 기록에서도 정렬 작동)
         function filterPlayers(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1112,13 +1516,20 @@
             
             if (currentSeason === 'all-time') {
                 // 역대 기록에서도 정렬 적용
-                loadAllTimeStats().then(allTimeStats => {
+                loadAllTimeStats().then(({ stats: allTimeStats }) => {
                     updateAllTimeTable(allTimeStats, filter);
                 });
             } else {
                 updatePlayersTable();
             }
         }
+
+        // 페이지 종료 시 정리 작업
+        window.addEventListener('beforeunload', function() {
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+        });
 
         // 페이지 로드 시 초기화 (2025가 기본)
         document.addEventListener('DOMContentLoaded', function() {
@@ -1138,6 +1549,8 @@
             
             // 기본적으로 2025 시즌 로딩
             loadData();
+            
+            // 카카오맵은 3초 후 지연 로딩
             setTimeout(loadKakaoMap, 3000);
         });
     </script>
