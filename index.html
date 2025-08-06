@@ -47,6 +47,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 15px;
         }
 
         .season-selector select {
@@ -80,6 +81,44 @@
         .season-selector select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        /* 역대 기록 버튼 스타일 */
+        .all-time-button {
+            padding: 12px 24px;
+            border: 3px solid #f59e0b;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #f59e0b;
+            background: linear-gradient(135deg, #ffffff, #fefbf1);
+            cursor: pointer;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+            transition: all 0.3s ease;
+            outline: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .all-time-button:hover {
+            background: linear-gradient(135deg, #fefbf1, #fef3c7);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .all-time-button.active {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: #d97706;
+        }
+
+        .all-time-button.active:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
         }
         
         /* 에러/로딩 메시지 스타일 */
@@ -465,6 +504,18 @@
             .container {
                 padding: 15px;
             }
+
+            .season-selector {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .season-selector select,
+            .all-time-button {
+                min-width: 140px;
+                font-size: 1em;
+                padding: 10px 15px;
+            }
             
             .main-content, .all-time-content {
                 grid-template-columns: 1fr;
@@ -480,13 +531,6 @@
             
             .team-name {
                 font-size: 2em;
-            }
-            
-            .season-selector select {
-                min-width: 140px;
-                font-size: 1em;
-                padding: 10px 35px 10px 15px;
-                background-position: right 12px center;
             }
             
             .players-table th, .players-table td, .matches-table th, .matches-table td {
@@ -607,12 +651,11 @@
                 font-size: 1.2em;
             }
             
-            .season-selector select {
+            .season-selector select,
+            .all-time-button {
                 min-width: 120px;
                 font-size: 0.9em;
-                padding: 8px 30px 8px 12px;
-                background-position: right 10px center;
-                background-size: 10px;
+                padding: 8px 12px;
             }
             
             /* 모바일에서 더 작은 화면 대응 */
@@ -635,8 +678,7 @@
             <div class="team-name">WHISTLE</div>
             <div class="season-selector">
                 <select id="seasonSelect" onchange="changeSeason()">
-                    <option value="2025">2025 시즌 (현재)</option>
-                    <option value="all-time">🏆 역대 기록</option>
+                    <option value="2025">🏆 2025 시즌 (현재)</option>
                     <option value="2024">2024 시즌</option>
                     <option value="2023">2023 시즌</option>
                     <option value="2022">2022 시즌</option>
@@ -644,6 +686,9 @@
                     <option value="2020">2020 시즌</option>
                     <option value="2019">2019 시즌</option>
                 </select>
+                <button id="allTimeButton" class="all-time-button" onclick="toggleAllTimeView()">
+                    📊 역대 기록
+                </button>
             </div>
             <!-- 상태 메시지 표시 영역 -->
             <div id="statusMessage" class="status-message"></div>
@@ -789,6 +834,7 @@
         
         // 현재 선택된 시즌 (2025가 기본)
         let currentSeason = '2025';
+        let isAllTimeView = false;
         
         // JSON에서 로딩할 데이터 변수들
         let matches = [];
@@ -856,6 +902,54 @@
             }
 
             return validatedData;
+        }
+
+        // 버튼 상태 업데이트 함수
+        function updateButtonStates() {
+            const allTimeButton = document.getElementById('allTimeButton');
+            const seasonSelect = document.getElementById('seasonSelect');
+            
+            if (isAllTimeView) {
+                allTimeButton.classList.add('active');
+                seasonSelect.style.opacity = '0.6';
+            } else {
+                allTimeButton.classList.remove('active');
+                seasonSelect.style.opacity = '1';
+            }
+        }
+
+        // 역대 기록 토글 함수
+        async function toggleAllTimeView() {
+            if (isAllTimeView) {
+                // 현재 역대 기록 뷰라면 시즌 뷰로 돌아가기
+                isAllTimeView = false;
+                currentSeason = '2025'; // 기본 시즌으로
+                document.getElementById('seasonSelect').value = '2025';
+                
+                document.getElementById('mainContent').style.display = 'grid';
+                document.getElementById('allTimeContent').style.display = 'none';
+                
+                updateButtonStates();
+                await loadData();
+            } else {
+                // 현재 시즌 뷰라면 역대 기록 뷰로
+                isAllTimeView = true;
+                
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('allTimeContent').style.display = 'grid';
+                
+                updateButtonStates();
+                
+                try {
+                    const { stats: allTimeStats, records: teamRecords } = await loadAllTimeStats();
+                    updateAllTimeRankings(allTimeStats);
+                    updateAllTimeTable(allTimeStats, currentFilter);
+                    updateTeamRecords(teamRecords);
+                } catch (error) {
+                    showStatusMessage('역대 기록을 불러오는 중 오류가 발생했습니다.', 'error');
+                    console.error('역대 기록 로딩 오류:', error);
+                }
+            }
         }
 
         // 강화된 에러 핸들링이 포함된 역대 기록 로딩 함수
@@ -1174,35 +1268,22 @@
             });
         }
 
-        // 시즌 변경 함수
+        // 시즌 변경 함수 (드롭다운용)
         async function changeSeason() {
+            if (isAllTimeView) {
+                // 역대 기록 뷰에서 드롭다운 변경 시 시즌 뷰로 전환
+                isAllTimeView = false;
+                updateButtonStates();
+                
+                document.getElementById('mainContent').style.display = 'grid';
+                document.getElementById('allTimeContent').style.display = 'none';
+            }
+            
             const seasonSelect = document.getElementById('seasonSelect');
             currentSeason = seasonSelect.value;
             
-            if (currentSeason === 'all-time') {
-                // 역대 기록 로딩
-                try {
-                    const { stats: allTimeStats, records: teamRecords } = await loadAllTimeStats();
-                    
-                    // 레이아웃 변경
-                    document.getElementById('mainContent').style.display = 'none';
-                    document.getElementById('allTimeContent').style.display = 'grid';
-                    
-                    updateAllTimeRankings(allTimeStats);
-                    updateAllTimeTable(allTimeStats, currentFilter);
-                    updateTeamRecords(teamRecords);
-                    
-                } catch (error) {
-                    showStatusMessage('역대 기록을 불러오는 중 오류가 발생했습니다.', 'error');
-                    console.error('역대 기록 로딩 오류:', error);
-                }
-                
-            } else {
-                // 개별 시즌 로딩
-                document.getElementById('mainContent').style.display = 'grid';
-                document.getElementById('allTimeContent').style.display = 'none';
-                loadData();
-            }
+            // 개별 시즌 로딩
+            await loadData();
         }
 
         // 통계 자동 계산 함수
@@ -1514,7 +1595,7 @@
             });
             event.target.classList.add('active');
             
-            if (currentSeason === 'all-time') {
+            if (isAllTimeView) {
                 // 역대 기록에서도 정렬 적용
                 loadAllTimeStats().then(({ stats: allTimeStats }) => {
                     updateAllTimeTable(allTimeStats, filter);
@@ -1538,14 +1619,18 @@
             const seasonParam = urlParams.get('season');
             
             if (seasonParam && [...AVAILABLE_SEASONS, 'all-time'].includes(seasonParam)) {
-                currentSeason = seasonParam;
-                document.getElementById('seasonSelect').value = seasonParam;
-                
                 if (seasonParam === 'all-time') {
-                    changeSeason(); // 역대 기록 로딩
+                    // 역대 기록으로 시작
+                    toggleAllTimeView();
                     return;
+                } else {
+                    currentSeason = seasonParam;
+                    document.getElementById('seasonSelect').value = seasonParam;
                 }
             }
+            
+            // 초기 버튼 상태 설정
+            updateButtonStates();
             
             // 기본적으로 2025 시즌 로딩
             loadData();
