@@ -579,7 +579,7 @@
         // JSON 데이터 로딩 함수
         async function loadData() {
             try {
-                const response = await fetch('data.json');
+                const response = await fetch('match_data.json');
                 const data = await response.json();
                 
                 matches = data.matches;
