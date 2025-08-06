@@ -476,23 +476,23 @@
         <div class="stats-overview">
             <div class="stat-card">
                 <div class="stat-title">경기 수</div>
-                <div class="stat-value">29</div>
+                <div class="stat-value" id="totalMatches">0</div>
                 <div class="stat-subtitle">총 경기</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">승률</div>
-                <div class="stat-value">62.1%</div>
-                <div class="stat-subtitle">18승 1무 10패</div>
+                <div class="stat-value" id="winRate">0%</div>
+                <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">득점</div>
-                <div class="stat-value">152</div>
-                <div class="stat-subtitle">경기당 5.2골</div>
+                <div class="stat-value" id="totalGoals">0</div>
+                <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">득실차</div>
-                <div class="stat-value">+14</div>
-                <div class="stat-subtitle">152득 138실</div>
+                <div class="stat-value" id="goalDifference">0</div>
+                <div class="stat-subtitle" id="goalDifferenceDetail">0득 0실</div>
             </div>
         </div>
 
@@ -576,6 +576,40 @@
         let playerStats = {};
         let currentFilter = 'all';
 
+        // 통계 자동 계산 함수
+        function updateStats() {
+            if (matches.length === 0) return; // 데이터가 없으면 리턴
+            
+            const totalMatches = matches.length;
+            const wins = matches.filter(match => match.result === 'win').length;
+            const draws = matches.filter(match => match.result === 'draw').length;
+            const losses = matches.filter(match => match.result === 'loss').length;
+            
+            // 득점/실점 계산
+            let totalGoalsFor = 0;
+            let totalGoalsAgainst = 0;
+            
+            matches.forEach(match => {
+                const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
+                totalGoalsFor += goalsFor;
+                totalGoalsAgainst += goalsAgainst;
+            });
+            
+            // 계산된 값들
+            const winRate = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
+            const goalDifference = totalGoalsFor - totalGoalsAgainst;
+            const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
+            
+            // DOM 업데이트
+            document.getElementById('totalMatches').textContent = totalMatches;
+            document.getElementById('winRate').textContent = `${winRate}%`;
+            document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
+            document.getElementById('totalGoals').textContent = totalGoalsFor;
+            document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
+            document.getElementById('goalDifference').textContent = goalDifference > 0 ? `+${goalDifference}` : goalDifference;
+            document.getElementById('goalDifferenceDetail').textContent = `${totalGoalsFor}득 ${totalGoalsAgainst}실`;
+        }
+
         // JSON 데이터 로딩 함수
         async function loadData() {
             try {
@@ -585,17 +619,15 @@
                 matches = data.matches;
                 playerStats = data.players;
                 
-                // 데이터 로딩 후 테이블 업데이트
+                // 데이터 로딩 후 모든 업데이트
+                updateStats();        // 통계 자동 계산
                 updatePlayersTable();
                 updateMatchesTable();
                 
             } catch (error) {
                 console.error('데이터 로딩 실패:', error);
-                
             }
         }
-
-    
 
         function updatePlayersTable() {
             const tbody = document.getElementById('playersTableBody');
@@ -604,7 +636,7 @@
             let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
                 name,
                 ...stats,
-                attendanceRate: ((stats.appearances / 29) * 100).toFixed(1)
+                attendanceRate: ((stats.appearances / matches.length) * 100).toFixed(1)
             }));
 
             // 필터링 및 정렬
