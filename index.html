@@ -592,28 +592,10 @@
             } catch (error) {
                 console.error('데이터 로딩 실패:', error);
                 
-                // JSON 로딩 실패 시 기본 데이터 사용 (옵션)
-                console.log('기본 데이터를 사용합니다.');
-                loadDefaultData();
-                updatePlayersTable();
-                updateMatchesTable();
             }
         }
 
-        // 기본 데이터 (JSON 로딩 실패 시 백업용)
-        function loadDefaultData() {
-            matches = [
-                { date: '2025-08-03', opponent: '하나FC', result: 'win', score: '6:4', mvp: '박지성' },
-                { date: '2025-07-27', opponent: 'Dream FC', result: 'win', score: '6:2', mvp: '이정호' },
-                // ... 나머지 경기 데이터
-            ];
-            
-            playerStats = {
-                '오진석': { appearances: 25, goals: 32, mvp: 1 },
-                '권창호': { appearances: 13, goals: 14, mvp: 3 },
-                // ... 나머지 선수 데이터
-            };
-        }
+    
 
         function updatePlayersTable() {
             const tbody = document.getElementById('playersTableBody');
