@@ -232,12 +232,14 @@
         }
         
         /* 다음 경기 일정 및 지도 섹션 스타일 */
-        .next-matches-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            margin-top: 30px;
-        }
+.next-matches-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-top: 60px; /* 더 넉넉한 간격 */
+    border-top: 2px solid #e9ecef; /* 구분선 추가 (선택사항) */
+}
+
         
         .schedule-and-map {
             display: grid;
@@ -374,10 +376,13 @@
             margin-left: 5px;
         }
         
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
+@media (max-width: 768px) {
+    .next-matches-section {
+        margin-top: 40px; /* 모바일에서는 조금 줄인 간격 */
+        padding: 15px;
+    }
+}
+
             
             .main-content {
                 grid-template-columns: 1fr;
