@@ -232,14 +232,13 @@
         }
         
         /* 다음 경기 일정 및 지도 섹션 스타일 */
-.next-matches-section {
-    background: #f8f9fa;
-    padding: 25px;
-    border-radius: 15px;
-    margin-top: 60px; /* 더 넉넉한 간격 */
-    border-top: 2px solid #e9ecef; /* 구분선 추가 (선택사항) */
-}
-
+        .next-matches-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 60px; /* 더 넉넉한 간격 */
+            border-top: 2px solid #e9ecef; /* 구분선 추가 */
+        }
         
         .schedule-and-map {
             display: grid;
@@ -376,13 +375,10 @@
             margin-left: 5px;
         }
         
-@media (max-width: 768px) {
-    .next-matches-section {
-        margin-top: 40px; /* 모바일에서는 조금 줄인 간격 */
-        padding: 15px;
-    }
-}
-
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
             
             .main-content {
                 grid-template-columns: 1fr;
@@ -468,6 +464,7 @@
             }
             
             .next-matches-section {
+                margin-top: 40px; /* 모바일에서는 조금 줄인 간격 */
                 padding: 15px;
             }
             
@@ -552,8 +549,8 @@
             <div class="team-name">WHISTLE</div>
             <div class="season-selector">
                 <select id="seasonSelect" onchange="changeSeason()">
-                    <option value="2025">2025 시즌 (현재)</option>
-                    <option value="all-time">🏆 역대 기록</option>
+                    <option value="2025">🏆 2025 시즌 (현재)</option>
+                    <option value="all-time">📊 역대 기록</option>
                     <option value="2024">2024 시즌</option>
                     <option value="2023">2023 시즌</option>
                     <option value="2022">2022 시즌</option>
@@ -757,85 +754,84 @@
             `;
         }
 
-// 역대 기록 테이블 업데이트 (정렬 기능 추가)
-function updateAllTimeTable(allTimeStats, sortBy = 'goals') {
-    const tbody = document.getElementById('playersTableBody');
-    tbody.innerHTML = '';
+        // 역대 기록 테이블 업데이트 (정렬 기능 추가)
+        function updateAllTimeTable(allTimeStats, sortBy = 'goals') {
+            const tbody = document.getElementById('playersTableBody');
+            tbody.innerHTML = '';
 
-    // 출장 경험이 있는 선수만 필터링
-    let playersBySort = Object.entries(allTimeStats)
-        .map(([name, stats]) => ({name, ...stats}))
-        .filter(player => player.totalAppearances > 0);
+            // 출장 경험이 있는 선수만 필터링
+            let playersBySort = Object.entries(allTimeStats)
+                .map(([name, stats]) => ({name, ...stats}))
+                .filter(player => player.totalAppearances > 0);
 
-    // 정렬 기준에 따라 정렬
-    switch(sortBy) {
-        case 'goals':
-            playersBySort.sort((a, b) => {
-                if (b.totalGoals !== a.totalGoals) return b.totalGoals - a.totalGoals;
-                return b.totalAppearances - a.totalAppearances; // 동점 시 출장 순
-            });
-            break;
-        case 'attendance':
-            // 역대 기록에서는 총 출장 횟수로 정렬
-            playersBySort.sort((a, b) => {
-                if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
-                return b.totalGoals - a.totalGoals; // 동점 시 득점 순
-            });
-            break;
-        case 'mvp':
-            playersBySort.sort((a, b) => {
-                if (b.totalMvp !== a.totalMvp) return b.totalMvp - a.totalMvp;
-                return b.totalGoals - a.totalGoals; // 동점 시 득점 순
-            });
-            break;
-        default: // 'all'
-            playersBySort.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    if (playersBySort.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="no-data">역대 기록 데이터가 없습니다.</td></tr>';
-        return;
-    }
-
-    playersBySort.forEach((player, index) => {
-        const row = document.createElement('tr');
-        
-        // 순위 표시 (모든 정렬에서 상위 3명에게 메달 표시)
-        let rankDisplay = '';
-        if (index < 3) {
-            const rankEmoji = ['🥇', '🥈', '🥉'];
-            
-            // 각 정렬 기준에 따른 조건 확인
-            let showMedal = false;
+            // 정렬 기준에 따라 정렬
             switch(sortBy) {
                 case 'goals':
-                    showMedal = player.totalGoals > 0;
+                    playersBySort.sort((a, b) => {
+                        if (b.totalGoals !== a.totalGoals) return b.totalGoals - a.totalGoals;
+                        return b.totalAppearances - a.totalAppearances; // 동점 시 출장 순
+                    });
                     break;
                 case 'attendance':
-                    showMedal = player.totalAppearances > 0;
+                    // 역대 기록에서는 총 출장 횟수로 정렬
+                    playersBySort.sort((a, b) => {
+                        if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
+                        return b.totalGoals - a.totalGoals; // 동점 시 득점 순
+                    });
                     break;
                 case 'mvp':
-                    showMedal = player.totalMvp > 0;
+                    playersBySort.sort((a, b) => {
+                        if (b.totalMvp !== a.totalMvp) return b.totalMvp - a.totalMvp;
+                        return b.totalGoals - a.totalGoals; // 동점 시 득점 순
+                    });
                     break;
-                default:
-                    showMedal = false; // 전체(이름순)에서는 메달 표시 안함
+                default: // 'all'
+                    playersBySort.sort((a, b) => a.name.localeCompare(b.name));
             }
-            
-            if (showMedal) {
-                rankDisplay = ` ${rankEmoji[index]}`;
-            }
-        }
-        
-        row.innerHTML = `
-            <td><strong>${player.name}</strong>${rankDisplay}</td>
-            <td><strong>${player.totalAppearances}</strong></td>
-            <td><strong>${player.totalGoals}</strong></td>
-            <td>${player.totalMvp > 0 ? `<span class="mvp-badge">${player.totalMvp}회</span>` : '0'}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
 
+            if (playersBySort.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">역대 기록 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
+            playersBySort.forEach((player, index) => {
+                const row = document.createElement('tr');
+                
+                // 순위 표시 (모든 정렬에서 상위 3명에게 메달 표시)
+                let rankDisplay = '';
+                if (index < 3) {
+                    const rankEmoji = ['🥇', '🥈', '🥉'];
+                    
+                    // 각 정렬 기준에 따른 조건 확인
+                    let showMedal = false;
+                    switch(sortBy) {
+                        case 'goals':
+                            showMedal = player.totalGoals > 0;
+                            break;
+                        case 'attendance':
+                            showMedal = player.totalAppearances > 0;
+                            break;
+                        case 'mvp':
+                            showMedal = player.totalMvp > 0;
+                            break;
+                        default:
+                            showMedal = false; // 전체(이름순)에서는 메달 표시 안함
+                    }
+                    
+                    if (showMedal) {
+                        rankDisplay = ` ${rankEmoji[index]}`;
+                    }
+                }
+                
+                row.innerHTML = `
+                    <td><strong>${player.name}</strong>${rankDisplay}</td>
+                    <td><strong>${player.totalAppearances}</strong></td>
+                    <td><strong>${player.totalGoals}</strong></td>
+                    <td>${player.totalMvp > 0 ? `<span class="mvp-badge">${player.totalMvp}회</span>` : '0'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
 
         // 테이블 헤더 동적 변경
         function updateTableHeaders(isAllTime = false) {
