@@ -204,5 +204,211 @@
       "mvp": "권창호"
     }
   ],
-  "players": {}
+  "players": {
+    "오진석": {
+      "appearances": 25,
+      "goals": 32,
+      "mvp": 1
+    },
+    "권창호": {
+      "appearances": 13,
+      "goals": 14,
+      "mvp": 3
+    },
+    "신규환": {
+      "appearances": 23,
+      "goals": 12,
+      "mvp": 6
+    },
+    "조인혁": {
+      "appearances": 10,
+      "goals": 11,
+      "mvp": 1
+    },
+    "김기호": {
+      "appearances": 17,
+      "goals": 11,
+      "mvp": 1
+    },
+    "반기훈": {
+      "appearances": 8,
+      "goals": 5,
+      "mvp": 2
+    },
+    "안창영": {
+      "appearances": 13,
+      "goals": 4,
+      "mvp": 2
+    },
+    "이정호": {
+      "appearances": 6,
+      "goals": 4,
+      "mvp": 1
+    },
+    "안태수": {
+      "appearances": 20,
+      "goals": 3,
+      "mvp": 1
+    },
+    "이항규": {
+      "appearances": 2,
+      "goals": 3,
+      "mvp": 0
+    },
+    "강재웅": {
+      "appearances": 6,
+      "goals": 3,
+      "mvp": 1
+    },
+    "김경배": {
+      "appearances": 15,
+      "goals": 2,
+      "mvp": 0
+    },
+    "서원덕": {
+      "appearances": 19,
+      "goals": 2,
+      "mvp": 3
+    },
+    "윤종진": {
+      "appearances": 4,
+      "goals": 2,
+      "mvp": 0
+    },
+    "윤준배": {
+      "appearances": 8,
+      "goals": 1,
+      "mvp": 0
+    },
+    "김태종": {
+      "appearances": 3,
+      "goals": 1,
+      "mvp": 0
+    },
+    "이광수": {
+      "appearances": 10,
+      "goals": 1,
+      "mvp": 0
+    },
+    "박윤제": {
+      "appearances": 4,
+      "goals": 1,
+      "mvp": 0
+    },
+    "박지성": {
+      "appearances": 27,
+      "goals": 1,
+      "mvp": 4
+    },
+    "이상보": {
+      "appearances": 18,
+      "goals": 1,
+      "mvp": 3
+    },
+    "고영규": {
+      "appearances": 4,
+      "goals": 1,
+      "mvp": 0
+    },
+    "강용기": {
+      "appearances": 23,
+      "goals": 0,
+      "mvp": 0
+    },
+    "유지현": {
+      "appearances": 16,
+      "goals": 0,
+      "mvp": 1
+    },
+    "김영주": {
+      "appearances": 15,
+      "goals": 0,
+      "mvp": 0
+    },
+    "이경윤": {
+      "appearances": 5,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김병태": {
+      "appearances": 4,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김진호": {
+      "appearances": 3,
+      "goals": 0,
+      "mvp": 0
+    },
+    "조상현": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "곽웅": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김경현": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "서형원": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "강명국": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "윤정민": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "이치석": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "임태현": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "손의창": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김종우": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "이지훈": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "강현제": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김동규": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "안수영": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    }
+  }
 }
