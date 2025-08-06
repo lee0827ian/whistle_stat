@@ -41,37 +41,50 @@
             font-weight: bold;
         }
         
-        /* 시즌 선택기 스타일 추가 */
+        /* 개선된 시즌 선택기 스타일 */
         .season-selector {
-            margin-bottom: 15px;
-        }
-
-        .season-selector label {
-            color: #1e40af;
-            font-weight: bold;
-            margin-right: 10px;
-            font-size: 1.1em;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .season-selector select {
-            padding: 8px 15px;
-            border: 2px solid #1e40af;
-            border-radius: 8px;
-            font-size: 1em;
+            padding: 12px 20px;
+            border: 3px solid #1e40af;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
             color: #1e40af;
-            background: white;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
             cursor: pointer;
-            min-width: 150px;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.15);
+            transition: all 0.3s ease;
+            outline: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%231e40af" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+            padding-right: 45px;
+        }
+
+        .season-selector select:hover {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.25);
+            transform: translateY(-2px);
         }
 
         .season-selector select:focus {
-            outline: none;
-            box-shadow: 0 0 5px rgba(30, 64, 175, 0.3);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
         }
         
+        /* 기존 시즌 표시 숨김 */
         .season {
-            font-size: 1.2em;
-            color: #666;
+            display: none;
         }
         
         .stats-overview {
@@ -371,13 +384,11 @@
                 font-size: 2em;
             }
             
-            .season-selector {
-                margin-bottom: 10px;
-            }
-            
             .season-selector select {
-                min-width: 120px;
-                font-size: 0.9em;
+                min-width: 140px;
+                font-size: 1em;
+                padding: 10px 35px 10px 15px;
+                background-position: right 12px center;
             }
             
             .players-table th, .players-table td, .matches-table th, .matches-table td {
@@ -497,6 +508,14 @@
                 font-size: 1.2em;
             }
             
+            .season-selector select {
+                min-width: 120px;
+                font-size: 0.9em;
+                padding: 8px 30px 8px 12px;
+                background-position: right 10px center;
+                background-size: 10px;
+            }
+            
             /* 모바일에서 더 작은 화면 대응 */
             .players-table th, .players-table td, .matches-table th, .matches-table td {
                 padding: 4px 2px;
@@ -516,7 +535,6 @@
         <div class="header">
             <div class="team-name">WHISTLE</div>
             <div class="season-selector">
-                <label for="seasonSelect">시즌 선택:</label>
                 <select id="seasonSelect" onchange="changeSeason()">
                     <option value="2025">2025 시즌</option>
                     <option value="2024">2024 시즌</option>
@@ -524,7 +542,6 @@
                     <option value="2022">2022 시즌</option>
                 </select>
             </div>
-            <div class="season" id="currentSeason">2025 시즌</div>
         </div>
 
         <div class="stats-overview">
@@ -635,13 +652,10 @@
         let playerStats = {};
         let currentFilter = 'all';
 
-        // 시즌 변경 함수
+        // 시즌 변경 함수 (중복 텍스트 업데이트 제거)
         function changeSeason() {
             const seasonSelect = document.getElementById('seasonSelect');
             currentSeason = seasonSelect.value;
-            
-            // 현재 시즌 표시 업데이트
-            document.getElementById('currentSeason').textContent = `${currentSeason} 시즌`;
             
             // 선택된 시즌 데이터 로딩
             loadData();
@@ -862,7 +876,7 @@
             updatePlayersTable();
         }
 
-        // 페이지 로드 시 초기화
+        // 페이지 로드 시 초기화 (중복 텍스트 업데이트 제거)
         document.addEventListener('DOMContentLoaded', function() {
             // URL 파라미터에서 시즌 확인 (옵션)
             const urlParams = new URLSearchParams(window.location.search);
@@ -871,7 +885,6 @@
             if (seasonParam && ['2022', '2023', '2024', '2025'].includes(seasonParam)) {
                 currentSeason = seasonParam;
                 document.getElementById('seasonSelect').value = seasonParam;
-                document.getElementById('currentSeason').textContent = `${seasonParam} 시즌`;
             }
             
             loadData(); // 선택된 시즌 데이터 로딩
