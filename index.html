@@ -212,6 +212,7 @@
             height: 580px;
             display: flex;
             flex-direction: column;
+            overflow-y: auto; /* 스크롤 가능하게 변경 */
         }
         
         .section-title {
@@ -282,6 +283,17 @@
             text-overflow: ellipsis;
         }
         
+        .season-mvp-badge {
+            background: #fbbf24;
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
         .result-badge {
             padding: 3px 8px;
             border-radius: 4px;
@@ -311,11 +323,12 @@
         }
         
         .team-record-card {
-            margin-bottom: 20px;
-            padding: 20px;
+            margin-bottom: 15px; /* 간격 줄임 */
+            padding: 15px; /* 패딩 줄임 */
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-height: 120px; /* 최소 높이 설정 */
         }
         
         .team-record-overall {
@@ -338,20 +351,30 @@
             color: white;
         }
         
+        .team-record-draws {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            color: white;
+        }
+        
+        .team-record-loss-streak {
+            background: linear-gradient(135deg, #f43f5e, #fb7185);
+            color: white;
+        }
+        
         .team-record-title {
-            font-size: 1.1em;
+            font-size: 1.0em; /* 폰트 크기 줄임 */
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px; /* 간격 줄임 */
         }
         
         .team-record-value {
-            font-size: 2.2em;
+            font-size: 1.8em; /* 폰트 크기 줄임 */
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 6px; /* 간격 줄임 */
         }
         
         .team-record-detail {
-            font-size: 0.9em;
+            font-size: 0.85em; /* 폰트 크기 줄임 */
             opacity: 0.9;
         }
         
@@ -361,6 +384,11 @@
             border-radius: 15px;
             margin-top: 60px;
             border-top: 2px solid #e9ecef;
+        }
+        
+        /* 역대기록 탭에서 다음 경기 섹션 숨김 */
+        .all-time-view .next-matches-section {
+            display: none;
         }
         
         .schedule-and-map {
@@ -749,9 +777,9 @@
                 <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
             </div>
             <div class="stat-card">
-                <div class="stat-title">득실차</div>
-                <div class="stat-value" id="goalDifference">0</div>
-                <div class="stat-subtitle" id="goalDifferenceDetail">0득 0실</div>
+                <div class="stat-title" id="mvpCardTitle">시즌 MVP</div>
+                <div class="stat-value" id="seasonMvp">-</div>
+                <div class="stat-subtitle" id="mvpStats">MVP 0회</div>
             </div>
         </div>
 
@@ -902,11 +930,11 @@
         // ========== 보안 및 유틸리티 함수 ==========
         function escapeHtml(unsafe) {
             return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+                .replace(/&amp;/g, "&amp;amp;")
+                .replace(/&lt;/g, "&amp;lt;")
+                .replace(/&gt;/g, "&amp;gt;")
+                .replace(/"/g, "&amp;quot;")
+                .replace(/'/g, "&amp;#039;");
         }
 
         function sanitizeTableData(data) {
@@ -992,17 +1020,44 @@
             return validatedData;
         }
 
-        // ========== UI 상태 관리 ==========
+        // ========== MVP 선정 함수 (개선됨) ==========
+        function calculateSeasonMvp(playerStats) {
+            if (!playerStats || Object.keys(playerStats).length === 0) {
+                return null;
+            }
+            
+            const playersArray = Object.entries(playerStats)
+                .map(([name, stats]) => ({ name, ...stats }))
+                .filter(player => player.appearances > 0); // 출장한 선수만 고려
+            
+            if (playersArray.length === 0) {
+                return null;
+            }
+            
+            // MVP 선정 기준: 1) MVP 횟수 2) 참가횟수
+            playersArray.sort((a, b) => {
+                if (b.mvp !== a.mvp) return b.mvp - a.mvp;
+                if (b.appearances !== a.appearances) return b.appearances - a.appearances;
+                return koreanCollator.compare(a.name, b.name);
+            });
+            
+            return playersArray[0];
+        }
+
+        // ========== UI 상태 관리 (개선됨) ==========
         function updateButtonStates() {
             const allTimeButton = document.getElementById('allTimeButton');
             const seasonSelect = document.getElementById('seasonSelect');
+            const container = document.querySelector('.container');
             
             if (isAllTimeView) {
                 allTimeButton.classList.add('active');
                 seasonSelect.style.opacity = '0.6';
+                container.classList.add('all-time-view');
             } else {
                 allTimeButton.classList.remove('active');
                 seasonSelect.style.opacity = '1';
+                container.classList.remove('all-time-view');
             }
         }
 
@@ -1136,7 +1191,7 @@
             return { stats: allTimeStats, matches: allMatches, records: teamRecords };
         }
 
-        // ========== 팀 기록 계산 ==========
+        // ========== 팀 기록 계산 (개선됨) ==========
         function calculateTeamRecords(matches) {
             let maxWinStreak = 0;
             let currentWinStreak = 0;
@@ -1145,8 +1200,17 @@
             let maxWinStreakStart = null;
             let maxWinStreakEnd = null;
             
+            let maxLossStreak = 0;
+            let currentLossStreak = 0;
+            let lossStreakStart = null;
+            let lossStreakEnd = null;
+            let maxLossStreakStart = null;
+            let maxLossStreakEnd = null;
+            
             let maxGoalsMatch = null;
             let maxConcededMatch = null;
+            let maxDrawsInRow = 0;
+            let currentDrawStreak = 0;
             
             let totalMatches = 0;
             let wins = 0;
@@ -1158,14 +1222,14 @@
             const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
             
             sortedMatches.forEach(match => {
-                 const [gf, ga] = match.score.split(':').map(Number);
+                const [gf, ga] = match.score.split(':').map(Number);
 
                 totalMatches++;
                 goalsFor += gf;
                 goalsAgainst += ga;
                 
                 if (match.result === 'win') {
-                       wins++;
+                    wins++;
                     if (currentWinStreak === 0) {
                         winStreakStart = match.date;
                     }
@@ -1177,20 +1241,39 @@
                         maxWinStreakStart = winStreakStart;
                         maxWinStreakEnd = winStreakEnd;
                     }
-                } else {
-                     if (match.result === 'draw') {
-                        draws++;
-                    } else {
-                        losses++;
-                    }
+                    
+                    currentLossStreak = 0;
+                    currentDrawStreak = 0;
+                } else if (match.result === 'draw') {
+                    draws++;
+                    currentDrawStreak++;
+                    maxDrawsInRow = Math.max(maxDrawsInRow, currentDrawStreak);
+                    
                     currentWinStreak = 0;
+                    currentLossStreak = 0;
+                } else {
+                    losses++;
+                    if (currentLossStreak === 0) {
+                        lossStreakStart = match.date;
+                    }
+                    currentLossStreak++;
+                    lossStreakEnd = match.date;
+                    
+                    if (currentLossStreak > maxLossStreak) {
+                        maxLossStreak = currentLossStreak;
+                        maxLossStreakStart = lossStreakStart;
+                        maxLossStreakEnd = lossStreakEnd;
+                    }
+                    
+                    currentWinStreak = 0;
+                    currentDrawStreak = 0;
                 }
                 
                 if (!maxGoalsMatch || gf > parseInt(maxGoalsMatch.score.split(':')[0])) {
                     maxGoalsMatch = match;
                 }
                 
-                 if (!maxConcededMatch || ga > parseInt(maxConcededMatch.score.split(':')[1])) {
+                if (!maxConcededMatch || ga > parseInt(maxConcededMatch.score.split(':')[1])) {
                     maxConcededMatch = match;
                 }
             });
@@ -1207,6 +1290,12 @@
                     startDate: maxWinStreakStart,
                     endDate: maxWinStreakEnd
                 },
+                maxLossStreak: {
+                    count: maxLossStreak,
+                    startDate: maxLossStreakStart,
+                    endDate: maxLossStreakEnd
+                },
+                maxDrawsInRow,
                 maxGoalsMatch,
                 maxConcededMatch
             };
@@ -1256,7 +1345,11 @@
             const topMvps = Object.entries(allTimeStats)
                 .map(([name, stats]) => ({name, ...stats}))
                 .filter(player => player.totalMvp > 0)
-                .sort((a, b) => b.totalMvp - a.totalMvp);
+                .sort((a, b) => {
+                    if (b.totalMvp !== a.totalMvp) return b.totalMvp - a.totalMvp;
+                    if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
+                    return koreanCollator.compare(a.name, b.name);
+                });
                 
             const topAppearances = Object.entries(allTimeStats)
                 .map(([name, stats]) => ({name, ...stats}))
@@ -1309,7 +1402,7 @@
             };
             
             container.innerHTML = `
-                            <div class="team-record-card team-record-overall">
+                <div class="team-record-card team-record-overall">
                     <div class="team-record-title">📊 누적 기록</div>
                     <div class="team-record-value">${teamRecords.totalMatches}전</div>
                     <div class="team-record-detail">
@@ -1347,6 +1440,24 @@
                             '기록 없음'}
                     </div>
                 </div>
+                
+                <div class="team-record-card team-record-draws">
+                    <div class="team-record-title">⚖️ 최고 연속 무승부</div>
+                    <div class="team-record-value">${teamRecords.maxDrawsInRow}연무</div>
+                    <div class="team-record-detail">
+                        연속 무승부 최고 기록
+                    </div>
+                </div>
+                
+                <div class="team-record-card team-record-loss-streak">
+                    <div class="team-record-title">💔 최다 연패 기록</div>
+                    <div class="team-record-value">${teamRecords.maxLossStreak.count}연패</div>
+                    <div class="team-record-detail">
+                        ${teamRecords.maxLossStreak.startDate ?
+                            `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` :
+                            '기록 없음'}
+                    </div>
+                </div>
             `;
         }
 
@@ -1374,9 +1485,10 @@
                     });
                     break;
                 case 'mvp':
+                    // 개선된 MVP 정렬 기준 적용
                     playersBySort.sort((a, b) => {
                         if (b.totalMvp !== a.totalMvp) return b.totalMvp - a.totalMvp;
-                        if (b.totalGoals !== a.totalGoals) return b.totalGoals - a.totalGoals;
+                        if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
                         return koreanCollator.compare(a.name, b.name);
                     });
                     break;
@@ -1465,9 +1577,9 @@
                         <div class="stat-subtitle">경기당 0골</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-title">득실차</div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-subtitle">0득 0실</div>
+                        <div class="stat-title">시즌 MVP</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-subtitle">MVP 0회</div>
                     </div>
                 `;
                 return;
@@ -1490,8 +1602,13 @@
             });
             
             const winRate = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
-            const goalDifference = totalGoalsFor - totalGoalsAgainst;
             const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
+            
+            // 시즌 MVP 계산
+            const seasonMvpPlayer = calculateSeasonMvp(playerStats);
+            const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
+            const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.mvp : 0;
+            const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
             
             const statsOverview = document.querySelector('.stats-overview');
             statsOverview.innerHTML = `
@@ -1511,9 +1628,9 @@
                     <div class="stat-subtitle">경기당 ${goalsPerMatch}골</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">득실차</div>
-                    <div class="stat-value">${goalDifference > 0 ? `+${goalDifference}` : goalDifference}</div>
-                    <div class="stat-subtitle">${totalGoalsFor}득 ${totalGoalsAgainst}실</div>
+                    <div class="stat-title">시즌 MVP</div>
+                    <div class="stat-value">${mvpName}</div>
+                    <div class="stat-subtitle">${mvpCount > 0 ? `MVP ${mvpCount}회, ${mvpAppearances}경기` : 'MVP 0회'}</div>
                 </div>
             `;
         }
@@ -1574,7 +1691,7 @@
             }
         }
 
-        // ========== 통합 테이블 업데이트 함수 ==========
+        // ========== 통합 테이블 업데이트 함수 (MVP 정렬 개선됨) ==========
         function updateTable(data, matches, tbodyId, type) {
             const tbody = document.getElementById(tbodyId);
             tbody.innerHTML = '';
@@ -1614,9 +1731,10 @@
                     });
                     break;
                 case 'mvp':
+                    // 개선된 MVP 정렬 기준: 1) MVP 횟수 2) 참가횟수
                     playersArray.sort((a, b) => {
                         if (b.mvp !== a.mvp) return b.mvp - a.mvp;
-                        if (b.goals !== a.goals) return b.goals - a.goals;
+                        if (b.appearances !== a.appearances) return b.appearances - a.appearances;
                         return koreanCollator.compare(a.name, b.name);
                     });
                     break;
