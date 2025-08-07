@@ -754,10 +754,10 @@
             <div class="section">
                 <div class="section-title">선수별 통계</div>
                 <div class="filter-controls">
-                    <button class="filter-btn active" onclick="filterPlayers('all')">전체</button>
-                    <button class="filter-btn" onclick="filterPlayers('goals')">골 순</button>
-                    <button class="filter-btn" onclick="filterPlayers('attendance')">참석률 순</button>
-                    <button class="filter-btn" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                    <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석률 순</button>
+                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
                 </div>
                 <div class="table-container">
                     <table class="players-table">
@@ -802,10 +802,10 @@
             <div class="section">
                 <div class="section-title">역대 선수 기록</div>
                 <div class="filter-controls">
-                    <button class="filter-btn active" onclick="filterPlayers('all')">전체</button>
-                    <button class="filter-btn" onclick="filterPlayers('goals')">골 순</button>
-                    <button class="filter-btn" onclick="filterPlayers('attendance')">참석률 순</button>
-                    <button class="filter-btn" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                    <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석률 순</button>
+                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
                 </div>
                 <div class="table-container">
                     <table class="players-table">
@@ -1707,10 +1707,9 @@
         function filterPlayers(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
+                 btn.classList.toggle('active', btn.dataset.filter === filter);
             });
-            event.target.classList.add('active');
-            
+           
             if (isAllTimeView) {
                 loadAllTimeSeasonsParallel().then(({ stats: allTimeStats }) => {
                     updateAllTimeTable(allTimeStats, filter);
