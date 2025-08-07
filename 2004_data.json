@@ -1,0 +1,559 @@
+{
+    "season": "2004",
+    "matches": [
+        {
+            "date": "2004-12-26",
+            "opponent": "A.G.O.S",
+            "result": "loss",
+            "score": "4:7",
+            "mvp": ""
+        },
+        {
+            "date": "2004-12-19",
+            "opponent": "FC EIZ",
+            "result": "loss",
+            "score": "2:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-12-12",
+            "opponent": "F.C. 이지스",
+            "result": "loss",
+            "score": "3:5",
+            "mvp": ""
+        },
+        {
+            "date": "2004-11-28",
+            "opponent": "동우 F.C",
+            "result": "win",
+            "score": "3:0",
+            "mvp": ""
+        },
+        {
+            "date": "2004-11-14",
+            "opponent": "F.C. 한울",
+            "result": "loss",
+            "score": "2:9",
+            "mvp": ""
+        },
+        {
+            "date": "2004-11-07",
+            "opponent": "special i.9",
+            "result": "win",
+            "score": "9:5",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-31",
+            "opponent": "Fever Soccer",
+            "result": "loss",
+            "score": "2:3",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-31",
+            "opponent": "EXON",
+            "result": "draw",
+            "score": "1:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-24",
+            "opponent": "리틀윙스",
+            "result": "win",
+            "score": "6:3",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-17",
+            "opponent": "강남 T.N.T.",
+            "result": "loss",
+            "score": "0:9",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-10",
+            "opponent": "J.C",
+            "result": "win",
+            "score": "4:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-03",
+            "opponent": "G.r.B",
+            "result": "loss",
+            "score": "2:3",
+            "mvp": ""
+        },
+        {
+            "date": "2004-10-03",
+            "opponent": "F.C 중랑",
+            "result": "win",
+            "score": "3:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-09-19",
+            "opponent": "Fever Soccer",
+            "result": "loss",
+            "score": "2:8",
+            "mvp": ""
+        },
+        {
+            "date": "2004-09-05",
+            "opponent": "노해 Utd",
+            "result": "win",
+            "score": "2:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-08-22",
+            "opponent": "S2 United",
+            "result": "win",
+            "score": "2:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-08-15",
+            "opponent": "F.C. Maru",
+            "result": "win",
+            "score": "6:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-08-08",
+            "opponent": "Sahara",
+            "result": "win",
+            "score": "3:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-08-01",
+            "opponent": "G.r.B",
+            "result": "draw",
+            "score": "4:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-08-01",
+            "opponent": "오류축구단",
+            "result": "win",
+            "score": "3:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-07-25",
+            "opponent": "삼성생명축구회",
+            "result": "win",
+            "score": "9:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-07-18",
+            "opponent": "순천향 FC",
+            "result": "win",
+            "score": "3:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-07-11",
+            "opponent": "Hornets",
+            "result": "draw",
+            "score": "3:3",
+            "mvp": ""
+        },
+        {
+            "date": "2004-06-27",
+            "opponent": "special i.9",
+            "result": "win",
+            "score": "6:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-06-13",
+            "opponent": "경일축구단",
+            "result": "draw",
+            "score": "1:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-06-06",
+            "opponent": "F.C. 유로",
+            "result": "win",
+            "score": "8:0",
+            "mvp": ""
+        },
+        {
+            "date": "2004-05-30",
+            "opponent": "성가정축구단",
+            "result": "win",
+            "score": "4:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-05-23",
+            "opponent": "F.C. 우리",
+            "result": "win",
+            "score": "8:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-05-16",
+            "opponent": "R.O.T.",
+            "result": "loss",
+            "score": "3:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-05-02",
+            "opponent": "G.r.B",
+            "result": "win",
+            "score": "2:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-04-25",
+            "opponent": "한미",
+            "result": "loss",
+            "score": "1:3",
+            "mvp": ""
+        },
+        {
+            "date": "2004-04-25",
+            "opponent": "neo-trunk",
+            "result": "win",
+            "score": "6:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-04-18",
+            "opponent": "스팍",
+            "result": "win",
+            "score": "7:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-04-04",
+            "opponent": "F.C ZEUS",
+            "result": "win",
+            "score": "3:1",
+            "mvp": ""
+        },
+        {
+            "date": "2004-03-28",
+            "opponent": "스팍",
+            "result": "win",
+            "score": "6:0",
+            "mvp": ""
+        },
+        {
+            "date": "2004-03-21",
+            "opponent": "F.C. 탐라",
+            "result": "loss",
+            "score": "4:5",
+            "mvp": ""
+        },
+        {
+            "date": "2004-03-14",
+            "opponent": "F.C. Together",
+            "result": "win",
+            "score": "4:0",
+            "mvp": ""
+        },
+        {
+            "date": "2004-02-29",
+            "opponent": "Bluesky",
+            "result": "loss",
+            "score": "1:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-02-15",
+            "opponent": "DIO CAMPIONE CF",
+            "result": "loss",
+            "score": "1:10",
+            "mvp": ""
+        },
+        {
+            "date": "2004-02-08",
+            "opponent": "광마",
+            "result": "loss",
+            "score": "3:5",
+            "mvp": ""
+        },
+        {
+            "date": "2004-02-08",
+            "opponent": "풍운A",
+            "result": "loss",
+            "score": "1:3",
+            "mvp": ""
+        },
+        {
+            "date": "2004-02-01",
+            "opponent": "Do You Like Soccer",
+            "result": "win",
+            "score": "7:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-01-25",
+            "opponent": "Battle Field",
+            "result": "win",
+            "score": "6:2",
+            "mvp": ""
+        },
+        {
+            "date": "2004-01-18",
+            "opponent": "Tiger Eleven",
+            "result": "win",
+            "score": "6:5",
+            "mvp": ""
+        },
+        {
+            "date": "2004-01-11",
+            "opponent": "5000볼트",
+            "result": "win",
+            "score": "5:4",
+            "mvp": ""
+        },
+        {
+            "date": "2004-01-04",
+            "opponent": "Extasy Mania",
+            "result": "loss",
+            "score": "5:6",
+            "mvp": ""
+        }
+    ],
+    "players": {
+        "강명국": {
+            "appearances": 13,
+            "goals": 1,
+            "mvp": 1
+        },
+        "고태경": {
+            "appearances": 40,
+            "goals": 18,
+            "mvp": 1
+        },
+        "오지훈": {
+            "appearances": 32,
+            "goals": 0,
+            "mvp": 0
+        },
+        "임태현": {
+            "appearances": 20,
+            "goals": 1,
+            "mvp": 0
+        },
+        "하승협": {
+            "appearances": 24,
+            "goals": 8,
+            "mvp": 0
+        },
+        "김영주": {
+            "appearances": 24,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이항규": {
+            "appearances": 38,
+            "goals": 31,
+            "mvp": 0
+        },
+        "강재웅": {
+            "appearances": 34,
+            "goals": 17,
+            "mvp": 0
+        },
+        "김경배": {
+            "appearances": 24,
+            "goals": 11,
+            "mvp": 0
+        },
+        "강용기": {
+            "appearances": 16,
+            "goals": 9,
+            "mvp": 0
+        },
+        "윤호진": {
+            "appearances": 15,
+            "goals": 3,
+            "mvp": 0
+        },
+        "김종성": {
+            "appearances": 5,
+            "goals": 1,
+            "mvp": 0
+        },
+        "지주현": {
+            "appearances": 10,
+            "goals": 4,
+            "mvp": 0
+        },
+        "김동규": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "손의창": {
+            "appearances": 22,
+            "goals": 12,
+            "mvp": 0
+        },
+        "차경윤": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "한승종": {
+            "appearances": 5,
+            "goals": 4,
+            "mvp": 0
+        },
+        "박성호": {
+            "appearances": 2,
+            "goals": 2,
+            "mvp": 0
+        },
+        "김기범": {
+            "appearances": 30,
+            "goals": 14,
+            "mvp": 0
+        },
+        "김기호": {
+            "appearances": 8,
+            "goals": 3,
+            "mvp": 0
+        },
+        "문상봉": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이두희": {
+            "appearances": 5,
+            "goals": 0,
+            "mvp": 0
+        },
+        "연제승": {
+            "appearances": 8,
+            "goals": 3,
+            "mvp": 0
+        },
+        "정현준": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 0
+        },
+        "윤재혁": {
+            "appearances": 18,
+            "goals": 0,
+            "mvp": 1
+        },
+        "김세원": {
+            "appearances": 4,
+            "goals": 1,
+            "mvp": 0
+        },
+        "나규병": {
+            "appearances": 9,
+            "goals": 1,
+            "mvp": 0
+        },
+        "이현정": {
+            "appearances": 12,
+            "goals": 2,
+            "mvp": 0
+        },
+        "김민성": {
+            "appearances": 12,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김준형": {
+            "appearances": 14,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김성환": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "장재혁": {
+            "appearances": 26,
+            "goals": 3,
+            "mvp": 0
+        },
+        "윤정광": {
+            "appearances": 37,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이광수": {
+            "appearances": 17,
+            "goals": 15,
+            "mvp": 0
+        },
+        "장은철": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "유지현": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "강태경": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "안태수": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "강규주": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "정다운": {
+            "appearances": 2,
+            "goals": 1,
+            "mvp": 0
+        },
+        "이기쁨": {
+            "appearances": 2,
+            "goals": 1,
+            "mvp": 0
+        },
+        "안창영": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "임슬기": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "안찬식": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이태원": {
+            "appearances": 4,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김준호": {
+            "appearances": 2,
+            "goals": 1,
+            "mvp": 0
+        }
+    }
+}

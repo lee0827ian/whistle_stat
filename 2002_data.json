@@ -1,0 +1,441 @@
+{
+    "season": "2002",
+    "matches": [
+        {
+            "date": "2002-12-29",
+            "opponent": "N.W.O",
+            "result": "loss",
+            "score": "6:7",
+            "mvp": ""
+        },
+        {
+            "date": "2002-12-22",
+            "opponent": "REAL KFC",
+            "result": "win",
+            "score": "7:0",
+            "mvp": ""
+        },
+        {
+            "date": "2002-12-15",
+            "opponent": "ASSURI CORPS",
+            "result": "win",
+            "score": "11:7",
+            "mvp": ""
+        },
+        {
+            "date": "2002-12-01",
+            "opponent": "S.I.Z",
+            "result": "win",
+            "score": "6:0",
+            "mvp": ""
+        },
+        {
+            "date": "2002-11-24",
+            "opponent": "CROSS FIRE2",
+            "result": "draw",
+            "score": "4:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-11-10",
+            "opponent": "F.C. 휘문",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2002-10-27",
+            "opponent": "D&F",
+            "result": "win",
+            "score": "13:2",
+            "mvp": ""
+        },
+        {
+            "date": "2002-10-13",
+            "opponent": "N.G.UNITED",
+            "result": "win",
+            "score": "3:0",
+            "mvp": ""
+        },
+        {
+            "date": "2002-10-06",
+            "opponent": "바티",
+            "result": "win",
+            "score": "5:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-09-29",
+            "opponent": "YAKSUNAL",
+            "result": "loss",
+            "score": "0:1",
+            "mvp": ""
+        },
+        {
+            "date": "2002-09-15",
+            "opponent": "F.C. 신길",
+            "result": "loss",
+            "score": "1:2",
+            "mvp": ""
+        },
+        {
+            "date": "2002-09-08",
+            "opponent": "Y.G. FAMILY",
+            "result": "win",
+            "score": "4:2",
+            "mvp": ""
+        },
+        {
+            "date": "2002-08-25",
+            "opponent": "미라클 사커클럽",
+            "result": "loss",
+            "score": "2:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-08-11",
+            "opponent": "N.G. UNITED",
+            "result": "win",
+            "score": "6:0",
+            "mvp": ""
+        },
+        {
+            "date": "2002-07-28",
+            "opponent": "재수생",
+            "result": "loss",
+            "score": "1:6",
+            "mvp": ""
+        },
+        {
+            "date": "2002-07-21",
+            "opponent": "F.C. 오금",
+            "result": "win",
+            "score": "8:3",
+            "mvp": ""
+        },
+        {
+            "date": "2002-07-17",
+            "opponent": "강남 썬더스톰",
+            "result": "loss",
+            "score": "2:5",
+            "mvp": ""
+        },
+        {
+            "date": "2002-07-17",
+            "opponent": "Pointers",
+            "result": "loss",
+            "score": "2:8",
+            "mvp": ""
+        },
+        {
+            "date": "2002-07-07",
+            "opponent": "CEREMONY",
+            "result": "loss",
+            "score": "2:9",
+            "mvp": ""
+        },
+        {
+            "date": "2002-06-30",
+            "opponent": "F.C. 아레스",
+            "result": "loss",
+            "score": "2:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-06-23",
+            "opponent": "F.C화랑일레븐",
+            "result": "loss",
+            "score": "5:6",
+            "mvp": ""
+        },
+        {
+            "date": "2002-05-26",
+            "opponent": "언발란스",
+            "result": "loss",
+            "score": "1:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-05-19",
+            "opponent": "필드킬러",
+            "result": "loss",
+            "score": "3:7",
+            "mvp": ""
+        },
+        {
+            "date": "2002-05-12",
+            "opponent": "뉴논스탑",
+            "result": "win",
+            "score": "6:5",
+            "mvp": ""
+        },
+        {
+            "date": "2002-05-05",
+            "opponent": "엠브로시아",
+            "result": "loss",
+            "score": "4:5",
+            "mvp": ""
+        },
+        {
+            "date": "2002-04-14",
+            "opponent": "강남 썬더스톰",
+            "result": "win",
+            "score": "3:2",
+            "mvp": ""
+        },
+        {
+            "date": "2002-03-24",
+            "opponent": "SF",
+            "result": "loss",
+            "score": "3:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-03-17",
+            "opponent": "개포스",
+            "result": "win",
+            "score": "5:4",
+            "mvp": ""
+        },
+        {
+            "date": "2002-03-10",
+            "opponent": "공산당",
+            "result": "loss",
+            "score": "4:8",
+            "mvp": ""
+        },
+        {
+            "date": "2002-03-03",
+            "opponent": "ROOKIE",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2002-02-17",
+            "opponent": "크레이지 중화",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2002-02-10",
+            "opponent": "F.C. 강진",
+            "result": "win",
+            "score": "3:1",
+            "mvp": ""
+        },
+        {
+            "date": "2002-02-03",
+            "opponent": "구정 F.C.",
+            "result": "loss",
+            "score": "0:5",
+            "mvp": ""
+        },
+        {
+            "date": "2002-01-27",
+            "opponent": "INVICTUS",
+            "result": "loss",
+            "score": "3:8",
+            "mvp": ""
+        },
+        {
+            "date": "2002-01-20",
+            "opponent": "F.C. 성북",
+            "result": "loss",
+            "score": "5:7",
+            "mvp": ""
+        },
+        {
+            "date": "2002-01-13",
+            "opponent": "GURO PSYCHOS",
+            "result": "win",
+            "score": "7:3",
+            "mvp": ""
+        },
+        {
+            "date": "2002-01-06",
+            "opponent": "INA",
+            "result": "loss",
+            "score": "3:4",
+            "mvp": ""
+        }
+    ],
+    "players": {
+        "강명국": {
+            "appearances": 27,
+            "goals": 0,
+            "mvp": 0
+        },
+        "정현준": {
+            "appearances": 33,
+            "goals": 0,
+            "mvp": 0
+        },
+        "오지훈": {
+            "appearances": 30,
+            "goals": 1,
+            "mvp": 0
+        },
+        "임태현": {
+            "appearances": 4,
+            "goals": 1,
+            "mvp": 0
+        },
+        "한승종": {
+            "appearances": 22,
+            "goals": 13,
+            "mvp": 0
+        },
+        "하승협": {
+            "appearances": 4,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김영주": {
+            "appearances": 11,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이항규": {
+            "appearances": 33,
+            "goals": 23,
+            "mvp": 0
+        },
+        "강재웅": {
+            "appearances": 26,
+            "goals": 18,
+            "mvp": 0
+        },
+        "윤호진": {
+            "appearances": 17,
+            "goals": 7,
+            "mvp": 0
+        },
+        "김성환": {
+            "appearances": 11,
+            "goals": 6,
+            "mvp": 0
+        },
+        "문상봉": {
+            "appearances": 7,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김종성": {
+            "appearances": 8,
+            "goals": 0,
+            "mvp": 0
+        },
+        "지주현": {
+            "appearances": 10,
+            "goals": 3,
+            "mvp": 0
+        },
+        "이재희": {
+            "appearances": 21,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김기호": {
+            "appearances": 10,
+            "goals": 4,
+            "mvp": 0
+        },
+        "나규병": {
+            "appearances": 14,
+            "goals": 2,
+            "mvp": 0
+        },
+        "엄기영": {
+            "appearances": 14,
+            "goals": 0,
+            "mvp": 0
+        },
+        "고태경": {
+            "appearances": 13,
+            "goals": 5,
+            "mvp": 0
+        },
+        "김경배": {
+            "appearances": 20,
+            "goals": 7,
+            "mvp": 0
+        },
+        "윤재혁": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "박성호": {
+            "appearances": 11,
+            "goals": 21,
+            "mvp": 0
+        },
+        "강용기": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "이진호": {
+            "appearances": 4,
+            "goals": 0,
+            "mvp": 0
+        },
+        "오진석": {
+            "appearances": 4,
+            "goals": 8,
+            "mvp": 0
+        },
+        "이성재": {
+            "appearances": 4,
+            "goals": 2,
+            "mvp": 0
+        },
+        "강동호": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "임기홍": {
+            "appearances": 7,
+            "goals": 0,
+            "mvp": 0
+        },
+        "박재현": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "임슬기": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김은택": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "우민수": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "윤정재": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이원일": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "강백신": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        }
+    }
+}

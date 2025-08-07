@@ -1,0 +1,529 @@
+{
+    "season": "2005",
+    "matches": [
+        {
+            "date": "2005-12-11",
+            "opponent": "사커프렌드",
+            "result": "loss",
+            "score": "3:4",
+            "mvp": "안태수"
+        },
+        {
+            "date": "2005-11-20",
+            "opponent": "한반도",
+            "result": "win",
+            "score": "3:2",
+            "mvp": "김기범"
+        },
+        {
+            "date": "2005-11-13",
+            "opponent": "FC11",
+            "result": "draw",
+            "score": "2:2",
+            "mvp": "김진호"
+        },
+        {
+            "date": "2005-10-30",
+            "opponent": "사커 홀릭",
+            "result": "loss",
+            "score": "0:3",
+            "mvp": ""
+        },
+        {
+            "date": "2005-10-23",
+            "opponent": "맨땅 F.C",
+            "result": "loss",
+            "score": "1:4",
+            "mvp": "서귀석"
+        },
+        {
+            "date": "2005-10-16",
+            "opponent": "sejong-pointers",
+            "result": "win",
+            "score": "6:2",
+            "mvp": "김기범"
+        },
+        {
+            "date": "2005-10-09",
+            "opponent": "F.C에이스",
+            "result": "loss",
+            "score": "2:6",
+            "mvp": "안태수"
+        },
+        {
+            "date": "2005-10-02",
+            "opponent": "REAL BOST",
+            "result": "win",
+            "score": "6:4",
+            "mvp": "김동규"
+        },
+        {
+            "date": "2005-09-25",
+            "opponent": "굴레방 FC",
+            "result": "loss",
+            "score": "4:6",
+            "mvp": "김진호"
+        },
+        {
+            "date": "2005-09-04",
+            "opponent": "FV 3-5-2",
+            "result": "win",
+            "score": "6:3",
+            "mvp": "홍태욱"
+        },
+        {
+            "date": "2005-08-21",
+            "opponent": "G.r.B",
+            "result": "loss",
+            "score": "1:2",
+            "mvp": "서귀석"
+        },
+        {
+            "date": "2005-07-31",
+            "opponent": "Soccer Hero",
+            "result": "loss",
+            "score": "4:8",
+            "mvp": "강재웅"
+        },
+        {
+            "date": "2005-07-24",
+            "opponent": "S.L.F.C",
+            "result": "win",
+            "score": "5:2",
+            "mvp": "이성재"
+        },
+        {
+            "date": "2005-07-17",
+            "opponent": "F.C 이기자",
+            "result": "win",
+            "score": "3:1",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-06-26",
+            "opponent": "sunday soccer",
+            "result": "loss",
+            "score": "0:2",
+            "mvp": ""
+        },
+        {
+            "date": "2005-06-26",
+            "opponent": "서부썬더스축구클럽",
+            "result": "win",
+            "score": "2:1",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-06-19",
+            "opponent": "세검정감리교회",
+            "result": "draw",
+            "score": "2:2",
+            "mvp": "강용기"
+        },
+        {
+            "date": "2005-06-05",
+            "opponent": "PODI",
+            "result": "loss",
+            "score": "6:9",
+            "mvp": "이항규"
+        },
+        {
+            "date": "2005-05-29",
+            "opponent": "F.C Friends",
+            "result": "loss",
+            "score": "1:7",
+            "mvp": "이항규"
+        },
+        {
+            "date": "2005-05-15",
+            "opponent": "J.C",
+            "result": "win",
+            "score": "9:4",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-05-07",
+            "opponent": "BUGS",
+            "result": "win",
+            "score": "2:1",
+            "mvp": "홍세철"
+        },
+        {
+            "date": "2005-05-01",
+            "opponent": "88ROAR",
+            "result": "win",
+            "score": "5:4",
+            "mvp": "하승우"
+        },
+        {
+            "date": "2005-04-24",
+            "opponent": "풍운A",
+            "result": "loss",
+            "score": "2:5",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-04-17",
+            "opponent": "JH",
+            "result": "loss",
+            "score": "2:7",
+            "mvp": "이항규"
+        },
+        {
+            "date": "2005-04-10",
+            "opponent": "F.C SK",
+            "result": "win",
+            "score": "4:2",
+            "mvp": "하승협"
+        },
+        {
+            "date": "2005-03-27",
+            "opponent": "F.C 코만도",
+            "result": "win",
+            "score": "4:2",
+            "mvp": "하승우"
+        },
+        {
+            "date": "2005-03-20",
+            "opponent": "한울",
+            "result": "loss",
+            "score": "1:2",
+            "mvp": "이현정"
+        },
+        {
+            "date": "2005-03-13",
+            "opponent": "LocoViento FC",
+            "result": "loss",
+            "score": "1:3",
+            "mvp": "강명국"
+        },
+        {
+            "date": "2005-03-06",
+            "opponent": "F.C 성북",
+            "result": "loss",
+            "score": "4:5",
+            "mvp": "고태경"
+        },
+        {
+            "date": "2005-02-20",
+            "opponent": "I☆S",
+            "result": "draw",
+            "score": "2:2",
+            "mvp": "윤재혁"
+        },
+        {
+            "date": "2005-02-13",
+            "opponent": "FC RPM",
+            "result": "win",
+            "score": "3:2",
+            "mvp": "안태수"
+        },
+        {
+            "date": "2005-02-06",
+            "opponent": "DCT",
+            "result": "win",
+            "score": "2:1",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-01-30",
+            "opponent": "난장판",
+            "result": "win",
+            "score": "5:4",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-01-23",
+            "opponent": "F.C.ELEVEN",
+            "result": "loss",
+            "score": "1:9",
+            "mvp": "손의창"
+        },
+        {
+            "date": "2005-01-16",
+            "opponent": "Amigo Paulista",
+            "result": "win",
+            "score": "4:2",
+            "mvp": "김동규"
+        },
+        {
+            "date": "2005-01-02",
+            "opponent": "팬텀3",
+            "result": "loss",
+            "score": "2:6",
+            "mvp": "윤재혁"
+        }
+    ],
+    "players": {
+        "강명국": {
+            "appearances": 14,
+            "goals": 0,
+            "mvp": 1
+        },
+        "고태경": {
+            "appearances": 11,
+            "goals": 7,
+            "mvp": 1
+        },
+        "오지훈": {
+            "appearances": 22,
+            "goals": 0,
+            "mvp": 0
+        },
+        "임태현": {
+            "appearances": 13,
+            "goals": 0,
+            "mvp": 0
+        },
+        "하승협": {
+            "appearances": 13,
+            "goals": 5,
+            "mvp": 1
+        },
+        "김영주": {
+            "appearances": 19,
+            "goals": 2,
+            "mvp": 0
+        },
+        "이항규": {
+            "appearances": 33,
+            "goals": 25,
+            "mvp": 3
+        },
+        "강재웅": {
+            "appearances": 23,
+            "goals": 8,
+            "mvp": 1
+        },
+        "김경배": {
+            "appearances": 4,
+            "goals": 1,
+            "mvp": 0
+        },
+        "강용기": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 1
+        },
+        "윤호진": {
+            "appearances": 3,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김종성": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "지주현": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김동규": {
+            "appearances": 22,
+            "goals": 1,
+            "mvp": 1
+        },
+        "서귀석": {
+            "appearances": 9,
+            "goals": 6,
+            "mvp": 1
+        },
+        "손의창": {
+            "appearances": 24,
+            "goals": 16,
+            "mvp": 5
+        },
+        "이태원": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "한승종": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "박성호": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김기범": {
+            "appearances": 14,
+            "goals": 13,
+            "mvp": 2
+        },
+        "김기호": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "문상봉": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이두희": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "연제승": {
+            "appearances": 3,
+            "goals": 1,
+            "mvp": 0
+        },
+        "정현준": {
+            "appearances": 4,
+            "goals": 0,
+            "mvp": 0
+        },
+        "윤재혁": {
+            "appearances": 16,
+            "goals": 0,
+            "mvp": 1
+        },
+        "안태수": {
+            "appearances": 21,
+            "goals": 1,
+            "mvp": 2
+        },
+        "나규병": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이현정": {
+            "appearances": 14,
+            "goals": 0,
+            "mvp": 1
+        },
+        "김민성": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김준형": {
+            "appearances": 9,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김성환": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "장재혁": {
+            "appearances": 7,
+            "goals": 0,
+            "mvp": 0
+        },
+        "홍태욱": {
+            "appearances": 8,
+            "goals": 0,
+            "mvp": 1
+        },
+        "김종대": {
+            "appearances": 12,
+            "goals": 1,
+            "mvp": 0
+        },
+        "윤정광": {
+            "appearances": 13,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이광수": {
+            "appearances": 16,
+            "goals": 4,
+            "mvp": 1
+        },
+        "하승우": {
+            "appearances": 10,
+            "goals": 6,
+            "mvp": 2
+        },
+        "정다운": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김준호": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "강규주": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "홍세철": {
+            "appearances": 9,
+            "goals": 2,
+            "mvp": 1
+        },
+        "김진호": {
+            "appearances": 11,
+            "goals": 4,
+            "mvp": 1
+        },
+        "이성재": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 1
+        },
+        "윤성훈": {
+            "appearances": 4,
+            "goals": 0,
+            "mvp": 0
+        },
+        "안창영": {
+            "appearances": 4,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김현철": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "인 걸": {
+            "appearances": 2,
+            "goals": 1,
+            "mvp": 0
+        },
+        "임슬기": {
+            "appearances": 5,
+            "goals": 1,
+            "mvp": 0
+        },
+        "이상엽": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "권순구": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이원호": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이병선": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "조상현": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        }
+    }
+}
