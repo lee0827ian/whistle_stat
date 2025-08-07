@@ -318,6 +318,11 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
+        .team-record-overall {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+        }
+
         .team-record-win-streak {
             background: linear-gradient(135deg, #10b981, #34d399);
             color: white;
@@ -1143,12 +1148,24 @@
             let maxGoalsMatch = null;
             let maxConcededMatch = null;
             
+            let totalMatches = 0;
+            let wins = 0;
+            let draws = 0;
+            let losses = 0;
+            let goalsFor = 0;
+            let goalsAgainst = 0;
+            
             const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
             
             sortedMatches.forEach(match => {
-                const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
+                 const [gf, ga] = match.score.split(':').map(Number);
+
+                totalMatches++;
+                goalsFor += gf;
+                goalsAgainst += ga;
                 
                 if (match.result === 'win') {
+                       wins++;
                     if (currentWinStreak === 0) {
                         winStreakStart = match.date;
                     }
@@ -1161,19 +1178,30 @@
                         maxWinStreakEnd = winStreakEnd;
                     }
                 } else {
+                     if (match.result === 'draw') {
+                        draws++;
+                    } else {
+                        losses++;
+                    }
                     currentWinStreak = 0;
                 }
                 
-                if (!maxGoalsMatch || goalsFor > parseInt(maxGoalsMatch.score.split(':')[0])) {
+                if (!maxGoalsMatch || gf > parseInt(maxGoalsMatch.score.split(':')[0])) {
                     maxGoalsMatch = match;
                 }
                 
-                if (!maxConcededMatch || goalsAgainst > parseInt(maxConcededMatch.score.split(':')[1])) {
+                 if (!maxConcededMatch || ga > parseInt(maxConcededMatch.score.split(':')[1])) {
                     maxConcededMatch = match;
                 }
             });
             
             return {
+                totalMatches,
+                wins,
+                draws,
+                losses,
+                goalsFor,
+                goalsAgainst,
                 maxWinStreak: {
                     count: maxWinStreak,
                     startDate: maxWinStreakStart,
@@ -1273,20 +1301,29 @@
             
             const formatDate = (dateStr) => {
                 const date = new Date(dateStr);
-                return date.toLocaleDateString('ko-KR', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
+                return date.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
                 });
             };
             
             container.innerHTML = `
+                            <div class="team-record-card team-record-overall">
+                    <div class="team-record-title">📊 누적 기록</div>
+                    <div class="team-record-value">${teamRecords.totalMatches}전</div>
+                    <div class="team-record-detail">
+                        승 ${teamRecords.wins} / 무 ${teamRecords.draws} / 패 ${teamRecords.losses}<br>
+                        득 ${teamRecords.goalsFor} / 실 ${teamRecords.goalsAgainst}
+                    </div>
+                </div>
+                
                 <div class="team-record-card team-record-win-streak">
                     <div class="team-record-title">🔥 최고 연승 기록</div>
                     <div class="team-record-value">${teamRecords.maxWinStreak.count}연승</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxWinStreak.startDate ? 
-                            `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` : 
+                        ${teamRecords.maxWinStreak.startDate ?
+                            `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` :
                             '기록 없음'}
                     </div>
                 </div>
@@ -1295,8 +1332,8 @@
                     <div class="team-record-title">⚽ 최다 득점 경기</div>
                     <div class="team-record-value">${teamRecords.maxGoalsMatch ? teamRecords.maxGoalsMatch.score.split(':')[0] : 0}골</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxGoalsMatch ? 
-                            `vs ${teamRecords.maxGoalsMatch.opponent}<br>${formatDate(teamRecords.maxGoalsMatch.date)}` : 
+                      ${teamRecords.maxGoalsMatch ?
+                            `vs ${teamRecords.maxGoalsMatch.opponent}<br>${formatDate(teamRecords.maxGoalsMatch.date)}` :
                             '기록 없음'}
                     </div>
                 </div>
@@ -1305,8 +1342,8 @@
                     <div class="team-record-title">😱 최다 실점 경기</div>
                     <div class="team-record-value">${teamRecords.maxConcededMatch ? teamRecords.maxConcededMatch.score.split(':')[1] : 0}실점</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxConcededMatch ? 
-                            `vs ${teamRecords.maxConcededMatch.opponent}<br>${formatDate(teamRecords.maxConcededMatch.date)}` : 
+                        ${teamRecords.maxConcededMatch ?
+                            `vs ${teamRecords.maxConcededMatch.opponent}<br>${formatDate(teamRecords.maxConcededMatch.date)}` :
                             '기록 없음'}
                     </div>
                 </div>
