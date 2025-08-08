@@ -191,7 +191,7 @@
         
         .all-time-content {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 40px;
         }
@@ -205,6 +205,11 @@
             flex-direction: column;
         }
         
+        /* 역대기록 탭에서 높이 증가 */
+        .all-time-view .section {
+            height: 750px;
+        }
+        
         .team-records-section {
             background: #f8f9fa;
             padding: 25px;
@@ -212,7 +217,12 @@
             height: 580px;
             display: flex;
             flex-direction: column;
-            overflow-y: auto; /* 스크롤 가능하게 변경 */
+            overflow-y: auto;
+        }
+        
+        /* 역대기록 탭에서 팀 기록 섹션 높이 증가 */
+        .all-time-view .team-records-section {
+            height: 750px;
         }
         
         .section-title {
@@ -323,21 +333,28 @@
         }
         
         .team-record-card {
-            margin-bottom: 15px; /* 간격 줄임 */
-            padding: 15px; /* 패딩 줄임 */
+            margin-bottom: 15px;
+            padding: 15px;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            min-height: 120px; /* 최소 높이 설정 */
+            min-height: 120px;
         }
         
+        /* 누적 기록 카드 개선 */
         .team-record-overall {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: #1e293b;
+            min-height: 140px;
         }
 
         .team-record-win-streak {
             background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+        
+        .team-record-loss-streak {
+            background: linear-gradient(135deg, #f43f5e, #fb7185);
             color: white;
         }
         
@@ -351,30 +368,30 @@
             color: white;
         }
         
-        .team-record-draws {
-            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
-            color: white;
+        .team-record-best-season {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
         }
         
-        .team-record-loss-streak {
-            background: linear-gradient(135deg, #f43f5e, #fb7185);
+        .team-record-worst-season {
+            background: linear-gradient(135deg, #6b7280, #9ca3af);
             color: white;
         }
         
         .team-record-title {
-            font-size: 1.0em; /* 폰트 크기 줄임 */
+            font-size: 1.0em;
             font-weight: bold;
-            margin-bottom: 8px; /* 간격 줄임 */
+            margin-bottom: 8px;
         }
         
         .team-record-value {
-            font-size: 1.8em; /* 폰트 크기 줄임 */
+            font-size: 1.8em;
             font-weight: bold;
-            margin-bottom: 6px; /* 간격 줄임 */
+            margin-bottom: 6px;
         }
         
         .team-record-detail {
-            font-size: 0.85em; /* 폰트 크기 줄임 */
+            font-size: 0.85em;
             opacity: 0.9;
         }
         
@@ -1115,6 +1132,7 @@
         async function loadAllTimeSeasonsParallel() {
             const allTimeStats = {};
             const allMatches = [];
+            const seasonData = {}; // 시즌별 데이터 저장
             let successCount = 0;
             let totalSeasons = CONFIG.AVAILABLE_SEASONS.length;
             
@@ -1138,6 +1156,9 @@
                         if (result.status === 'fulfilled' && result.value.success) {
                             const { season, data } = result.value;
                             successCount++;
+                            
+                            // 시즌 데이터 저장
+                            seasonData[season] = data;
                             
                             // 경기 데이터 수집
                             allMatches.push(...data.matches.map(match => ({
@@ -1187,12 +1208,12 @@
                 hideStatusMessage();
             }
             
-            const teamRecords = calculateTeamRecords(allMatches);
+            const teamRecords = calculateTeamRecords(allMatches, seasonData);
             return { stats: allTimeStats, matches: allMatches, records: teamRecords };
         }
 
-        // ========== 팀 기록 계산 (개선됨) ==========
-        function calculateTeamRecords(matches) {
+        // ========== 팀 기록 계산 (최고/아쉬운 시즌 추가) ==========
+        function calculateTeamRecords(matches, seasonData) {
             let maxWinStreak = 0;
             let currentWinStreak = 0;
             let winStreakStart = null;
@@ -1209,8 +1230,6 @@
             
             let maxGoalsMatch = null;
             let maxConcededMatch = null;
-            let maxDrawsInRow = 0;
-            let currentDrawStreak = 0;
             
             let totalMatches = 0;
             let wins = 0;
@@ -1218,6 +1237,60 @@
             let losses = 0;
             let goalsFor = 0;
             let goalsAgainst = 0;
+            
+            // 시즌별 통계 계산
+            const seasonStats = {};
+            Object.entries(seasonData).forEach(([season, data]) => {
+                if (!data || !data.matches || data.matches.length === 0) return;
+                
+                let seasonWins = 0;
+                let seasonDraws = 0;
+                let seasonLosses = 0;
+                let seasonGoalsFor = 0;
+                let seasonGoalsAgainst = 0;
+                
+                data.matches.forEach(match => {
+                    const [gf, ga] = match.score.split(':').map(Number);
+                    seasonGoalsFor += gf;
+                    seasonGoalsAgainst += ga;
+                    
+                    if (match.result === 'win') seasonWins++;
+                    else if (match.result === 'draw') seasonDraws++;
+                    else seasonLosses++;
+                });
+                
+                const seasonTotalMatches = data.matches.length;
+                const winRate = seasonTotalMatches > 0 ? (seasonWins / seasonTotalMatches) * 100 : 0;
+                
+                seasonStats[season] = {
+                    matches: seasonTotalMatches,
+                    wins: seasonWins,
+                    draws: seasonDraws,
+                    losses: seasonLosses,
+                    goalsFor: seasonGoalsFor,
+                    goalsAgainst: seasonGoalsAgainst,
+                    winRate: winRate
+                };
+            });
+            
+            // 최고 시즌과 아쉬운 시즌 계산
+            let bestSeason = null;
+            let worstSeason = null;
+            let highestWinRate = -1;
+            let lowestWinRate = 101;
+            
+            Object.entries(seasonStats).forEach(([season, stats]) => {
+                if (stats.matches >= 5) { // 최소 5경기 이상 치른 시즌만 고려
+                    if (stats.winRate > highestWinRate) {
+                        highestWinRate = stats.winRate;
+                        bestSeason = { season, ...stats };
+                    }
+                    if (stats.winRate < lowestWinRate) {
+                        lowestWinRate = stats.winRate;
+                        worstSeason = { season, ...stats };
+                    }
+                }
+            });
             
             const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
             
@@ -1243,12 +1316,8 @@
                     }
                     
                     currentLossStreak = 0;
-                    currentDrawStreak = 0;
                 } else if (match.result === 'draw') {
                     draws++;
-                    currentDrawStreak++;
-                    maxDrawsInRow = Math.max(maxDrawsInRow, currentDrawStreak);
-                    
                     currentWinStreak = 0;
                     currentLossStreak = 0;
                 } else {
@@ -1266,7 +1335,6 @@
                     }
                     
                     currentWinStreak = 0;
-                    currentDrawStreak = 0;
                 }
                 
                 if (!maxGoalsMatch || gf > parseInt(maxGoalsMatch.score.split(':')[0])) {
@@ -1295,9 +1363,10 @@
                     startDate: maxLossStreakStart,
                     endDate: maxLossStreakEnd
                 },
-                maxDrawsInRow,
                 maxGoalsMatch,
-                maxConcededMatch
+                maxConcededMatch,
+                bestSeason,
+                worstSeason
             };
         }
 
@@ -1401,22 +1470,37 @@
                 });
             };
             
-            container.innerHTML = `
+            // 개선된 누적 기록 카드
+            let overallRecordCard = `
                 <div class="team-record-card team-record-overall">
                     <div class="team-record-title">📊 누적 기록</div>
                     <div class="team-record-value">${teamRecords.totalMatches}전</div>
+                    <div class="team-record-detail" style="font-size: 1.0em; margin-bottom: 8px;">
+                        <strong>${teamRecords.wins}승 ${teamRecords.draws}무 ${teamRecords.losses}패</strong>
+                    </div>
                     <div class="team-record-detail">
-                        승 ${teamRecords.wins} / 무 ${teamRecords.draws} / 패 ${teamRecords.losses}<br>
-                        득 ${teamRecords.goalsFor} / 실 ${teamRecords.goalsAgainst}
+                        득점 ${teamRecords.goalsFor} / 실점 ${teamRecords.goalsAgainst}
                     </div>
                 </div>
-                
+            `;
+            
+            container.innerHTML = overallRecordCard + `
                 <div class="team-record-card team-record-win-streak">
                     <div class="team-record-title">🔥 최고 연승 기록</div>
                     <div class="team-record-value">${teamRecords.maxWinStreak.count}연승</div>
                     <div class="team-record-detail">
                         ${teamRecords.maxWinStreak.startDate ?
                             `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` :
+                            '기록 없음'}
+                    </div>
+                </div>
+                
+                <div class="team-record-card team-record-loss-streak">
+                    <div class="team-record-title">💔 최다 연패 기록</div>
+                    <div class="team-record-value">${teamRecords.maxLossStreak.count}연패</div>
+                    <div class="team-record-detail">
+                        ${teamRecords.maxLossStreak.startDate ?
+                            `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` :
                             '기록 없음'}
                     </div>
                 </div>
@@ -1441,20 +1525,22 @@
                     </div>
                 </div>
                 
-                <div class="team-record-card team-record-draws">
-                    <div class="team-record-title">⚖️ 최고 연속 무승부</div>
-                    <div class="team-record-value">${teamRecords.maxDrawsInRow}연무</div>
+                <div class="team-record-card team-record-best-season">
+                    <div class="team-record-title">🏆 최고 시즌</div>
+                    <div class="team-record-value">${teamRecords.bestSeason ? teamRecords.bestSeason.season : '-'}</div>
                     <div class="team-record-detail">
-                        연속 무승부 최고 기록
+                        ${teamRecords.bestSeason ?
+                            `승률 ${teamRecords.bestSeason.winRate.toFixed(1)}%<br>${teamRecords.bestSeason.wins}승 ${teamRecords.bestSeason.draws}무 ${teamRecords.bestSeason.losses}패` :
+                            '기록 없음'}
                     </div>
                 </div>
                 
-                <div class="team-record-card team-record-loss-streak">
-                    <div class="team-record-title">💔 최다 연패 기록</div>
-                    <div class="team-record-value">${teamRecords.maxLossStreak.count}연패</div>
+                <div class="team-record-card team-record-worst-season">
+                    <div class="team-record-title">📉 아쉬운 시즌</div>
+                    <div class="team-record-value">${teamRecords.worstSeason ? teamRecords.worstSeason.season : '-'}</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxLossStreak.startDate ?
-                            `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` :
+                        ${teamRecords.worstSeason ?
+                            `승률 ${teamRecords.worstSeason.winRate.toFixed(1)}%<br>${teamRecords.worstSeason.wins}승 ${teamRecords.worstSeason.draws}무 ${teamRecords.worstSeason.losses}패` :
                             '기록 없음'}
                     </div>
                 </div>
