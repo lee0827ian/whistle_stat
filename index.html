@@ -1471,19 +1471,19 @@
             };
             
             // 개선된 누적 기록 카드
-            let overallRecordCard = `
-                <div class="team-record-card team-record-overall">
-                    <div class="team-record-title">📊 누적 기록</div>
-                    <div class="team-record-value">${teamRecords.totalMatches}전</div>
-                    <div class="team-record-detail" style="font-size: 1.0em; margin-bottom: 8px;">
-                        <strong>${teamRecords.wins}승 ${teamRecords.draws}무 ${teamRecords.losses}패</strong>
-                    </div>
-                    <div class="team-record-detail">
-                        득점 ${teamRecords.goalsFor} / 실점 ${teamRecords.goalsAgainst}
-                    </div>
-                </div>
-            `;
-            
+// updateTeamRecords 함수 내의 누적 기록 카드 부분을 이렇게 수정하세요:
+
+// 개선된 누적 기록 카드
+let overallRecordCard = `
+    <div class="team-record-card team-record-overall">
+        <div class="team-record-title">📊 누적 기록</div>
+        <div class="team-record-value" style="font-size: 1.4em;">${teamRecords.totalMatches}전 ${teamRecords.wins}승 ${teamRecords.draws}무 ${teamRecords.losses}패</div>
+        <div class="team-record-detail">
+            득점 ${teamRecords.goalsFor} / 실점 ${teamRecords.goalsAgainst}
+        </div>
+    </div>
+`;
+
             container.innerHTML = overallRecordCard + `
                 <div class="team-record-card team-record-win-streak">
                     <div class="team-record-title">🔥 최고 연승 기록</div>
