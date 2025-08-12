@@ -881,7 +881,8 @@
                 </div>
             </div>
         </div>
-
+ 
+        <!-- 다음 경기 일정 및 구장 위치 -->
         <div class="next-matches-section">
             <div class="section-title">다음 경기 일정 및 구장 위치</div>
             <div class="schedule-and-map">
@@ -916,14 +917,14 @@
             DEFAULT_SEASON: '2025',
             KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
             VENUE: {
-                name: '고척근린공원 축구장',
-                address: '서울특별시 구로구 고척로45길 37',
-                info: '주차 요금은 5분당 150원, 1시간에 1,800원'
+                name: '영락고등학교',
+                address: '서울 관악구 청룡16길 25',
+                info: '주차 편하고, 잔디 괜찮음
             },
             NEXT_MATCH: {
-                date: '8월 10일 (일) 12:00',
-                venue: '고척근린공원',
-                opponent: 'VS AGAIN FC'
+                date: '8월 17일 (토) 14:00',
+                venue: '영락고등학교',
+                opponent: 'VS 싸이코스'
             },
             PARALLEL_LOADING: {
                 BATCH_SIZE: 5, // 한 번에 로드할 시즌 수
@@ -1136,7 +1137,7 @@
             let successCount = 0;
             let totalSeasons = CONFIG.AVAILABLE_SEASONS.length;
             
-            showStatusMessage('역대 기록을 병렬로 불러오는 중...', 'loading');
+            showStatusMessage('역대 기록을 불러오는 중...', 'loading');
             showLoadingProgress(0, totalSeasons, '시즌 로딩 중');
 
             // 배치로 나누어 병렬 처리
