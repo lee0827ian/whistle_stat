@@ -5,14 +5,7 @@
       "opponent": "AGAIN FC",
       "result": "loss",
       "score": "5:12",
-      "mvp": null,
-      "scorers": [
-        "오진석",
-        "오진석",
-        "안태수",
-        "안태수",
-        "조인혁"
-      ]
+      "mvp": "권창호"
     },
     {
       "date": "2025-08-03",
@@ -225,7 +218,7 @@
       "mvp": 0
     },
     "박지성": {
-      "appearances": 28,
+      "appearances": 27,
       "goals": 1,
       "mvp": 4
     },
@@ -272,7 +265,7 @@
     "권창호": {
       "appearances": 14,
       "goals": 14,
-      "mvp": 3
+      "mvp": 4
     },
     "안태수": {
       "appearances": 21,
