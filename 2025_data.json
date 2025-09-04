@@ -1,6 +1,20 @@
 {
   "matches": [
     {
+      "date": "2025-08-31",
+      "opponent": "차나마나 FC",
+      "result": "win",
+      "score": "5:2",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2025-08-17",
+      "opponent": "싸이코스 FC",
+      "result": "loss",
+      "score": "1:8",
+      "mvp": "신규환"
+    },
+    {
       "date": "2025-08-10",
       "opponent": "AGAIN FC",
       "result": "loss",
@@ -9,7 +23,7 @@
     },
     {
       "date": "2025-08-03",
-      "opponent": "하나FC",
+      "opponent": "하나 FC",
       "result": "win",
       "score": "6:4",
       "mvp": "박지성"
@@ -218,12 +232,12 @@
       "mvp": 0
     },
     "박지성": {
-      "appearances": 27,
+      "appearances": 29,
       "goals": 1,
       "mvp": 4
     },
     "유지현": {
-      "appearances": 17,
+      "appearances": 19,
       "goals": 0,
       "mvp": 1
     },
@@ -233,8 +247,8 @@
       "mvp": 0
     },
     "김기호": {
-      "appearances": 18,
-      "goals": 11,
+      "appearances": 20,
+      "goals": 13,
       "mvp": 1
     },
     "김진호": {
@@ -253,27 +267,27 @@
       "mvp": 0
     },
     "강용기": {
-      "appearances": 23,
+      "appearances": 24,
       "goals": 0,
       "mvp": 0
     },
     "김경배": {
-      "appearances": 16,
+      "appearances": 18,
       "goals": 2,
       "mvp": 0
     },
     "권창호": {
-      "appearances": 14,
-      "goals": 14,
+      "appearances": 15,
+      "goals": 15,
       "mvp": 4
     },
     "안태수": {
-      "appearances": 21,
+      "appearances": 22,
       "goals": 5,
       "mvp": 1
     },
     "오진석": {
-      "appearances": 26,
+      "appearances": 27,
       "goals": 34,
       "mvp": 1
     },
@@ -288,12 +302,12 @@
       "mvp": 1
     },
     "서원덕": {
-      "appearances": 20,
+      "appearances": 22,
       "goals": 2,
       "mvp": 3
     },
     "이상보": {
-      "appearances": 18,
+      "appearances": 19,
       "goals": 1,
       "mvp": 3
     },
@@ -303,12 +317,12 @@
       "mvp": 0
     },
     "윤종진": {
-      "appearances": 4,
+      "appearances": 5,
       "goals": 2,
       "mvp": 0
     },
     "안창영": {
-      "appearances": 14,
+      "appearances": 16,
       "goals": 4,
       "mvp": 2
     },
@@ -353,13 +367,13 @@
       "mvp": 0
     },
     "김영주": {
-      "appearances": 16,
+      "appearances": 17,
       "goals": 0,
       "mvp": 0
     },
     "신규환": {
-      "appearances": 23,
-      "goals": 12,
+      "appearances": 25,
+      "goals": 13,
       "mvp": 4
     },
     "김동규": {
@@ -388,7 +402,7 @@
       "mvp": 0
     },
     "이광수": {
-      "appearances": 10,
+      "appearances": 11,
       "goals": 1,
       "mvp": 0
     },
@@ -417,5 +431,5 @@
       "goals": 0,
       "mvp": 0
     }
-  }
+  ]
 }
