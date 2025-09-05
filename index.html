@@ -888,12 +888,11 @@
                         <div class="schedule-time-venue">감일축구장</div>
                         <div class="schedule-opponent">VS FC 포텐</div>
                     </div>
-                <div class="schedule-item">
-                    <div class="schedule-date">9월 14일 (일) 12:00</div>
-                    <div class="schedule-time-venue">손기정체육공원</div>
-                    <div class="schedule-opponent">VS 삼성카드 축구동호회</div>
-            </div>
-        </div>
+                    <div class="schedule-item">
+                        <div class="schedule-date">9월 14일 (일) 12:00</div>
+                        <div class="schedule-time-venue">손기정체육공원</div>
+                        <div class="schedule-opponent">VS 삼성카드 축구동호회</div>
+                    </div>
                 </div>
                 <div class="map-container">
                     <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
@@ -933,6 +932,17 @@
             }
         };
 
+        // ========== 구글 시트 설정 ==========
+        const GOOGLE_SHEETS_CONFIG = {
+            SHEET_ID: '13UOlG3FdqufeoW2uV3x7L4KFMOo9YrwrjkrExXSVGIg',
+            SEASONS: {
+                '2025': { 
+                    matches: '1013896035',    // 경기결과 시트 gid
+                    players: '882762798'      // 선수통계 시트 gid
+                }
+            }
+        };
+
         // ========== 전역 변수 ==========
         let currentSeason = CONFIG.DEFAULT_SEASON;
         let isAllTimeView = false;
@@ -960,6 +970,99 @@
                 return escapeHtml(data);
             }
             return data;
+        }
+
+        // ========== CSV 파싱 함수 ==========
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                
+                // 빈 행이나 안내 문구가 포함된 행 건너뛰기
+                if (values[0] && !values[0].includes('🔽') && !values[0].includes('새') && !values[0].includes('예시:')) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    data.push(row);
+                }
+            }
+            
+            return data;
+        }
+
+        // ========== 구글 시트에서 데이터 로드 ==========
+        async function loadFromGoogleSheets(season) {
+            const seasonConfig = GOOGLE_SHEETS_CONFIG.SEASONS[season];
+            if (!seasonConfig) {
+                throw new Error(`${season}년 구글 시트가 설정되지 않았습니다.`);
+            }
+            
+            try {
+                // 경기 결과 데이터 로드
+                const matchesUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.matches}`;
+                const matchesResponse = await fetch(matchesUrl);
+                
+                if (!matchesResponse.ok) {
+                    throw new Error('경기 결과 시트를 불러올 수 없습니다.');
+                }
+                
+                const matchesCsv = await matchesResponse.text();
+                const matchesData = parseCSV(matchesCsv);
+                
+                // 선수 통계 데이터 로드
+                const playersUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.players}`;
+                const playersResponse = await fetch(playersUrl);
+                
+                if (!playersResponse.ok) {
+                    throw new Error('선수 통계 시트를 불러올 수 없습니다.');
+                }
+                
+                const playersCsv = await playersResponse.text();
+                const playersData = parseCSV(playersCsv);
+                
+                // 경기 데이터 변환 (최신순으로 정렬)
+                const matches = matchesData
+                    .filter(row => row['날짜'] && row['상대팀']) // 빈 데이터 제외
+                    .map(row => ({
+                        date: row['날짜'],
+                        opponent: row['상대팀'],
+                        result: row['결과'],
+                        score: row['스코어'],
+                        mvp: row['MVP'] || ''
+                    }))
+                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신 경기가 위로
+                
+                // 선수 데이터 변환
+                const players = {};
+                playersData
+                    .filter(row => row['이름']) // 빈 이름 제외
+                    .forEach(row => {
+                        players[row['이름']] = {
+                            appearances: parseInt(row['출장']) || 0,
+                            goals: parseInt(row['골']) || 0,
+                            mvp: parseInt(row['MVP']) || 0
+                        };
+                    });
+                
+                console.log(`✅ 구글 시트에서 ${season} 데이터 로드 완료:`, {
+                    경기수: matches.length,
+                    선수수: Object.keys(players).length
+                });
+                
+                return {
+                    season: season,
+                    matches: matches,
+                    players: players
+                };
+                
+            } catch (error) {
+                console.error('구글 시트 로딩 실패:', error);
+                throw error;
+            }
         }
 
         // ========== 상태 메시지 관리 ==========
@@ -1092,6 +1195,17 @@
             
             for (let i = 0; i <= retries; i++) {
                 try {
+                    // 2025년인 경우 구글 시트 시도
+                    if (season === '2025') {
+                        try {
+                            return { season, data: await loadFromGoogleSheets(season), success: true };
+                        } catch (gsError) {
+                            console.warn(`구글 시트 로딩 실패, JSON 시도: ${gsError.message}`);
+                            // 구글 시트 실패 시 JSON fallback
+                        }
+                    }
+                    
+                    // JSON 파일 로드
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 8000);
                     
@@ -1715,19 +1829,45 @@
                 }
                 currentAbortController = new AbortController();
                 
-                const response = await fetch(`${currentSeason}_data.json`, {
-                    signal: currentAbortController.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache'
+                let data;
+                let dataSource = 'JSON 파일';
+                
+                // 2025년만 구글 시트 시도, 나머지는 JSON
+                if (currentSeason === '2025') {
+                    try {
+                        data = await loadFromGoogleSheets(currentSeason);
+                        dataSource = '구글 시트';
+                    } catch (gsError) {
+                        console.warn('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
+                        
+                        // fallback: 기존 JSON 파일
+                        const response = await fetch(`${currentSeason}_data.json`, {
+                            signal: currentAbortController.signal,
+                            headers: { 'Cache-Control': 'no-cache' }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                        }
+                        
+                        const rawData = await response.json();
+                        data = validateSeasonData(rawData);
+                        dataSource = 'JSON 파일 (대체)';
                     }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                } else {
+                    // 2025년 외에는 기존 JSON 파일 사용
+                    const response = await fetch(`${currentSeason}_data.json`, {
+                        signal: currentAbortController.signal,
+                        headers: { 'Cache-Control': 'no-cache' }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                    }
+                    
+                    const rawData = await response.json();
+                    data = validateSeasonData(rawData);
                 }
-                
-                const rawData = await response.json();
-                const data = validateSeasonData(rawData);
                 
                 matches = data.matches || [];
                 playerStats = data.players || {};
@@ -1736,7 +1876,9 @@
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
                 updateTable(matches, [], 'matchesTableBody', 'matches');
                 
-                hideStatusMessage();
+                // 성공 메시지 표시
+                showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
+                setTimeout(hideStatusMessage, 2000);
                 
             } catch (error) {
                 if (error.name !== 'AbortError') {
@@ -1746,8 +1888,6 @@
                         errorMessage += ' (파일이 존재하지 않습니다)';
                     } else if (error.message.includes('Failed to fetch')) {
                         errorMessage += ' (인터넷 연결을 확인해주세요)';
-                    } else if (error.name === 'SyntaxError') {
-                        errorMessage += ' (파일 형식이 올바르지 않습니다)';
                     }
                     
                     showStatusMessage(errorMessage, 'error');
@@ -1998,3 +2138,4 @@
     </script>
 </body>
 </html>
+
