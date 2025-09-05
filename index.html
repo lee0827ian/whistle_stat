@@ -328,25 +328,18 @@
         <div class="stats-overview">
             <div class="stat-card">
                 <div class="stat-title">경기 수</div>
-                <div class="stat-value" id="totalMatches">12</div>
+                <div class="stat-value" id="totalMatches">0</div>
                 <div class="stat-subtitle">총 경기</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">승률</div>
-                <div class="stat-value" id="winRate">66.7%</div>
-                <div class="stat-subtitle">8승 1무 3패</div>
+                <div class="stat-value" id="winRate">0%</div>
+                <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">득점</div>
-                <div class="stat-value" id="totalGoals">28</div>
-                <div class="stat-subtitle">경기당 2.3골</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">시즌 MVP</div>
-                <div class="stat-value" id="seasonMvp">김철수</div>
-                <div class="stat-subtitle">MVP 3회</div>
-            </div>
-        </div>
+                <div class="stat-value" id="totalGoals">0</div>
+                <div class="stat-subtitle" id="goalsPer
 
         <div id="mainContent" class="main-content">
             <div class="section">
@@ -455,29 +448,190 @@
     <script>
         let currentSeason = '2025';
         let isAllTimeView = false;
+        let matches = [];
+        let playerStats = {};
+        let currentFilter = 'all';
+
+        const koreanCollator = new Intl.Collator('ko', { numeric: true });
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
         function showStatusMessage(message, type = 'loading') {
             const statusElement = document.getElementById('statusMessage');
             statusElement.textContent = message;
             statusElement.className = `status-message status-${type}`;
             statusElement.style.display = 'block';
-            
-            if (type === 'error') {
-                setTimeout(() => {
-                    document.getElementById('dataError').style.display = 'block';
-                }, 1000);
-            }
         }
 
         function hideStatusMessage() {
             document.getElementById('statusMessage').style.display = 'none';
         }
 
+        function calculateSeasonMvp(playerStats) {
+            if (!playerStats || Object.keys(playerStats).length === 0) {
+                return null;
+            }
+            
+            const playersArray = Object.entries(playerStats)
+                .map(([name, stats]) => ({ name, ...stats }))
+                .filter(player => player.appearances > 0);
+            
+            if (playersArray.length === 0) {
+                return null;
+            }
+            
+            playersArray.sort((a, b) => {
+                if (b.mvp !== a.mvp) return b.mvp - a.mvp;
+                if (b.appearances !== a.appearances) return b.appearances - a.appearances;
+                return koreanCollator.compare(a.name, b.name);
+            });
+            
+            return playersArray[0];
+        }
+
+        function updateStats() {
+            if (matches.length === 0) {
+                document.getElementById('totalMatches').textContent = '0';
+                document.getElementById('winRate').textContent = '0%';
+                document.getElementById('winRateSubtitle').textContent = '0승 0무 0패';
+                document.getElementById('totalGoals').textContent = '0';
+                document.getElementById('goalsPerMatch').textContent = '경기당 0골';
+                document.getElementById('seasonMvp').textContent = '-';
+                return;
+            }
+            
+            const totalMatches = matches.length;
+            const wins = matches.filter(match => match.result === 'win').length;
+            const draws = matches.filter(match => match.result === 'draw').length;
+            const losses = matches.filter(match => match.result === 'loss').length;
+            
+            let totalGoalsFor = 0;
+            matches.forEach(match => {
+                const [goalsFor] = match.score.split(':').map(Number);
+                if (!isNaN(goalsFor)) {
+                    totalGoalsFor += goalsFor;
+                }
+            });
+            
+            const winRate = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
+            const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
+            
+            const seasonMvpPlayer = calculateSeasonMvp(playerStats);
+            const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
+            
+            document.getElementById('totalMatches').textContent = totalMatches;
+            document.getElementById('winRate').textContent = `${winRate}%`;
+            document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
+            document.getElementById('totalGoals').textContent = totalGoalsFor;
+            document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
+            document.getElementById('seasonMvp').textContent = mvpName;
+        }
+
+        function updatePlayersTable() {
+            const tbody = document.getElementById('playersTableBody');
+            tbody.innerHTML = '';
+
+            if (Object.keys(playerStats).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
+            let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
+                name,
+                ...stats,
+                attendanceRate: matches.length > 0 ? ((stats.appearances / matches.length) * 100).toFixed(1) : '0.0'
+            }));
+
+            switch(currentFilter) {
+                case 'goals':
+                    playersArray.sort((a, b) => {
+                        if (b.goals !== a.goals) return b.goals - a.goals;
+                        if (b.appearances !== a.appearances) return b.appearances - a.appearances;
+                        return koreanCollator.compare(a.name, b.name);
+                    });
+                    break;
+                case 'attendance':
+                    playersArray.sort((a, b) => {
+                        if (b.attendanceRate !== a.attendanceRate) return b.attendanceRate - a.attendanceRate;
+                        if (b.goals !== a.goals) return b.goals - a.goals;
+                        return koreanCollator.compare(a.name, b.name);
+                    });
+                    break;
+                case 'mvp':
+                    playersArray.sort((a, b) => {
+                        if (b.mvp !== a.mvp) return b.mvp - a.mvp;
+                        if (b.appearances !== a.appearances) return b.appearances - a.appearances;
+                        return koreanCollator.compare(a.name, b.name);
+                    });
+                    break;
+                default:
+                    playersArray.sort((a, b) => koreanCollator.compare(a.name, b.name));
+            }
+
+            playersArray.forEach(player => {
+                const row = document.createElement('tr');
+                
+                let rateClass = 'rate-low';
+                if (player.attendanceRate >= 70) rateClass = 'rate-high';
+                else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
+
+                row.innerHTML = `
+                    <td>${escapeHtml(player.name)}</td>
+                    <td>${player.appearances}</td>
+                    <td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>
+                    <td>${player.goals}</td>
+                    <td>${player.mvp > 0 ? `<span class="mvp-badge">${player.mvp}회</span>` : '0'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateMatchesTable() {
+            const tbody = document.getElementById('matchesTableBody');
+            tbody.innerHTML = '';
+
+            if (matches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 경기 기록이 없습니다.</td></tr>';
+                return;
+            }
+
+            const sortedMatches = [...matches].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedMatches.slice(0, 15).forEach(match => {
+                const row = document.createElement('tr');
+                
+                let resultClass = 'result-loss';
+                let resultText = '패';
+                if (match.result === 'win') {
+                    resultClass = 'result-win';
+                    resultText = '승';
+                } else if (match.result === 'draw') {
+                    resultClass = 'result-draw';
+                    resultText = '무';
+                }
+
+                row.innerHTML = `
+                    <td style="white-space: nowrap;">${match.date}</td>
+                    <td>${escapeHtml(match.opponent)}</td>
+                    <td><span class="result-badge ${resultClass}">${resultText}</span></td>
+                    <td>${match.score}</td>
+                    <td>${match.mvp ? `<span class="mvp-badge">${escapeHtml(match.mvp)}</span>` : ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
         async function loadData() {
             try {
                 showStatusMessage(`${currentSeason} 시즌 데이터를 불러오는 중...`, 'loading');
                 
-                // 실제 환경에서는 이 부분에서 JSON 파일을 로드합니다
                 const response = await fetch(`${currentSeason}_data.json`);
                 
                 if (!response.ok) {
@@ -486,13 +640,24 @@
                 
                 const data = await response.json();
                 
-                // 데이터 처리 로직
+                matches = data.matches || [];
+                playerStats = data.players || {};
+                
+                updateStats();
+                updatePlayersTable();
+                updateMatchesTable();
+                
                 hideStatusMessage();
-                document.getElementById('dataError').style.display = 'none';
                 
             } catch (error) {
-                showStatusMessage(`${currentSeason} 시즌 데이터 파일이 없습니다.`, 'error');
-                console.warn(`데이터 파일 로딩 실패: ${error.message}`);
+                showStatusMessage(`${currentSeason} 시즌 데이터를 불러올 수 없습니다.`, 'error');
+                console.error(`데이터 파일 로딩 실패: ${error.message}`);
+                
+                matches = [];
+                playerStats = {};
+                updateStats();
+                updatePlayersTable();
+                updateMatchesTable();
             }
         }
 
@@ -514,20 +679,23 @@
             
             if (isAllTimeView) {
                 button.classList.add('active');
-                showStatusMessage('역대 기록을 불러오는 중...', 'loading');
-                // 역대 기록 로딩 로직
-                setTimeout(() => {
-                    showStatusMessage('역대 기록 데이터 파일이 필요합니다.', 'error');
-                }, 1000);
+                showStatusMessage('역대 기록 기능은 아직 준비중입니다.', 'error');
             } else {
                 button.classList.remove('active');
                 loadData();
             }
         }
 
+        function filterPlayers(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            updatePlayersTable();
+        }
+
         // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', function() {
-            // 초기 데이터 로딩 시도
             loadData();
         });
     </script>
