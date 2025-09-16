@@ -883,16 +883,7 @@
             <div class="schedule-and-map">
                 <div class="schedule-container">
                     <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
-                    <div class="schedule-item">
-                        <div class="schedule-date">9월 7일 (일) 15:00</div>
-                        <div class="schedule-time-venue">감일축구장</div>
-                        <div class="schedule-opponent">VS FC 포텐</div>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-date">9월 14일 (일) 12:00</div>
-                        <div class="schedule-time-venue">손기정체육공원</div>
-                        <div class="schedule-opponent">VS 삼성카드 축구동호회</div>
-                    </div>
+                    <!-- 동적으로 업데이트될 부분 -->
                 </div>
                 <div class="map-container">
                     <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
@@ -917,7 +908,7 @@
             DEFAULT_SEASON: '2025',
             KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
             VENUE: {
-                name: '감일축구장',
+                name: '감일축구장',  // 기본값 (fallback)
                 address: '경기 하남시 감이동 465',
                 info: '전화번호: 031-790-2022, 주차 편함'
             },
@@ -938,7 +929,8 @@
             SEASONS: {
                 '2025': { 
                     matches: '1013896035',    // 경기결과 시트 gid
-                    players: '882762798'      // 선수통계 시트 gid
+                    players: '882762798',     // 선수통계 시트 gid
+                    schedule: '1750685299'    // 새 세 번째 탭 gid (다음 경기 일정)
                 }
             }
         };
@@ -1005,24 +997,23 @@
                 // 경기 결과 데이터 로드
                 const matchesUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.matches}`;
                 const matchesResponse = await fetch(matchesUrl);
-                
-                if (!matchesResponse.ok) {
-                    throw new Error('경기 결과 시트를 불러올 수 없습니다.');
-                }
-                
+                if (!matchesResponse.ok) throw new Error('경기 결과 시트를 불러올 수 없습니다.');
                 const matchesCsv = await matchesResponse.text();
                 const matchesData = parseCSV(matchesCsv);
                 
                 // 선수 통계 데이터 로드
                 const playersUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.players}`;
                 const playersResponse = await fetch(playersUrl);
-                
-                if (!playersResponse.ok) {
-                    throw new Error('선수 통계 시트를 불러올 수 없습니다.');
-                }
-                
+                if (!playersResponse.ok) throw new Error('선수 통계 시트를 불러올 수 없습니다.');
                 const playersCsv = await playersResponse.text();
                 const playersData = parseCSV(playersCsv);
+                
+                // 새로 추가: 다음 경기 일정 데이터 로드
+                const scheduleUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.schedule}`;
+                const scheduleResponse = await fetch(scheduleUrl);
+                if (!scheduleResponse.ok) throw new Error('다음 경기 일정 시트를 불러올 수 없습니다.');
+                const scheduleCsv = await scheduleResponse.text();
+                const scheduleData = parseCSV(scheduleCsv);
                 
                 // 경기 데이터 변환 (최신순으로 정렬)
                 const matches = matchesData
@@ -1048,15 +1039,31 @@
                         };
                     });
                 
+                // 새로 추가: 일정 데이터 변환 (미래 경기만 필터링, 현재 날짜 기준)
+                const today = new Date();
+                const schedules = scheduleData
+                    .filter(row => row['날짜'] && row['상대팀'] && new Date(row['날짜']) > today)
+                    .map(row => ({
+                        date: row['날짜'],
+                        time: row['시간'],
+                        venue: row['구장명'],
+                        opponent: row['상대팀'],
+                        address: row['구장주소'],
+                        note: row['비고'] || ''
+                    }))
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));  // 가까운 경기부터
+                
                 console.log(`✅ 구글 시트에서 ${season} 데이터 로드 완료:`, {
                     경기수: matches.length,
-                    선수수: Object.keys(players).length
+                    선수수: Object.keys(players).length,
+                    일정수: schedules.length
                 });
                 
                 return {
                     season: season,
                     matches: matches,
-                    players: players
+                    players: players,
+                    schedules: schedules
                 };
                 
             } catch (error) {
@@ -1401,7 +1408,6 @@
             
             sortedMatches.forEach(match => {
                 const [gf, ga] = match.score.split(':').map(Number);
-
                 totalMatches++;
                 goalsFor += gf;
                 goalsAgainst += ga;
@@ -1870,11 +1876,14 @@
                 }
                 
                 matches = data.matches || [];
-                playerStats = data.players || {};
+                playerStats = data.players || [];
                 
                 updateStats();
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
                 updateTable(matches, [], 'matchesTableBody', 'matches');
+                
+                // 새로 추가: 다음 경기 일정 업데이트
+                updateSchedule(data.schedules || []);
                 
                 // 성공 메시지 표시
                 showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
@@ -1899,6 +1908,9 @@
                 updateStats();
                 updateTable({}, [], 'playersTableBody', 'players');
                 updateTable([], [], 'matchesTableBody', 'matches');
+                
+                // 오류 시 기본 일정으로 fallback
+                updateSchedule([]);
             }
         }
 
@@ -2000,6 +2012,59 @@
             });
         }
 
+        // 새 함수: 일정 UI 업데이트
+        function updateSchedule(schedules) {
+            const scheduleContainer = document.querySelector('.schedule-container');
+            scheduleContainer.innerHTML = '<h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>';
+            
+            if (schedules.length === 0) {
+                // fallback to hardcoded values
+                scheduleContainer.innerHTML += `
+                    <div class="schedule-item">
+                        <div class="schedule-date">${CONFIG.NEXT_MATCH.date}</div>
+                        <div class="schedule-time-venue">${CONFIG.NEXT_MATCH.venue}</div>
+                        <div class="schedule-opponent">${CONFIG.NEXT_MATCH.opponent}</div>
+                    </div>
+                `;
+                
+                const venueInfo = document.querySelector('.venue-info');
+                venueInfo.innerHTML = `
+                    <div class="venue-name">${CONFIG.VENUE.name}</div>
+                    <div class="venue-address">📍 ${CONFIG.VENUE.address}</div>
+                    <div class="venue-phone">📞 ${CONFIG.VENUE.info}</div>
+                `;
+                
+                loadKakaoMap();
+                return;
+            }
+            
+            schedules.forEach(schedule => {
+                const item = document.createElement('div');
+                item.className = 'schedule-item';
+                item.innerHTML = `
+                    <div class="schedule-date">${schedule.date} (${schedule.time})</div>
+                    <div class="schedule-time-venue">${schedule.venue} - ${schedule.note}</div>
+                    <div class="schedule-opponent">VS ${schedule.opponent}</div>
+                `;
+                scheduleContainer.appendChild(item);
+            });
+            
+            // 첫 번째 경기 구장 정보로 업데이트
+            const firstSchedule = schedules[0];
+            const venueInfo = document.querySelector('.venue-info');
+            venueInfo.innerHTML = `
+                <div class="venue-name">${firstSchedule.venue}</div>
+                <div class="venue-address">📍 ${firstSchedule.address}</div>
+                <div class="venue-phone">📞 ${firstSchedule.note}</div>
+            `;
+            
+            // Kakao Map 업데이트
+            CONFIG.VENUE.name = firstSchedule.venue;
+            CONFIG.VENUE.address = firstSchedule.address;
+            CONFIG.VENUE.info = firstSchedule.note;
+            loadKakaoMap();
+        }
+
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
             if (mapScriptLoaded) {
@@ -2038,7 +2103,7 @@
                     center: new kakao.maps.LatLng(37.4656, 127.0347),
                     level: 3
                 });
-
+                
                 const geocoder = new kakao.maps.services.Geocoder();
 
                 geocoder.addressSearch(CONFIG.VENUE.address, function (result, status) {
@@ -2086,25 +2151,8 @@
 
         // ========== 초기화 ==========
         function initializeScheduleAndVenue() {
-            const scheduleItem = document.querySelector('.schedule-item');
-            scheduleItem.innerHTML = `
-                <div class="schedule-date">${CONFIG.NEXT_MATCH.date}</div>
-                <div class="schedule-time-venue">${CONFIG.NEXT_MATCH.venue}</div>
-                <div class="schedule-opponent">${CONFIG.NEXT_MATCH.opponent}</div>
-            `;
-
-            const venueInfo = document.querySelector('.venue-info');
-            venueInfo.innerHTML = `
-                <div class="venue-name">${CONFIG.VENUE.name}</div>
-                <div class="venue-address">📍 ${CONFIG.VENUE.address}</div>
-                <div class="venue-phone">📞 ${CONFIG.VENUE.info}</div>
-            `;
-
-            const mapPlaceholder = document.getElementById('map-placeholder');
-            mapPlaceholder.innerHTML = `
-                🗺️<br>${CONFIG.VENUE.name}<br>
-                <small>지도 로딩 중...</small>
-            `;
+            // 초기 fallback 설정 (loadData에서 동적으로 업데이트됨)
+            updateSchedule([]);
         }
 
         // ========== 페이지 이벤트 처리 ==========
@@ -2138,4 +2186,3 @@
     </script>
 </body>
 </html>
-
