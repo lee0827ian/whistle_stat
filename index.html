@@ -252,6 +252,12 @@
             font-weight: bold;
             position: sticky;
             top: 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .players-table th:hover, .matches-table th:hover, .regional-table th:hover {
+            background: #1d4ed8;
         }
 
         .players-table tr:hover, .matches-table tr:hover, .regional-table tr:hover {
@@ -330,7 +336,7 @@
             overflow-y: auto;
             border-radius: 8px;
             border: 1px solid #ddd;
-            max-height: 450px; /* 스크롤 높이 제한 */
+            max-height: 450px;
         }
 
         .team-record-card {
@@ -395,93 +401,46 @@
             opacity: 0.9;
         }
 
-        /* 지역별 기록 섹션 */
+        /* 지역별 기록 섹션 - 테이블 형태로 변경 */
         .regional-records-section {
             background: #f8f9fa;
             padding: 25px;
             border-radius: 15px;
             margin-top: 30px;
-            grid-column: 1 / -1; /* 전체 너비 사용 */
+            grid-column: 1 / -1;
+            height: 580px;
+            display: flex;
+            flex-direction: column;
         }
 
-        .regional-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+        .all-time-view .regional-records-section {
+            height: 750px;
         }
 
-        .regional-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .regional-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .regional-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #1e40af;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .regional-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .regional-stat {
-            text-align: center;
-            padding: 8px;
-            border-radius: 8px;
-            background: #f8f9fa;
-        }
-
-        .regional-stat-label {
-            font-size: 0.8em;
-            color: #666;
-            margin-bottom: 2px;
-        }
-
-        .regional-stat-value {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #1e40af;
-        }
-
-        .regional-winrate {
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
+        .winrate-cell {
+            padding: 3px 8px;
+            border-radius: 4px;
             font-weight: bold;
             color: white;
-            font-size: 1.1em;
+            font-size: 0.8em;
+            text-align: center;
         }
 
         .winrate-excellent {
-            background: linear-gradient(135deg, #10b981, #34d399);
+            background: #10b981;
         }
 
         .winrate-good {
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            background: #3b82f6;
         }
 
         .winrate-average {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            background: #fbbf24;
             color: #1e293b;
         }
 
         .winrate-poor {
-            background: linear-gradient(135deg, #ef4444, #f87171);
+            background: #ef4444;
         }
 
         .next-matches-section {
@@ -651,6 +610,12 @@
             margin-top: 5px;
         }
 
+        .sort-indicator {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -684,7 +649,7 @@
             }
 
             .table-container {
-                max-height: 350px; /* 모바일에서 더 작은 높이 */
+                max-height: 350px;
             }
 
             .players-table th, .players-table td, 
@@ -742,6 +707,31 @@
                 width: 30%;
             }
 
+            /* 지역별 테이블 모바일 반응형 */
+            .regional-table th:nth-child(1), .regional-table td:nth-child(1) {
+                width: 25%;
+            }
+
+            .regional-table th:nth-child(2), .regional-table td:nth-child(2) {
+                width: 15%;
+            }
+
+            .regional-table th:nth-child(3), .regional-table td:nth-child(3) {
+                width: 12%;
+            }
+
+            .regional-table th:nth-child(4), .regional-table td:nth-child(4) {
+                width: 12%;
+            }
+
+            .regional-table th:nth-child(5), .regional-table td:nth-child(5) {
+                width: 12%;
+            }
+
+            .regional-table th:nth-child(6), .regional-table td:nth-child(6) {
+                width: 24%;
+            }
+
             .section, .team-records-section, .regional-records-section {
                 height: auto;
                 padding: 15px;
@@ -780,15 +770,6 @@
 
             #map, .map-placeholder {
                 height: 250px;
-            }
-
-            .regional-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .regional-card {
-                padding: 15px;
             }
         }
 
@@ -983,11 +964,31 @@
                 </div>
             </div>
 
-            <!-- 지역별 기록 섹션 -->
+            <!-- 지역별 기록 섹션 - 테이블 형태로 변경 -->
             <div class="regional-records-section">
                 <div class="section-title">🗺️ 지역별 경기 기록</div>
-                <div id="regionalRecordsContainer" class="regional-grid">
-                    <!-- 지역별 기록 카드들이 여기에 동적으로 추가됩니다 -->
+                <div class="filter-controls">
+                    <button class="filter-btn" data-filter="matches" onclick="filterRegional('matches')">경기수 순</button>
+                    <button class="filter-btn active" data-filter="winrate" onclick="filterRegional('winrate')">승률 순</button>
+                    <button class="filter-btn" data-filter="wins" onclick="filterRegional('wins')">승수 순</button>
+                    <button class="filter-btn" data-filter="name" onclick="filterRegional('name')">지역명 순</button>
+                </div>
+                <div class="table-container">
+                    <table class="regional-table">
+                        <thead>
+                            <tr>
+                                <th onclick="filterRegional('name')">지역 <span class="sort-indicator" id="regionNameSort"></span></th>
+                                <th onclick="filterRegional('matches')">경기수 <span class="sort-indicator" id="regionMatchesSort"></span></th>
+                                <th onclick="filterRegional('wins')">승 <span class="sort-indicator" id="regionWinsSort"></span></th>
+                                <th onclick="filterRegional('draws')">무 <span class="sort-indicator" id="regionDrawsSort"></span></th>
+                                <th onclick="filterRegional('losses')">패 <span class="sort-indicator" id="regionLossesSort"></span></th>
+                                <th onclick="filterRegional('winrate')">승률 <span class="sort-indicator" id="regionWinrateSort">↓</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="regionalTableBody">
+                            <tr><td colspan="6" class="no-data">데이터를 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -1023,7 +1024,7 @@
             DEFAULT_SEASON: '2025',
             KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
             VENUE: {
-                name: '감일축구장', // 기본값 (fallback)
+                name: '감일축구장',
                 address: '경기 하남시 감이동 465',
                 info: '전화번호: 031-790-2022, 주차 편함'
             },
@@ -1043,10 +1044,10 @@
             SHEET_ID: '13UOlG3FdqufeoW2uV3x7L4KFMOo9YrwrjkrExXSVGIg',
             SEASONS: {
                 '2025': {
-                    matches: '1013896035',    // 경기결과 시트 gid
-                    players: '882762798',     // 선수통계 시트 gid
-                    schedule: '1750685299',   // 다음 경기 일정 시트 gid
-                    regional: '1050217492'    // 지역별 기록 시트 gid (새로 추가)
+                    matches: '1013896035',
+                    players: '882762798',
+                    schedule: '1750685299',
+                    regional: '1050217492'
                 }
             }
         };
@@ -1058,6 +1059,7 @@
         let playerStats = {};
         let regionalStats = [];
         let currentFilter = 'all';
+        let currentRegionalFilter = 'winrate';
         let mapScriptLoaded = false;
         let mapInitialized = false;
         let currentAbortController = null;
@@ -1089,7 +1091,6 @@
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(',').map(v => v.trim());
                 
-                // 빈 행이나 안내 문구가 포함된 행 건너뛰기
                 if (values[0] && !values[0].includes('🔽') && !values[0].includes('새') && !values[0].includes('예시:')) {
                     const row = {};
                     headers.forEach((header, index) => {
@@ -1131,16 +1132,16 @@
                 const scheduleCsv = await scheduleResponse.text();
                 const scheduleData = parseCSV(scheduleCsv);
 
-                // 지역별 기록 데이터 로드 (새로 추가)
+                // 지역별 기록 데이터 로드
                 const regionalUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.regional}`;
                 const regionalResponse = await fetch(regionalUrl);
                 if (!regionalResponse.ok) throw new Error('지역별 기록 시트를 불러올 수 없습니다.');
                 const regionalCsv = await regionalResponse.text();
                 const regionalData = parseCSV(regionalCsv);
 
-                // 경기 데이터 변환 (최신순으로 정렬)
+                // 경기 데이터 변환
                 const matches = matchesData
-                    .filter(row => row['날짜'] && row['상대팀']) // 빈 데이터 제외
+                    .filter(row => row['날짜'] && row['상대팀'])
                     .map(row => ({
                         date: row['날짜'],
                         opponent: row['상대팀'],
@@ -1148,12 +1149,12 @@
                         score: row['스코어'],
                         mvp: row['MVP'] || ''
                     }))
-                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신 경기가 위로
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 // 선수 데이터 변환
                 const players = {};
                 playersData
-                    .filter(row => row['이름']) // 빈 이름 제외
+                    .filter(row => row['이름'])
                     .forEach(row => {
                         players[row['이름']] = {
                             appearances: parseInt(row['출장']) || 0,
@@ -1162,7 +1163,7 @@
                         };
                     });
 
-                // 일정 데이터 변환 (미래 경기만 필터링, 현재 날짜 기준)
+                // 일정 데이터 변환
                 const today = new Date();
                 const schedules = scheduleData
                     .filter(row => row['날짜'] && row['상대팀'] && new Date(row['날짜']) > today)
@@ -1174,11 +1175,11 @@
                         address: row['구장주소'],
                         note: row['비고'] || ''
                     }))
-                    .sort((a, b) => new Date(a.date) - new Date(b.date)); // 가까운 경기부터
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                // 지역별 데이터 변환 (새로 추가)
+                // 지역별 데이터 변환
                 const regional = regionalData
-                    .filter(row => row['지역']) // 빈 지역 제외
+                    .filter(row => row['지역'])
                     .map(row => ({
                         region: row['지역'],
                         matches: parseInt(row['경기수']) || 0,
@@ -1344,7 +1345,6 @@
                             return { season, data: await loadFromGoogleSheets(season), success: true };
                         } catch (gsError) {
                             console.warn(`구글 시트 로딩 실패, JSON 시도: ${gsError.message}`);
-                            // 구글 시트 실패 시 JSON fallback
                         }
                     }
 
@@ -1641,7 +1641,7 @@
                     updateAllTimeRankings(allTimeStats);
                     updateAllTimeTable(allTimeStats, currentFilter);
                     updateTeamRecords(teamRecords);
-                    updateRegionalRecords(regionalData);
+                    updateRegionalTable(regionalData);
                 } catch (error) {
                     showStatusMessage('역대 기록을 불러오는 중 오류가 발생했습니다.', 'error');
                     console.error('역대 기록 로딩 오류:', error);
@@ -1788,60 +1788,129 @@
             `;
         }
 
-        // ========== 지역별 기록 업데이트 함수 (새로 추가) ==========
-        function updateRegionalRecords(regionalData) {
-            const container = document.getElementById('regionalRecordsContainer');
+        // ========== 지역별 기록 테이블 업데이트 함수 ==========
+        function updateRegionalTable(regionalData) {
+            const tbody = document.getElementById('regionalTableBody');
+            tbody.innerHTML = '';
             
             if (!regionalData || regionalData.length === 0) {
-                container.innerHTML = '<div class="no-data">지역별 기록 데이터가 없습니다.</div>';
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">지역별 기록 데이터가 없습니다.</td></tr>';
                 return;
             }
 
-            // 승률 기준으로 정렬
-            const sortedRegions = regionalData
-                .map(region => ({
-                    ...region,
-                    winRate: region.matches > 0 ? (region.wins / region.matches * 100) : 0
-                }))
-                .sort((a, b) => b.winRate - a.winRate);
+            // 승률 계산하여 데이터 준비
+            let regionsWithWinRate = regionalData.map(region => ({
+                ...region,
+                winRate: region.matches > 0 ? (region.wins / region.matches * 100) : 0
+            }));
 
-            container.innerHTML = '';
+            // 정렬 적용
+            sortRegionalData(regionsWithWinRate, currentRegionalFilter);
 
-            sortedRegions.forEach(region => {
+            regionsWithWinRate.forEach(region => {
+                const row = document.createElement('tr');
+
+                // 승률에 따른 색상 클래스 결정
                 const winRateClass = 
                     region.winRate >= 80 ? 'winrate-excellent' :
                     region.winRate >= 60 ? 'winrate-good' :
                     region.winRate >= 40 ? 'winrate-average' : 'winrate-poor';
 
-                const card = document.createElement('div');
-                card.className = 'regional-card';
-
-                card.innerHTML = `
-                    <div class="regional-name">${region.region}</div>
-                    <div class="regional-stats">
-                        <div class="regional-stat">
-                            <div class="regional-stat-label">총 경기</div>
-                            <div class="regional-stat-value">${region.matches}</div>
-                        </div>
-                        <div class="regional-stat">
-                            <div class="regional-stat-label">승리</div>
-                            <div class="regional-stat-value">${region.wins}</div>
-                        </div>
-                        <div class="regional-stat">
-                            <div class="regional-stat-label">무승부</div>
-                            <div class="regional-stat-value">${region.draws}</div>
-                        </div>
-                        <div class="regional-stat">
-                            <div class="regional-stat-label">패배</div>
-                            <div class="regional-stat-value">${region.losses}</div>
-                        </div>
-                    </div>
-                    <div class="regional-winrate ${winRateClass}">
-                        승률 ${region.winRate.toFixed(1)}%
-                    </div>
+                row.innerHTML = `
+                    <td><strong>${region.region}</strong></td>
+                    <td><strong>${region.matches}</strong></td>
+                    <td>${region.wins}</td>
+                    <td>${region.draws}</td>
+                    <td>${region.losses}</td>
+                    <td><span class="winrate-cell ${winRateClass}">${region.winRate.toFixed(1)}%</span></td>
                 `;
 
-                container.appendChild(card);
+                tbody.appendChild(row);
+            });
+        }
+
+        // ========== 지역별 정렬 함수 ==========
+        function sortRegionalData(data, sortBy) {
+            switch(sortBy) {
+                case 'matches':
+                    data.sort((a, b) => {
+                        if (b.matches !== a.matches) return b.matches - a.matches;
+                        return koreanCollator.compare(a.region, b.region);
+                    });
+                    break;
+                case 'wins':
+                    data.sort((a, b) => {
+                        if (b.wins !== a.wins) return b.wins - a.wins;
+                        if (b.matches !== a.matches) return b.matches - a.matches;
+                        return koreanCollator.compare(a.region, b.region);
+                    });
+                    break;
+                case 'draws':
+                    data.sort((a, b) => {
+                        if (b.draws !== a.draws) return b.draws - a.draws;
+                        return koreanCollator.compare(a.region, b.region);
+                    });
+                    break;
+                case 'losses':
+                    data.sort((a, b) => {
+                        if (b.losses !== a.losses) return b.losses - a.losses;
+                        return koreanCollator.compare(a.region, b.region);
+                    });
+                    break;
+                case 'winrate':
+                    data.sort((a, b) => {
+                        if (Math.abs(b.winRate - a.winRate) > 0.01) return b.winRate - a.winRate;
+                        if (b.matches !== a.matches) return b.matches - a.matches;
+                        return koreanCollator.compare(a.region, b.region);
+                    });
+                    break;
+                case 'name':
+                    data.sort((a, b) => koreanCollator.compare(a.region, b.region));
+                    break;
+                default:
+                    data.sort((a, b) => {
+                        if (Math.abs(b.winRate - a.winRate) > 0.01) return b.winRate - a.winRate;
+                        return koreanCollator.compare(a.region, b.region);
+                    });
+            }
+        }
+
+        // ========== 지역별 필터 함수 ==========
+        function filterRegional(filter) {
+            currentRegionalFilter = filter;
+
+            // 필터 버튼 상태 업데이트
+            document.querySelectorAll('.regional-records-section .filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+            });
+
+            // 정렬 표시기 업데이트
+            updateRegionalSortIndicators(filter);
+
+            // 테이블 재정렬 및 업데이트
+            if (isAllTimeView) {
+                loadAllTimeSeasonsParallel().then(({ regional: regionalData }) => {
+                    updateRegionalTable(regionalData);
+                });
+            }
+        }
+
+        // ========== 정렬 표시기 업데이트 ==========
+        function updateRegionalSortIndicators(activeSort) {
+            const indicators = {
+                'regionNameSort': 'name',
+                'regionMatchesSort': 'matches',
+                'regionWinsSort': 'wins',
+                'regionDrawsSort': 'draws', 
+                'regionLossesSort': 'losses',
+                'regionWinrateSort': 'winrate'
+            };
+
+            Object.entries(indicators).forEach(([elementId, sortType]) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = sortType === activeSort ? '↓' : '';
+                }
             });
         }
 
@@ -2035,7 +2104,6 @@
                         dataSource = '구글 시트';
                     } catch (gsError) {
                         console.warn('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
-                        // fallback: 기존 JSON 파일
                         const response = await fetch(`${currentSeason}_data.json`, {
                             signal: currentAbortController.signal,
                             headers: { 'Cache-Control': 'no-cache' }
@@ -2050,7 +2118,6 @@
                         dataSource = 'JSON 파일 (대체)';
                     }
                 } else {
-                    // 2025년 외에는 기존 JSON 파일 사용
                     const response = await fetch(`${currentSeason}_data.json`, {
                         signal: currentAbortController.signal,
                         headers: { 'Cache-Control': 'no-cache' }
@@ -2071,11 +2138,8 @@
                 updateStats();
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
                 updateTable(matches, [], 'matchesTableBody', 'matches');
-
-                // 새로 추가: 다음 경기 일정 업데이트
                 updateSchedule(data.schedules || []);
 
-                // 성공 메시지 표시
                 showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
                 setTimeout(hideStatusMessage, 2000);
 
@@ -2100,8 +2164,6 @@
                 updateStats();
                 updateTable({}, [], 'playersTableBody', 'players');
                 updateTable([], [], 'matchesTableBody', 'matches');
-
-                // 오류 시 기본 일정으로 fallback
                 updateSchedule([]);
             }
         }
@@ -2207,13 +2269,11 @@
             });
         }
 
-        // 새 함수: 일정 UI 업데이트
         function updateSchedule(schedules) {
             const scheduleContainer = document.querySelector('.schedule-container');
             scheduleContainer.innerHTML = '<h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>';
 
             if (schedules.length === 0) {
-                // fallback to hardcoded values
                 scheduleContainer.innerHTML += `
                     <div class="schedule-item">
                         <div class="schedule-date">${CONFIG.NEXT_MATCH.date}</div>
@@ -2246,7 +2306,6 @@
                 scheduleContainer.appendChild(item);
             });
 
-            // 첫 번째 경기 구장 정보로 업데이트
             const firstSchedule = schedules[0];
             const venueInfo = document.querySelector('.venue-info');
             venueInfo.innerHTML = `
@@ -2255,7 +2314,6 @@
                 <div class="venue-phone">📞 ${firstSchedule.note}</div>
             `;
 
-            // Kakao Map 업데이트
             CONFIG.VENUE.name = firstSchedule.venue;
             CONFIG.VENUE.address = firstSchedule.address;
             CONFIG.VENUE.info = firstSchedule.note;
@@ -2351,7 +2409,6 @@
 
         // ========== 초기화 ==========
         function initializeScheduleAndVenue() {
-            // 초기 fallback 설정 (loadData에서 동적으로 업데이트됨)
             updateSchedule([]);
         }
 
