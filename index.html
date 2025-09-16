@@ -10,14 +10,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(90deg, #1e3a8a, #3b82f6, #60a5fa, #fbbf24, #f59e0b);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -26,21 +26,21 @@
             padding: 30px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
             border-bottom: 3px solid #1e40af;
         }
-        
+
         .team-name {
             font-size: 2.5em;
             color: #1e40af;
             margin-bottom: 10px;
             font-weight: bold;
         }
-        
+
         .season-selector {
             margin-bottom: 0;
             display: flex;
@@ -118,7 +118,7 @@
         .all-time-button.active:hover {
             background: linear-gradient(135deg, #d97706, #b45309);
         }
-        
+
         .status-message {
             margin: 15px 0;
             padding: 12px 20px;
@@ -127,36 +127,36 @@
             font-weight: 500;
             display: none;
         }
-        
+
         .status-loading {
             background: #eff6ff;
             color: #1e40af;
             border: 2px solid #dbeafe;
         }
-        
+
         .status-error {
             background: #fef2f2;
             color: #dc2626;
             border: 2px solid #fecaca;
         }
-        
+
         .status-success {
             background: #f0fdf4;
             color: #16a34a;
             border: 2px solid #bbf7d0;
         }
-        
+
         .season {
             display: none;
         }
-        
+
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
-        
+
         .stat-card {
             background: linear-gradient(135deg, #1e40af, #60a5fa);
             padding: 25px;
@@ -164,38 +164,38 @@
             color: white;
             text-align: center;
         }
-        
+
         .stat-title {
             font-size: 1.2em;
             margin-bottom: 15px;
             font-weight: bold;
         }
-        
+
         .stat-value {
             font-size: 2.5em;
             font-weight: bold;
             margin-bottom: 5px;
         }
-        
+
         .stat-subtitle {
             font-size: 0.9em;
             opacity: 0.9;
         }
-        
+
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 40px;
         }
-        
+
         .all-time-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 40px;
         }
-        
+
         .section {
             background: #f8f9fa;
             padding: 25px;
@@ -204,11 +204,11 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         .all-time-view .section {
             height: 750px;
         }
-        
+
         .team-records-section {
             background: #f8f9fa;
             padding: 25px;
@@ -218,11 +218,11 @@
             flex-direction: column;
             overflow-y: auto;
         }
-        
+
         .all-time-view .team-records-section {
             height: 750px;
         }
-        
+
         .section-title {
             font-size: 1.5em;
             color: #1e40af;
@@ -230,32 +230,34 @@
             font-weight: bold;
             text-align: center;
         }
-        
-        .players-table, .matches-table {
+
+        .players-table, .matches-table, .regional-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
         }
-        
-        .players-table th, .players-table td, .matches-table th, .matches-table td {
+
+        .players-table th, .players-table td, 
+        .matches-table th, .matches-table td,
+        .regional-table th, .regional-table td {
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #ddd;
             font-size: 0.9em;
         }
-        
-        .players-table th, .matches-table th {
+
+        .players-table th, .matches-table th, .regional-table th {
             background: #1e40af;
             color: white;
             font-weight: bold;
             position: sticky;
             top: 0;
         }
-        
-        .players-table tr:hover, .matches-table tr:hover {
+
+        .players-table tr:hover, .matches-table tr:hover, .regional-table tr:hover {
             background: #f5f5f5;
         }
-        
+
         .attendance-rate {
             padding: 3px 8px;
             border-radius: 4px;
@@ -263,20 +265,20 @@
             color: white;
             font-size: 0.8em;
         }
-        
+
         .rate-high {
             background: #1e40af;
         }
-        
+
         .rate-medium {
             background: #fbbf24;
             color: #333;
         }
-        
+
         .rate-low {
             background: #dc3545;
         }
-        
+
         .mvp-badge {
             background: #fbbf24;
             color: #333;
@@ -290,7 +292,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         .season-mvp-badge {
             background: #fbbf24;
             color: #333;
@@ -301,7 +303,7 @@
             display: inline-block;
             margin-top: 5px;
         }
-        
+
         .result-badge {
             padding: 3px 8px;
             border-radius: 4px;
@@ -309,27 +311,28 @@
             color: white;
             font-size: 0.8em;
         }
-        
+
         .result-win {
             background: #1e40af;
         }
-        
+
         .result-draw {
             background: #fbbf24;
             color: #333;
         }
-        
+
         .result-loss {
             background: #dc3545;
         }
-        
+
         .table-container {
             flex: 1;
             overflow-y: auto;
             border-radius: 8px;
             border: 1px solid #ddd;
+            max-height: 450px; /* 스크롤 높이 제한 */
         }
-        
+
         .team-record-card {
             margin-bottom: 15px;
             padding: 15px;
@@ -338,60 +341,149 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             min-height: 120px;
         }
-        
+
         .team-record-overall {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: #1e293b;
             min-height: 140px;
         }
-        
+
         .team-record-win-streak {
             background: linear-gradient(135deg, #10b981, #34d399);
             color: white;
         }
-        
+
         .team-record-loss-streak {
             background: linear-gradient(135deg, #f43f5e, #fb7185);
             color: white;
         }
-        
+
         .team-record-max-goals {
             background: linear-gradient(135deg, #06b6d4, #22d3ee);
             color: white;
         }
-        
+
         .team-record-max-conceded {
             background: linear-gradient(135deg, #ef4444, #f87171);
             color: white;
         }
-        
+
         .team-record-best-season {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: #1e293b;
         }
-        
+
         .team-record-worst-season {
             background: linear-gradient(135deg, #6b7280, #9ca3af);
             color: white;
         }
-        
+
         .team-record-title {
             font-size: 1.0em;
             font-weight: bold;
             margin-bottom: 8px;
         }
-        
+
         .team-record-value {
             font-size: 1.8em;
             font-weight: bold;
             margin-bottom: 6px;
         }
-        
+
         .team-record-detail {
             font-size: 0.85em;
             opacity: 0.9;
         }
-        
+
+        /* 지역별 기록 섹션 */
+        .regional-records-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            grid-column: 1 / -1; /* 전체 너비 사용 */
+        }
+
+        .regional-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .regional-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .regional-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .regional-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .regional-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .regional-stat {
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .regional-stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .regional-stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        .regional-winrate {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .winrate-excellent {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        .winrate-good {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+
+        .winrate-average {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+        }
+
+        .winrate-poor {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
+
         .next-matches-section {
             background: #f8f9fa;
             padding: 25px;
@@ -399,25 +491,25 @@
             margin-top: 60px;
             border-top: 2px solid #e9ecef;
         }
-        
+
         .all-time-view .next-matches-section {
             display: none;
         }
-        
+
         .schedule-and-map {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-top: 20px;
         }
-        
+
         .schedule-container {
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
+
         .schedule-item {
             background: linear-gradient(135deg, #1e40af, #60a5fa);
             color: white;
@@ -426,25 +518,25 @@
             margin: 10px 0;
             text-align: center;
         }
-        
+
         .schedule-date {
             font-weight: bold;
             font-size: 1.3em;
             margin-bottom: 8px;
         }
-        
+
         .schedule-time-venue {
             font-size: 1.1em;
             margin-bottom: 12px;
             opacity: 0.95;
         }
-        
+
         .schedule-opponent {
             font-size: 1.4em;
             font-weight: bold;
             letter-spacing: 1px;
         }
-        
+
         .map-container {
             background: white;
             padding: 20px;
@@ -452,14 +544,14 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             text-align: center;
         }
-        
+
         #map {
             width: 100%;
             height: 300px;
             border-radius: 8px;
             border: 2px solid #1e40af;
         }
-        
+
         .map-placeholder {
             width: 100%;
             height: 300px;
@@ -473,37 +565,37 @@
             border: 2px dashed #1e40af;
             flex-direction: column;
         }
-        
+
         .venue-info {
             margin-top: 15px;
             text-align: left;
         }
-        
+
         .venue-name {
             font-weight: bold;
             color: #1e40af;
             font-size: 1.2em;
             margin-bottom: 5px;
         }
-        
+
         .venue-address {
             color: #666;
             font-size: 0.9em;
             margin-bottom: 5px;
         }
-        
+
         .venue-phone {
             color: #666;
             font-size: 0.9em;
         }
-        
+
         .filter-controls {
             margin-bottom: 15px;
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
         .filter-btn {
             padding: 8px 15px;
             border: 2px solid #1e40af;
@@ -514,19 +606,19 @@
             font-size: 0.9em;
             transition: all 0.3s;
         }
-        
+
         .filter-btn.active {
             background: #1e40af;
             color: white;
         }
-        
+
         .no-data {
             text-align: center;
             color: #666;
             font-style: italic;
             padding: 20px;
         }
-        
+
         .all-time-highlight {
             background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
         }
@@ -558,7 +650,7 @@
             text-align: center;
             margin-top: 5px;
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -569,157 +661,172 @@
                 gap: 10px;
             }
 
-            .season-selector select,
-            .all-time-button {
+            .season-selector select, .all-time-button {
                 min-width: 140px;
                 font-size: 1em;
                 padding: 10px 15px;
             }
-            
+
             .main-content, .all-time-content {
                 grid-template-columns: 1fr;
             }
-            
+
             .schedule-and-map {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-overview {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .team-name {
                 font-size: 2em;
             }
-            
-            .players-table th, .players-table td, .matches-table th, .matches-table td {
+
+            .table-container {
+                max-height: 350px; /* 모바일에서 더 작은 높이 */
+            }
+
+            .players-table th, .players-table td, 
+            .matches-table th, .matches-table td,
+            .regional-table th, .regional-table td {
                 padding: 6px 4px;
                 font-size: 0.75em;
             }
-            
+
             .mvp-badge {
                 font-size: 0.65em;
                 padding: 1px 4px;
                 max-width: 60px;
             }
-            
+
             .players-table th:nth-child(1), .players-table td:nth-child(1) {
                 width: 20%;
             }
-            
+
             .players-table th:nth-child(2), .players-table td:nth-child(2) {
                 width: 15%;
             }
-            
+
             .players-table th:nth-child(3), .players-table td:nth-child(3) {
                 width: 20%;
             }
-            
+
             .players-table th:nth-child(4), .players-table td:nth-child(4) {
                 width: 15%;
             }
-            
+
             .players-table th:nth-child(5), .players-table td:nth-child(5) {
                 width: 30%;
             }
-            
+
             .matches-table th:nth-child(1), .matches-table td:nth-child(1) {
                 width: 18%;
                 white-space: nowrap;
                 font-size: 0.7em;
             }
-            
+
             .matches-table th:nth-child(2), .matches-table td:nth-child(2) {
                 width: 22%;
             }
-            
+
             .matches-table th:nth-child(3), .matches-table td:nth-child(3) {
                 width: 12%;
             }
-            
+
             .matches-table th:nth-child(4), .matches-table td:nth-child(4) {
                 width: 18%;
             }
-            
+
             .matches-table th:nth-child(5), .matches-table td:nth-child(5) {
                 width: 30%;
             }
-            
-            .section, .team-records-section {
+
+            .section, .team-records-section, .regional-records-section {
                 height: auto;
                 padding: 15px;
             }
-            
+
             .next-matches-section {
                 margin-top: 40px;
                 padding: 15px;
             }
-            
+
             .schedule-item {
                 padding: 15px;
                 margin: 15px 0;
             }
-            
+
             .schedule-date {
                 font-size: 1.2em;
             }
-            
+
             .schedule-time-venue {
                 font-size: 1em;
             }
-            
+
             .schedule-opponent {
                 font-size: 1.3em;
             }
-            
+
             .filter-controls {
                 gap: 5px;
             }
-            
+
             .filter-btn {
                 padding: 6px 12px;
                 font-size: 0.8em;
             }
-            
+
             #map, .map-placeholder {
                 height: 250px;
             }
+
+            .regional-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .regional-card {
+                padding: 15px;
+            }
         }
-        
+
         @media (max-width: 480px) {
             .stats-overview {
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
+
             .stat-card {
                 padding: 20px;
             }
-            
+
             .schedule-item {
                 padding: 12px;
             }
-            
+
             .schedule-date {
                 font-size: 1.1em;
             }
-            
+
             .schedule-opponent {
                 font-size: 1.2em;
             }
-            
-            .season-selector select,
-            .all-time-button {
+
+            .season-selector select, .all-time-button {
                 min-width: 120px;
                 font-size: 0.9em;
                 padding: 8px 12px;
             }
-            
-            .players-table th, .players-table td, .matches-table th, .matches-table td {
+
+            .players-table th, .players-table td, 
+            .matches-table th, .matches-table td,
+            .regional-table th, .regional-table td {
                 padding: 4px 2px;
                 font-size: 0.7em;
             }
-            
+
             .mvp-badge {
                 font-size: 0.6em;
                 padding: 1px 3px;
@@ -759,7 +866,7 @@
                     <option value="2003">2003 시즌</option>
                     <option value="2002">2002 시즌</option>
                     <option value="2001">2001 시즌</option>
-                    <option value="2000">2000 시즌</option>                   
+                    <option value="2000">2000 시즌</option>
                 </select>
                 <button id="allTimeButton" class="all-time-button" onclick="toggleAllTimeView()">
                     📊 역대 기록
@@ -875,8 +982,16 @@
                     <!-- 팀 기록 카드들이 여기에 동적으로 추가됩니다 -->
                 </div>
             </div>
+
+            <!-- 지역별 기록 섹션 -->
+            <div class="regional-records-section">
+                <div class="section-title">🗺️ 지역별 경기 기록</div>
+                <div id="regionalRecordsContainer" class="regional-grid">
+                    <!-- 지역별 기록 카드들이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </div>
         </div>
- 
+
         <!-- 다음 경기 일정 및 구장 위치 -->
         <div class="next-matches-section">
             <div class="section-title">다음 경기 일정 및 구장 위치</div>
@@ -902,13 +1017,13 @@
     </div>
 
     <script>
-        // ========== 설정 ========== 
+        // ========== 설정 ==========
         const CONFIG = {
             AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025'],
             DEFAULT_SEASON: '2025',
             KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
             VENUE: {
-                name: '감일축구장',  // 기본값 (fallback)
+                name: '감일축구장', // 기본값 (fallback)
                 address: '경기 하남시 감이동 465',
                 info: '전화번호: 031-790-2022, 주차 편함'
             },
@@ -927,10 +1042,11 @@
         const GOOGLE_SHEETS_CONFIG = {
             SHEET_ID: '13UOlG3FdqufeoW2uV3x7L4KFMOo9YrwrjkrExXSVGIg',
             SEASONS: {
-                '2025': { 
+                '2025': {
                     matches: '1013896035',    // 경기결과 시트 gid
                     players: '882762798',     // 선수통계 시트 gid
-                    schedule: '1750685299'    // 새 세 번째 탭 gid (다음 경기 일정)
+                    schedule: '1750685299',   // 다음 경기 일정 시트 gid
+                    regional: '1050217492'    // 지역별 기록 시트 gid (새로 추가)
                 }
             }
         };
@@ -940,11 +1056,11 @@
         let isAllTimeView = false;
         let matches = [];
         let playerStats = {};
+        let regionalStats = [];
         let currentFilter = 'all';
         let mapScriptLoaded = false;
         let mapInitialized = false;
         let currentAbortController = null;
-        
         const koreanCollator = new Intl.Collator('ko', { numeric: true });
 
         // ========== 보안 및 유틸리티 함수 ==========
@@ -969,7 +1085,7 @@
             const lines = csvText.trim().split('\n');
             const headers = lines[0].split(',').map(h => h.trim());
             const data = [];
-            
+
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(',').map(v => v.trim());
                 
@@ -992,7 +1108,7 @@
             if (!seasonConfig) {
                 throw new Error(`${season}년 구글 시트가 설정되지 않았습니다.`);
             }
-            
+
             try {
                 // 경기 결과 데이터 로드
                 const matchesUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.matches}`;
@@ -1000,21 +1116,28 @@
                 if (!matchesResponse.ok) throw new Error('경기 결과 시트를 불러올 수 없습니다.');
                 const matchesCsv = await matchesResponse.text();
                 const matchesData = parseCSV(matchesCsv);
-                
+
                 // 선수 통계 데이터 로드
                 const playersUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.players}`;
                 const playersResponse = await fetch(playersUrl);
                 if (!playersResponse.ok) throw new Error('선수 통계 시트를 불러올 수 없습니다.');
                 const playersCsv = await playersResponse.text();
                 const playersData = parseCSV(playersCsv);
-                
-                // 새로 추가: 다음 경기 일정 데이터 로드
+
+                // 다음 경기 일정 데이터 로드
                 const scheduleUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.schedule}`;
                 const scheduleResponse = await fetch(scheduleUrl);
                 if (!scheduleResponse.ok) throw new Error('다음 경기 일정 시트를 불러올 수 없습니다.');
                 const scheduleCsv = await scheduleResponse.text();
                 const scheduleData = parseCSV(scheduleCsv);
-                
+
+                // 지역별 기록 데이터 로드 (새로 추가)
+                const regionalUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.regional}`;
+                const regionalResponse = await fetch(regionalUrl);
+                if (!regionalResponse.ok) throw new Error('지역별 기록 시트를 불러올 수 없습니다.');
+                const regionalCsv = await regionalResponse.text();
+                const regionalData = parseCSV(regionalCsv);
+
                 // 경기 데이터 변환 (최신순으로 정렬)
                 const matches = matchesData
                     .filter(row => row['날짜'] && row['상대팀']) // 빈 데이터 제외
@@ -1026,7 +1149,7 @@
                         mvp: row['MVP'] || ''
                     }))
                     .sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신 경기가 위로
-                
+
                 // 선수 데이터 변환
                 const players = {};
                 playersData
@@ -1038,8 +1161,8 @@
                             mvp: parseInt(row['MVP']) || 0
                         };
                     });
-                
-                // 새로 추가: 일정 데이터 변환 (미래 경기만 필터링, 현재 날짜 기준)
+
+                // 일정 데이터 변환 (미래 경기만 필터링, 현재 날짜 기준)
                 const today = new Date();
                 const schedules = scheduleData
                     .filter(row => row['날짜'] && row['상대팀'] && new Date(row['날짜']) > today)
@@ -1051,21 +1174,34 @@
                         address: row['구장주소'],
                         note: row['비고'] || ''
                     }))
-                    .sort((a, b) => new Date(a.date) - new Date(b.date));  // 가까운 경기부터
-                
-                console.log(`✅ 구글 시트에서 ${season} 데이터 로드 완료:`, {
-                    경기수: matches.length,
-                    선수수: Object.keys(players).length,
-                    일정수: schedules.length
+                    .sort((a, b) => new Date(a.date) - new Date(b.date)); // 가까운 경기부터
+
+                // 지역별 데이터 변환 (새로 추가)
+                const regional = regionalData
+                    .filter(row => row['지역']) // 빈 지역 제외
+                    .map(row => ({
+                        region: row['지역'],
+                        matches: parseInt(row['경기수']) || 0,
+                        wins: parseInt(row['승']) || 0,
+                        draws: parseInt(row['무']) || 0,
+                        losses: parseInt(row['패']) || 0
+                    }));
+
+                console.log(`✅ 구글 시트에서 ${season} 데이터 로드 완료:`, { 
+                    경기수: matches.length, 
+                    선수수: Object.keys(players).length, 
+                    일정수: schedules.length, 
+                    지역수: regional.length 
                 });
-                
+
                 return {
                     season: season,
                     matches: matches,
                     players: players,
-                    schedules: schedules
+                    schedules: schedules,
+                    regional: regional
                 };
-                
+
             } catch (error) {
                 console.error('구글 시트 로딩 실패:', error);
                 throw error;
@@ -1089,11 +1225,11 @@
             const progressContainer = document.getElementById('loadingProgress');
             const progressBar = document.getElementById('loadingProgressBar');
             const statsElement = document.getElementById('loadingStats');
-            
+
             progressContainer.style.display = 'block';
             const percentage = Math.round((current / total) * 100);
             progressBar.style.width = `${percentage}%`;
-            
+
             if (message) {
                 statsElement.textContent = `${message} (${current}/${total})`;
                 statsElement.style.display = 'block';
@@ -1117,13 +1253,13 @@
 
             if (Array.isArray(data.matches)) {
                 validatedData.matches = data.matches.filter(match => {
-                    return match && 
-                           typeof match.date === 'string' &&
-                           typeof match.opponent === 'string' &&
-                           typeof match.result === 'string' &&
-                           typeof match.score === 'string' &&
-                           ['win', 'draw', 'loss'].includes(match.result) &&
-                           /^\d+:\d+$/.test(match.score);
+                    return match &&
+                        typeof match.date === 'string' &&
+                        typeof match.opponent === 'string' &&
+                        typeof match.result === 'string' &&
+                        typeof match.score === 'string' &&
+                        ['win', 'draw', 'loss'].includes(match.result) &&
+                        /^\d+:\d+$/.test(match.score);
                 }).map(match => ({
                     date: sanitizeTableData(match.date),
                     opponent: sanitizeTableData(match.opponent),
@@ -1153,21 +1289,21 @@
             if (!playerStats || Object.keys(playerStats).length === 0) {
                 return null;
             }
-            
+
             const playersArray = Object.entries(playerStats)
                 .map(([name, stats]) => ({ name, ...stats }))
                 .filter(player => player.appearances > 0);
-            
+
             if (playersArray.length === 0) {
                 return null;
             }
-            
+
             playersArray.sort((a, b) => {
                 if (b.mvp !== a.mvp) return b.mvp - a.mvp;
                 if (b.appearances !== a.appearances) return b.appearances - a.appearances;
                 return koreanCollator.compare(a.name, b.name);
             });
-            
+
             return playersArray[0];
         }
 
@@ -1176,7 +1312,7 @@
             const allTimeButton = document.getElementById('allTimeButton');
             const seasonSelect = document.getElementById('seasonSelect');
             const container = document.querySelector('.container');
-            
+
             if (isAllTimeView) {
                 allTimeButton.classList.add('active');
                 seasonSelect.style.opacity = '0.6';
@@ -1199,10 +1335,10 @@
         // ========== 병렬 데이터 로딩 ==========
         async function loadSeasonDataWithRetry(season, retries = 2) {
             let lastError = null;
-            
+
             for (let i = 0; i <= retries; i++) {
                 try {
-                    // 2025년인 경우 구글 시트 시도
+                    // 2025년인 경우만 구글 시트 시도
                     if (season === '2025') {
                         try {
                             return { season, data: await loadFromGoogleSheets(season), success: true };
@@ -1211,11 +1347,11 @@
                             // 구글 시트 실패 시 JSON fallback
                         }
                     }
-                    
+
                     // JSON 파일 로드
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 8000);
-                    
+
                     const response = await fetch(`${season}_data.json`, {
                         signal: controller.signal,
                         headers: {
@@ -1223,40 +1359,42 @@
                             'Accept': 'application/json'
                         }
                     });
-                    
+
                     clearTimeout(timeoutId);
-                    
+
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
-                    
+
                     const rawData = await response.json();
                     return { season, data: validateSeasonData(rawData), success: true };
-                    
+
                 } catch (error) {
                     lastError = error;
+
                     if (error.name === 'AbortError') {
                         console.warn(`${season} 로딩 타임아웃 (시도 ${i + 1}/${retries + 1})`);
                     } else {
                         console.warn(`${season} 로딩 실패 (시도 ${i + 1}/${retries + 1}):`, error.message);
                     }
-                    
+
                     if (i < retries) {
                         await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
                     }
                 }
             }
-            
+
             return { season, data: null, success: false, error: lastError };
         }
 
         async function loadAllTimeSeasonsParallel() {
             const allTimeStats = {};
             const allMatches = [];
+            const allRegionalStats = [];
             const seasonData = {};
             let successCount = 0;
             let totalSeasons = CONFIG.AVAILABLE_SEASONS.length;
-            
+
             showStatusMessage('역대 기록을 불러오는 중...', 'loading');
             showLoadingProgress(0, totalSeasons, '시즌 로딩 중');
 
@@ -1267,63 +1405,65 @@
 
             for (const batch of batches) {
                 const batchPromises = batch.map(season => loadSeasonDataWithRetry(season));
-                
+
                 try {
                     const batchResults = await Promise.allSettled(batchPromises);
-                    
+
                     batchResults.forEach(result => {
                         if (result.status === 'fulfilled' && result.value.success) {
                             const { season, data } = result.value;
                             successCount++;
-                            
                             seasonData[season] = data;
-                            
-                            allMatches.push(...data.matches.map(match => ({
-                                ...match,
-                                season: season
-                            })));
-                            
+
+                            allMatches.push(...data.matches.map(match => ({ ...match, season: season })));
+
                             Object.entries(data.players).forEach(([name, stats]) => {
                                 if (!allTimeStats[name]) {
-                                    allTimeStats[name] = {
-                                        totalAppearances: 0,
-                                        totalGoals: 0,
-                                        totalMvp: 0
-                                    };
+                                    allTimeStats[name] = { totalAppearances: 0, totalGoals: 0, totalMvp: 0 };
                                 }
-                                
                                 allTimeStats[name].totalAppearances += stats.appearances;
                                 allTimeStats[name].totalGoals += stats.goals;
                                 allTimeStats[name].totalMvp += stats.mvp;
                             });
+
+                            // 지역별 데이터 수집 (2025년만)
+                            if (season === '2025' && data.regional) {
+                                allRegionalStats.push(...data.regional);
+                            }
                         }
-                        
+
                         showLoadingProgress(successCount, totalSeasons, `${successCount}개 시즌 로딩 완료`);
                     });
-                    
+
                 } catch (error) {
                     console.error('배치 처리 중 오류:', error);
                 }
-                
+
                 if (batches.indexOf(batch) < batches.length - 1) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
             }
-            
+
             hideLoadingProgress();
-            
+
             if (successCount === 0) {
                 showStatusMessage('데이터를 불러올 수 없습니다. 인터넷 연결을 확인해주세요.', 'error');
-                return { stats: {}, matches: [], records: null };
+                return { stats: {}, matches: [], records: null, regional: [] };
             } else if (successCount < totalSeasons) {
                 showStatusMessage(`${successCount}/${totalSeasons} 시즌 데이터 로딩 완료`, 'success');
                 setTimeout(hideStatusMessage, 3000);
             } else {
                 hideStatusMessage();
             }
-            
+
             const teamRecords = calculateTeamRecords(allMatches, seasonData);
-            return { stats: allTimeStats, matches: allMatches, records: teamRecords };
+            
+            return { 
+                stats: allTimeStats, 
+                matches: allMatches, 
+                records: teamRecords,
+                regional: allRegionalStats
+            };
         }
 
         // ========== 팀 기록 계산 ==========
@@ -1334,47 +1474,48 @@
             let winStreakEnd = null;
             let maxWinStreakStart = null;
             let maxWinStreakEnd = null;
-            
+
             let maxLossStreak = 0;
             let currentLossStreak = 0;
             let lossStreakStart = null;
             let lossStreakEnd = null;
             let maxLossStreakStart = null;
             let maxLossStreakEnd = null;
-            
+
             let maxGoalsMatch = null;
             let maxConcededMatch = null;
-            
+
             let totalMatches = 0;
             let wins = 0;
             let draws = 0;
             let losses = 0;
             let goalsFor = 0;
             let goalsAgainst = 0;
-            
+
             const seasonStats = {};
+
             Object.entries(seasonData).forEach(([season, data]) => {
                 if (!data || !data.matches || data.matches.length === 0) return;
-                
+
                 let seasonWins = 0;
                 let seasonDraws = 0;
                 let seasonLosses = 0;
                 let seasonGoalsFor = 0;
                 let seasonGoalsAgainst = 0;
-                
+
                 data.matches.forEach(match => {
                     const [gf, ga] = match.score.split(':').map(Number);
                     seasonGoalsFor += gf;
                     seasonGoalsAgainst += ga;
-                    
+
                     if (match.result === 'win') seasonWins++;
                     else if (match.result === 'draw') seasonDraws++;
                     else seasonLosses++;
                 });
-                
+
                 const seasonTotalMatches = data.matches.length;
                 const winRate = seasonTotalMatches > 0 ? (seasonWins / seasonTotalMatches) * 100 : 0;
-                
+
                 seasonStats[season] = {
                     matches: seasonTotalMatches,
                     wins: seasonWins,
@@ -1385,12 +1526,12 @@
                     winRate: winRate
                 };
             });
-            
+
             let bestSeason = null;
             let worstSeason = null;
             let highestWinRate = -1;
             let lowestWinRate = 101;
-            
+
             Object.entries(seasonStats).forEach(([season, stats]) => {
                 if (stats.matches >= 5) {
                     if (stats.winRate > highestWinRate) {
@@ -1403,15 +1544,15 @@
                     }
                 }
             });
-            
+
             const sortedMatches = [...matches].sort((a, b) => new Date(a.date) - new Date(b.date));
-            
+
             sortedMatches.forEach(match => {
                 const [gf, ga] = match.score.split(':').map(Number);
                 totalMatches++;
                 goalsFor += gf;
                 goalsAgainst += ga;
-                
+
                 if (match.result === 'win') {
                     wins++;
                     if (currentWinStreak === 0) {
@@ -1419,13 +1560,12 @@
                     }
                     currentWinStreak++;
                     winStreakEnd = match.date;
-                    
+
                     if (currentWinStreak > maxWinStreak) {
                         maxWinStreak = currentWinStreak;
                         maxWinStreakStart = winStreakStart;
                         maxWinStreakEnd = winStreakEnd;
                     }
-                    
                     currentLossStreak = 0;
                 } else if (match.result === 'draw') {
                     draws++;
@@ -1438,25 +1578,24 @@
                     }
                     currentLossStreak++;
                     lossStreakEnd = match.date;
-                    
+
                     if (currentLossStreak > maxLossStreak) {
                         maxLossStreak = currentLossStreak;
                         maxLossStreakStart = lossStreakStart;
                         maxLossStreakEnd = lossStreakEnd;
                     }
-                    
                     currentWinStreak = 0;
                 }
-                
+
                 if (!maxGoalsMatch || gf > parseInt(maxGoalsMatch.score.split(':')[0])) {
                     maxGoalsMatch = match;
                 }
-                
+
                 if (!maxConcededMatch || ga > parseInt(maxConcededMatch.score.split(':')[1])) {
                     maxConcededMatch = match;
                 }
             });
-            
+
             return {
                 totalMatches,
                 wins,
@@ -1485,28 +1624,24 @@
         async function toggleAllTimeView() {
             if (isAllTimeView) {
                 isAllTimeView = false;
-                
                 const seasonSelect = document.getElementById('seasonSelect');
                 currentSeason = seasonSelect.value;
-                
                 document.getElementById('mainContent').style.display = 'grid';
                 document.getElementById('allTimeContent').style.display = 'none';
-                
                 updateButtonStates();
                 await loadData();
             } else {
                 isAllTimeView = true;
-                
                 document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('allTimeContent').style.display = 'grid';
-                
                 updateButtonStates();
-                
+
                 try {
-                    const { stats: allTimeStats, records: teamRecords } = await loadAllTimeSeasonsParallel();
+                    const { stats: allTimeStats, records: teamRecords, regional: regionalData } = await loadAllTimeSeasonsParallel();
                     updateAllTimeRankings(allTimeStats);
                     updateAllTimeTable(allTimeStats, currentFilter);
                     updateTeamRecords(teamRecords);
+                    updateRegionalRecords(regionalData);
                 } catch (error) {
                     showStatusMessage('역대 기록을 불러오는 중 오류가 발생했습니다.', 'error');
                     console.error('역대 기록 로딩 오류:', error);
@@ -1516,12 +1651,12 @@
 
         function updateAllTimeRankings(allTimeStats) {
             const statsOverview = document.querySelector('.stats-overview');
-            
+
             const topScorers = Object.entries(allTimeStats)
                 .map(([name, stats]) => ({name, ...stats}))
                 .filter(player => player.totalGoals > 0)
                 .sort((a, b) => b.totalGoals - a.totalGoals);
-            
+
             const topMvps = Object.entries(allTimeStats)
                 .map(([name, stats]) => ({name, ...stats}))
                 .filter(player => player.totalMvp > 0)
@@ -1530,16 +1665,16 @@
                     if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
                     return koreanCollator.compare(a.name, b.name);
                 });
-                
+
             const topAppearances = Object.entries(allTimeStats)
                 .map(([name, stats]) => ({name, ...stats}))
                 .filter(player => player.totalAppearances > 0)
                 .sort((a, b) => b.totalAppearances - a.totalAppearances);
-            
+
             const totalPlayers = Object.keys(allTimeStats).filter(name => 
                 allTimeStats[name].totalAppearances > 0
             ).length;
-            
+
             statsOverview.innerHTML = `
                 <div class="stat-card all-time-highlight">
                     <div class="stat-title">역대 득점왕</div>
@@ -1566,12 +1701,11 @@
 
         function updateTeamRecords(teamRecords) {
             const container = document.getElementById('teamRecordsContainer');
-            
             if (!teamRecords) {
                 container.innerHTML = '<div class="no-data">팀 기록 데이터가 없습니다.</div>';
                 return;
             }
-            
+
             const formatDate = (dateStr) => {
                 const date = new Date(dateStr);
                 return date.toLocaleDateString('ko-KR', {
@@ -1580,7 +1714,7 @@
                     day: 'numeric'
                 });
             };
-            
+
             let overallRecordCard = `
                 <div class="team-record-card team-record-overall">
                     <div class="team-record-title">📊 누적 기록</div>
@@ -1596,62 +1730,119 @@
                     <div class="team-record-title">🔥 최고 연승 기록</div>
                     <div class="team-record-value">${teamRecords.maxWinStreak.count}연승</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxWinStreak.startDate ?
-                            `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` :
+                        ${teamRecords.maxWinStreak.startDate ? 
+                            `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` : 
                             '기록 없음'}
                     </div>
                 </div>
-                
+
                 <div class="team-record-card team-record-loss-streak">
                     <div class="team-record-title">💔 최다 연패 기록</div>
                     <div class="team-record-value">${teamRecords.maxLossStreak.count}연패</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxLossStreak.startDate ?
-                            `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` :
+                        ${teamRecords.maxLossStreak.startDate ? 
+                            `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` : 
                             '기록 없음'}
                     </div>
                 </div>
-                
+
                 <div class="team-record-card team-record-max-goals">
                     <div class="team-record-title">⚽ 최다 득점 경기</div>
                     <div class="team-record-value">${teamRecords.maxGoalsMatch ? teamRecords.maxGoalsMatch.score.split(':')[0] : 0}골</div>
                     <div class="team-record-detail">
-                      ${teamRecords.maxGoalsMatch ?
-                            `vs ${teamRecords.maxGoalsMatch.opponent}<br>${formatDate(teamRecords.maxGoalsMatch.date)}` :
+                        ${teamRecords.maxGoalsMatch ? 
+                            `vs ${teamRecords.maxGoalsMatch.opponent}<br>${formatDate(teamRecords.maxGoalsMatch.date)}` : 
                             '기록 없음'}
                     </div>
                 </div>
-                
+
                 <div class="team-record-card team-record-max-conceded">
                     <div class="team-record-title">😱 최다 실점 경기</div>
                     <div class="team-record-value">${teamRecords.maxConcededMatch ? teamRecords.maxConcededMatch.score.split(':')[1] : 0}실점</div>
                     <div class="team-record-detail">
-                        ${teamRecords.maxConcededMatch ?
-                            `vs ${teamRecords.maxConcededMatch.opponent}<br>${formatDate(teamRecords.maxConcededMatch.date)}` :
+                        ${teamRecords.maxConcededMatch ? 
+                            `vs ${teamRecords.maxConcededMatch.opponent}<br>${formatDate(teamRecords.maxConcededMatch.date)}` : 
                             '기록 없음'}
                     </div>
                 </div>
-                
+
                 <div class="team-record-card team-record-best-season">
                     <div class="team-record-title">🏆 최고 시즌</div>
                     <div class="team-record-value">${teamRecords.bestSeason ? teamRecords.bestSeason.season : '-'}</div>
                     <div class="team-record-detail">
-                        ${teamRecords.bestSeason ?
-                            `승률 ${teamRecords.bestSeason.winRate.toFixed(1)}%<br>${teamRecords.bestSeason.wins}승 ${teamRecords.bestSeason.draws}무 ${teamRecords.bestSeason.losses}패` :
+                        ${teamRecords.bestSeason ? 
+                            `승률 ${teamRecords.bestSeason.winRate.toFixed(1)}%<br>${teamRecords.bestSeason.wins}승 ${teamRecords.bestSeason.draws}무 ${teamRecords.bestSeason.losses}패` : 
                             '기록 없음'}
                     </div>
                 </div>
-                
+
                 <div class="team-record-card team-record-worst-season">
                     <div class="team-record-title">📉 아쉬운 시즌</div>
                     <div class="team-record-value">${teamRecords.worstSeason ? teamRecords.worstSeason.season : '-'}</div>
                     <div class="team-record-detail">
-                        ${teamRecords.worstSeason ?
-                            `승률 ${teamRecords.worstSeason.winRate.toFixed(1)}%<br>${teamRecords.worstSeason.wins}승 ${teamRecords.worstSeason.draws}무 ${teamRecords.worstSeason.losses}패` :
+                        ${teamRecords.worstSeason ? 
+                            `승률 ${teamRecords.worstSeason.winRate.toFixed(1)}%<br>${teamRecords.worstSeason.wins}승 ${teamRecords.worstSeason.draws}무 ${teamRecords.worstSeason.losses}패` : 
                             '기록 없음'}
                     </div>
                 </div>
             `;
+        }
+
+        // ========== 지역별 기록 업데이트 함수 (새로 추가) ==========
+        function updateRegionalRecords(regionalData) {
+            const container = document.getElementById('regionalRecordsContainer');
+            
+            if (!regionalData || regionalData.length === 0) {
+                container.innerHTML = '<div class="no-data">지역별 기록 데이터가 없습니다.</div>';
+                return;
+            }
+
+            // 승률 기준으로 정렬
+            const sortedRegions = regionalData
+                .map(region => ({
+                    ...region,
+                    winRate: region.matches > 0 ? (region.wins / region.matches * 100) : 0
+                }))
+                .sort((a, b) => b.winRate - a.winRate);
+
+            container.innerHTML = '';
+
+            sortedRegions.forEach(region => {
+                const winRateClass = 
+                    region.winRate >= 80 ? 'winrate-excellent' :
+                    region.winRate >= 60 ? 'winrate-good' :
+                    region.winRate >= 40 ? 'winrate-average' : 'winrate-poor';
+
+                const card = document.createElement('div');
+                card.className = 'regional-card';
+
+                card.innerHTML = `
+                    <div class="regional-name">${region.region}</div>
+                    <div class="regional-stats">
+                        <div class="regional-stat">
+                            <div class="regional-stat-label">총 경기</div>
+                            <div class="regional-stat-value">${region.matches}</div>
+                        </div>
+                        <div class="regional-stat">
+                            <div class="regional-stat-label">승리</div>
+                            <div class="regional-stat-value">${region.wins}</div>
+                        </div>
+                        <div class="regional-stat">
+                            <div class="regional-stat-label">무승부</div>
+                            <div class="regional-stat-value">${region.draws}</div>
+                        </div>
+                        <div class="regional-stat">
+                            <div class="regional-stat-label">패배</div>
+                            <div class="regional-stat-value">${region.losses}</div>
+                        </div>
+                    </div>
+                    <div class="regional-winrate ${winRateClass}">
+                        승률 ${region.winRate.toFixed(1)}%
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
         }
 
         function updateAllTimeTable(allTimeStats, sortBy = 'goals') {
@@ -1695,12 +1886,12 @@
 
             playersBySort.forEach((player, index) => {
                 const row = document.createElement('tr');
-                
+
                 let rankDisplay = '';
                 if (index < 3) {
                     const rankEmoji = ['🥇', '🥈', '🥉'];
-                    
                     let showMedal = false;
+
                     switch(sortBy) {
                         case 'goals':
                             showMedal = player.totalGoals > 0;
@@ -1714,18 +1905,19 @@
                         default:
                             showMedal = false;
                     }
-                    
+
                     if (showMedal) {
-                        rankDisplay = ` ${rankEmoji[index]}`;
+                        rankDisplay = `${rankEmoji[index]}`;
                     }
                 }
-                
+
                 row.innerHTML = `
                     <td><strong>${player.name}</strong>${rankDisplay}</td>
                     <td><strong>${player.totalAppearances}</strong></td>
                     <td><strong>${player.totalGoals}</strong></td>
                     <td>${player.totalMvp > 0 ? `<span class="mvp-badge">${player.totalMvp}회</span>` : '0'}</td>
                 `;
+
                 tbody.appendChild(row);
             });
         }
@@ -1734,16 +1926,14 @@
         async function changeSeason() {
             const seasonSelect = document.getElementById('seasonSelect');
             const newSeason = seasonSelect.value;
-            
+
             if (isAllTimeView || currentSeason !== newSeason) {
                 if (isAllTimeView) {
                     isAllTimeView = false;
                     updateButtonStates();
-                    
                     document.getElementById('mainContent').style.display = 'grid';
                     document.getElementById('allTimeContent').style.display = 'none';
                 }
-                
                 currentSeason = newSeason;
                 await loadData();
             }
@@ -1776,15 +1966,15 @@
                 `;
                 return;
             }
-            
+
             const totalMatches = matches.length;
             const wins = matches.filter(match => match.result === 'win').length;
             const draws = matches.filter(match => match.result === 'draw').length;
             const losses = matches.filter(match => match.result === 'loss').length;
-            
+
             let totalGoalsFor = 0;
             let totalGoalsAgainst = 0;
-            
+
             matches.forEach(match => {
                 const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
                 if (!isNaN(goalsFor) && !isNaN(goalsAgainst)) {
@@ -1792,15 +1982,15 @@
                     totalGoalsAgainst += goalsAgainst;
                 }
             });
-            
+
             const winRate = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
             const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
-            
+
             const seasonMvpPlayer = calculateSeasonMvp(playerStats);
             const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
             const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.mvp : 0;
             const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
-            
+
             const statsOverview = document.querySelector('.stats-overview');
             statsOverview.innerHTML = `
                 <div class="stat-card">
@@ -1829,15 +2019,15 @@
         async function loadData() {
             try {
                 showStatusMessage(`${currentSeason} 시즌 데이터를 불러오는 중...`, 'loading');
-                
+
                 if (currentAbortController) {
                     currentAbortController.abort();
                 }
                 currentAbortController = new AbortController();
-                
+
                 let data;
                 let dataSource = 'JSON 파일';
-                
+
                 // 2025년만 구글 시트 시도, 나머지는 JSON
                 if (currentSeason === '2025') {
                     try {
@@ -1845,17 +2035,16 @@
                         dataSource = '구글 시트';
                     } catch (gsError) {
                         console.warn('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
-                        
                         // fallback: 기존 JSON 파일
                         const response = await fetch(`${currentSeason}_data.json`, {
                             signal: currentAbortController.signal,
                             headers: { 'Cache-Control': 'no-cache' }
                         });
-                        
+
                         if (!response.ok) {
                             throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
                         }
-                        
+
                         const rawData = await response.json();
                         data = validateSeasonData(rawData);
                         dataSource = 'JSON 파일 (대체)';
@@ -1866,29 +2055,30 @@
                         signal: currentAbortController.signal,
                         headers: { 'Cache-Control': 'no-cache' }
                     });
-                    
+
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
                     }
-                    
+
                     const rawData = await response.json();
                     data = validateSeasonData(rawData);
                 }
-                
+
                 matches = data.matches || [];
                 playerStats = data.players || [];
-                
+                regionalStats = data.regional || [];
+
                 updateStats();
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
                 updateTable(matches, [], 'matchesTableBody', 'matches');
-                
+
                 // 새로 추가: 다음 경기 일정 업데이트
                 updateSchedule(data.schedules || []);
-                
+
                 // 성공 메시지 표시
                 showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
                 setTimeout(hideStatusMessage, 2000);
-                
+
             } catch (error) {
                 if (error.name !== 'AbortError') {
                     let errorMessage = `${currentSeason} 시즌 데이터를 불러올 수 없습니다.`;
@@ -1898,17 +2088,19 @@
                     } else if (error.message.includes('Failed to fetch')) {
                         errorMessage += ' (인터넷 연결을 확인해주세요)';
                     }
-                    
+
                     showStatusMessage(errorMessage, 'error');
                     console.error(`${currentSeason} 시즌 데이터 로딩 실패:`, error);
                 }
-                
+
                 matches = [];
                 playerStats = {};
+                regionalStats = [];
+                
                 updateStats();
                 updateTable({}, [], 'playersTableBody', 'players');
                 updateTable([], [], 'matchesTableBody', 'matches');
-                
+
                 // 오류 시 기본 일정으로 fallback
                 updateSchedule([]);
             }
@@ -1966,7 +2158,7 @@
 
             playersArray.forEach(player => {
                 const row = document.createElement('tr');
-                
+
                 let rateClass = 'rate-low';
                 if (player.attendanceRate >= 70) rateClass = 'rate-high';
                 else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
@@ -1978,6 +2170,7 @@
                     <td>${player.goals}</td>
                     <td>${player.mvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.mvp}회">${player.mvp}회</span>` : '0'}</td>
                 `;
+
                 tbody.appendChild(row);
             });
         }
@@ -1990,9 +2183,10 @@
 
             matches.forEach(match => {
                 const row = document.createElement('tr');
-                
+
                 let resultClass = 'result-loss';
                 let resultText = '패';
+
                 if (match.result === 'win') {
                     resultClass = 'result-win';
                     resultText = '승';
@@ -2008,6 +2202,7 @@
                     <td>${match.score}</td>
                     <td>${match.mvp ? `<span class="mvp-badge" title="${match.mvp}">${match.mvp}</span>` : ''}</td>
                 `;
+
                 tbody.appendChild(row);
             });
         }
@@ -2016,7 +2211,7 @@
         function updateSchedule(schedules) {
             const scheduleContainer = document.querySelector('.schedule-container');
             scheduleContainer.innerHTML = '<h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>';
-            
+
             if (schedules.length === 0) {
                 // fallback to hardcoded values
                 scheduleContainer.innerHTML += `
@@ -2026,29 +2221,31 @@
                         <div class="schedule-opponent">${CONFIG.NEXT_MATCH.opponent}</div>
                     </div>
                 `;
-                
+
                 const venueInfo = document.querySelector('.venue-info');
                 venueInfo.innerHTML = `
                     <div class="venue-name">${CONFIG.VENUE.name}</div>
                     <div class="venue-address">📍 ${CONFIG.VENUE.address}</div>
                     <div class="venue-phone">📞 ${CONFIG.VENUE.info}</div>
                 `;
-                
+
                 loadKakaoMap();
                 return;
             }
-            
+
             schedules.forEach(schedule => {
                 const item = document.createElement('div');
                 item.className = 'schedule-item';
+
                 item.innerHTML = `
                     <div class="schedule-date">${schedule.date} (${schedule.time})</div>
                     <div class="schedule-time-venue">${schedule.venue} - ${schedule.note}</div>
                     <div class="schedule-opponent">VS ${schedule.opponent}</div>
                 `;
+
                 scheduleContainer.appendChild(item);
             });
-            
+
             // 첫 번째 경기 구장 정보로 업데이트
             const firstSchedule = schedules[0];
             const venueInfo = document.querySelector('.venue-info');
@@ -2057,7 +2254,7 @@
                 <div class="venue-address">📍 ${firstSchedule.address}</div>
                 <div class="venue-phone">📞 ${firstSchedule.note}</div>
             `;
-            
+
             // Kakao Map 업데이트
             CONFIG.VENUE.name = firstSchedule.venue;
             CONFIG.VENUE.address = firstSchedule.address;
@@ -2071,14 +2268,15 @@
                 initializeMap();
                 return;
             }
-            
+
             const script = document.createElement('script');
             script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CONFIG.KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
+            
             script.onload = function () {
                 mapScriptLoaded = true;
                 initializeMap();
             };
-            
+
             script.onerror = function () {
                 console.error('카카오맵 API 로드 실패');
                 document.getElementById('map-placeholder').innerHTML = `
@@ -2089,21 +2287,22 @@
                     </div>
                 `;
             };
+
             document.head.appendChild(script);
         }
-        
+
         function initializeMap() {
             if (mapInitialized) return;
-            
+
             kakao.maps.load(function () {
                 const mapContainer = document.getElementById('map-placeholder');
                 mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
-                
+
                 const map = new kakao.maps.Map(document.getElementById('map'), {
                     center: new kakao.maps.LatLng(37.4656, 127.0347),
                     level: 3
                 });
-                
+
                 const geocoder = new kakao.maps.services.Geocoder();
 
                 geocoder.addressSearch(CONFIG.VENUE.address, function (result, status) {
@@ -2119,8 +2318,8 @@
                         const infowindow = new kakao.maps.InfoWindow({
                             content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name}</div>`
                         });
+
                         infowindow.open(map, marker);
-                        
                         mapInitialized = true;
                     } else {
                         document.getElementById('map').innerHTML = `
@@ -2136,10 +2335,11 @@
         // ========== 필터 관리 ==========
         function filterPlayers(filter) {
             currentFilter = filter;
+
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                 btn.classList.toggle('active', btn.dataset.filter === filter);
+                btn.classList.toggle('active', btn.dataset.filter === filter);
             });
-           
+
             if (isAllTimeView) {
                 loadAllTimeSeasonsParallel().then(({ stats: allTimeStats }) => {
                     updateAllTimeTable(allTimeStats, filter);
@@ -2165,7 +2365,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const seasonParam = urlParams.get('season');
-            
+
             if (seasonParam && [...CONFIG.AVAILABLE_SEASONS, 'all-time'].includes(seasonParam)) {
                 if (seasonParam === 'all-time') {
                     toggleAllTimeView();
@@ -2175,12 +2375,10 @@
                     document.getElementById('seasonSelect').value = seasonParam;
                 }
             }
-            
+
             updateButtonStates();
             initializeScheduleAndVenue();
-            
             loadData();
-            
             setTimeout(loadKakaoMap, 3000);
         });
     </script>
