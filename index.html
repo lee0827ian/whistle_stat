@@ -1028,11 +1028,7 @@
                 address: '경기 하남시 감이동 465',
                 info: '전화번호: 031-790-2022, 주차 편함'
             },
-            NEXT_MATCH: {
-                date: '9월 7일 (일) 15:00',
-                venue: '감일축구장',
-                opponent: 'VS FC 포텐'
-            },
+            NEXT_MATCH: null,
             PARALLEL_LOADING: {
                 BATCH_SIZE: 5,
                 MAX_CONCURRENT: 3
@@ -2275,11 +2271,7 @@
 
             if (schedules.length === 0) {
                 scheduleContainer.innerHTML += `
-                    <div class="schedule-item">
-                        <div class="schedule-date">${CONFIG.NEXT_MATCH.date}</div>
-                        <div class="schedule-time-venue">${CONFIG.NEXT_MATCH.venue}</div>
-                        <div class="schedule-opponent">${CONFIG.NEXT_MATCH.opponent}</div>
-                    </div>
+                    <div class="no-data">다음 경기 일정이 없습니다</div>
                 `;
 
                 const venueInfo = document.querySelector('.venue-info');
