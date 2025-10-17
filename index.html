@@ -2269,47 +2269,61 @@
             const scheduleContainer = document.querySelector('.schedule-container');
             scheduleContainer.innerHTML = '<h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>';
 
-            if (schedules.length === 0) {
+            // 데이터가 없거나 빈 배열일 경우 처리
+            if (!schedules || schedules.length === 0) {
                 scheduleContainer.innerHTML += `
                     <div class="no-data">다음 경기 일정이 없습니다</div>
                 `;
 
+                // 기본 구장 정보 유지 (하드코딩된 기본값)
                 const venueInfo = document.querySelector('.venue-info');
                 venueInfo.innerHTML = `
-                    <div class="venue-name">${CONFIG.VENUE.name}</div>
-                    <div class="venue-address">📍 ${CONFIG.VENUE.address}</div>
-                    <div class="venue-phone">📞 ${CONFIG.VENUE.info}</div>
+                    <div class="venue-name">감일축구장</div>
+                    <div class="venue-address">📍 경기 하남시 감이동 465</div>
+                    <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
                 `;
 
+                CONFIG.VENUE.name = '감일축구장';
+                CONFIG.VENUE.address = '경기 하남시 감이동 465';
+                CONFIG.VENUE.info = '전화번호: 031-790-2022, 주차 편함';
                 loadKakaoMap();
                 return;
             }
 
+            // 일정 데이터가 있을 경우 표시
             schedules.forEach(schedule => {
                 const item = document.createElement('div');
                 item.className = 'schedule-item';
 
                 item.innerHTML = `
-                    <div class="schedule-date">${schedule.date} (${schedule.time})</div>
-                    <div class="schedule-time-venue">${schedule.venue} - ${schedule.note}</div>
-                    <div class="schedule-opponent">VS ${schedule.opponent}</div>
+                    <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
+                    <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
+                    <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
                 `;
 
                 scheduleContainer.appendChild(item);
             });
 
+            // 첫 번째 일정의 구장 정보로 지도 및 정보 업데이트
             const firstSchedule = schedules[0];
             const venueInfo = document.querySelector('.venue-info');
             venueInfo.innerHTML = `
-                <div class="venue-name">${firstSchedule.venue}</div>
-                <div class="venue-address">📍 ${firstSchedule.address}</div>
-                <div class="venue-phone">📞 ${firstSchedule.note}</div>
+                <div class="venue-name">${firstSchedule.venue || '미정'}</div>
+                <div class="venue-address">📍 ${firstSchedule.address || '주소 미정'}</div>
+                <div class="venue-phone">📞 ${firstSchedule.note || ''}</div>
             `;
 
-            CONFIG.VENUE.name = firstSchedule.venue;
-            CONFIG.VENUE.address = firstSchedule.address;
-            CONFIG.VENUE.info = firstSchedule.note;
-            loadKakaoMap();
+            // 구장 정보 업데이트
+            CONFIG.VENUE.name = firstSchedule.venue || '미정';
+            CONFIG.VENUE.address = firstSchedule.address || '주소 미정';
+            CONFIG.VENUE.info = firstSchedule.note || '';
+            
+            // 지도 로드 (주소가 있는 경우에만)
+            if (firstSchedule.address) {
+                // 지도 초기화 플래그 리셋하여 새 위치로 지도를 다시 로드
+                mapInitialized = false;
+                loadKakaoMap();
+            }
         }
 
         // ========== 카카오맵 관리 ==========
@@ -2342,20 +2356,27 @@
         }
 
         function initializeMap() {
-            if (mapInitialized) return;
+            // mapInitialized가 true이고 CONFIG.VENUE.address가 변경되지 않았으면 리턴
+            // 그러나 updateSchedule에서 mapInitialized를 false로 설정할 수 있으므로 재초기화 가능
 
             kakao.maps.load(function () {
                 const mapContainer = document.getElementById('map-placeholder');
                 mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
 
+                // 기본 중심 좌표 (감일축구장)
+                const defaultCenter = new kakao.maps.LatLng(37.4656, 127.0347);
+                
                 const map = new kakao.maps.Map(document.getElementById('map'), {
-                    center: new kakao.maps.LatLng(37.4656, 127.0347),
+                    center: defaultCenter,
                     level: 3
                 });
 
                 const geocoder = new kakao.maps.services.Geocoder();
 
-                geocoder.addressSearch(CONFIG.VENUE.address, function (result, status) {
+                // CONFIG.VENUE.address를 사용하여 주소 검색
+                const searchAddress = CONFIG.VENUE.address || '경기 하남시 감이동 465';
+                
+                geocoder.addressSearch(searchAddress, function (result, status) {
                     if (status === kakao.maps.services.Status.OK) {
                         const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
                         map.setCenter(coords);
@@ -2366,17 +2387,27 @@
                         });
 
                         const infowindow = new kakao.maps.InfoWindow({
-                            content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name}</div>`
+                            content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
                         });
 
                         infowindow.open(map, marker);
                         mapInitialized = true;
                     } else {
-                        document.getElementById('map').innerHTML = `
-                            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
-                                주소 검색 실패: ${status}
-                            </div>
-                        `;
+                        console.warn('주소 검색 실패:', searchAddress, status);
+                        // 검색 실패시 기본 위치 사용
+                        map.setCenter(defaultCenter);
+                        
+                        const marker = new kakao.maps.Marker({
+                            map: map,
+                            position: defaultCenter
+                        });
+
+                        const infowindow = new kakao.maps.InfoWindow({
+                            content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
+                        });
+
+                        infowindow.open(map, marker);
+                        mapInitialized = true;
                     }
                 });
             });
