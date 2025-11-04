@@ -336,7 +336,8 @@
             overflow-y: auto;
             border-radius: 8px;
             border: 1px solid #ddd;
-            max-height: 450px;
+            /* 수정: 표 높이를 맞추기 위해 max-height 조정 */
+            max-height: 410px; 
         }
 
         .team-record-card {
@@ -2134,11 +2135,12 @@
                     seasonDataCache.set(currentSeason, data);
                 }
 
+                // 수정: 데이터 할당 후 updateStats 호출
                 matches = data.matches || [];
                 playerStats = data.players || [];
                 regionalStats = data.regional || [];
-
-                updateStats();
+                
+                updateStats(); // 이 위치에서 호출해야 데이터가 반영됨
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
                 updateTable(matches, [], 'matchesTableBody', 'matches');
                 updateSchedule(data.schedules || []);
