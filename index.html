@@ -2135,12 +2135,11 @@
                     seasonDataCache.set(currentSeason, data);
                 }
 
-                // 수정: 데이터 할당 후 updateStats 호출
+                // 데이터 할당
                 matches = data.matches || [];
                 playerStats = data.players || [];
                 regionalStats = data.regional || [];
                 
-                updateStats(); // 이 위치에서 호출해야 데이터가 반영됨
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
                 updateTable(matches, [], 'matchesTableBody', 'matches');
                 updateSchedule(data.schedules || []);
@@ -2161,14 +2160,23 @@
                     showStatusMessage(errorMessage, 'error');
                     console.error(`${currentSeason} 시즌 데이터 로딩 실패:`, error);
                 }
-
-                matches = [];
-                playerStats = {};
-                regionalStats = [];
+            } finally {
+                // 성공, 실패 여부와 상관없이 항상 실행
+                // 데이터가 비어있을 경우를 대비하여 기본값 설정
+                if (!matches || matches.length === 0) {
+                    matches = [];
+                }
+                if (!playerStats || Object.keys(playerStats).length === 0) {
+                    playerStats = {};
+                }
+                if (!regionalStats || regionalStats.length === 0) {
+                    regionalStats = [];
+                }
                 
+                // 최종적으로 UI 업데이트
                 updateStats();
-                updateTable({}, [], 'playersTableBody', 'players');
-                updateTable([], [], 'matchesTableBody', 'matches');
+                updateTable(playerStats, matches, 'playersTableBody', 'players');
+                updateTable(matches, [], 'matchesTableBody', 'matches');
                 updateSchedule([]);
             }
         }
