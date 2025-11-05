@@ -2113,7 +2113,6 @@ async function loadData() {
 
         updateTable(playerStats, matches, 'playersTableBody', 'players');
         updateTable(matches, [], 'matchesTableBody', 'matches');
-        updateSchedule(data.schedules || []);
 
         showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
         setTimeout(hideStatusMessage, 2000);
