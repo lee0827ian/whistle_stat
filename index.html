@@ -2584,6 +2584,12 @@ function updateSchedule(schedules) {
     
     svg.innerHTML = '';
     
+    // 이전에 로드된 regionalStats가 없으면 종료
+    if (typeof regionalStats === 'undefined' || !regionalStats || regionalStats.length === 0) {
+        // 데이터 없음을 표시하는 로직 추가 가능
+        return;
+    }
+
     const guData = [
         { name: '강남구' }, { name: '강북구' }, { name: '강동구' }, { name: '강서구' },
         { name: '관악구' }, { name: '광진구' }, { name: '구로구' }, { name: '금천구' },
@@ -2598,22 +2604,26 @@ function updateSchedule(schedules) {
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     
     guData.forEach((gu, index) => {
-        let rate = 50;
+        let rate = 50; // 기본값 (40-60% 평균)
         let wins = 0;
-        let total = 1;
-        
-        if (typeof regionalStats !== 'undefined' && regionalStats && regionalStats.length > 0) {
-            const stats = regionalStats.find(s => s.region === gu.name);
-            if (stats) {
-                wins = stats.wins || 0;
-                total = stats.total || 1;
-                rate = total > 0 ? (wins / total * 100) : 50;
-            }
+        let totalMatches = 0; // 변수 이름 변경
+
+        // ----------------------------------------------------
+        // 🌟 이 부분을 수정했습니다.
+        // ----------------------------------------------------
+        const stats = regionalStats.find(s => s.region === gu.name);
+        if (stats) {
+            wins = stats.wins || 0;
+            totalMatches = stats.matches || 0; // 👈 stats.total 대신 stats.matches 사용
+            
+            // 승률 계산: 0으로 나누는 것을 방지
+            rate = totalMatches > 0 ? (wins / totalMatches * 100) : 50;
         }
+        // ----------------------------------------------------
         
-        let color = '#ef4444';
-        if (rate >= 60) color = '#10b981';
-        else if (rate >= 40) color = '#f59e0b';
+        let color = '#ef4444'; // 40% 미만 (빨강)
+        if (rate >= 60) color = '#10b981'; // 60% 이상 (녹색)
+        else if (rate >= 40) color = '#f59e0b'; // 40-60% (주황)
         
         const x = (index % 5) * 75 + 10;
         const y = Math.floor(index / 5) * 85 + 10;
@@ -2659,7 +2669,7 @@ function updateSchedule(schedules) {
         matchText.setAttribute('font-size', '10');
         matchText.setAttribute('fill', '#fff');
         matchText.setAttribute('pointer-events', 'none');
-        matchText.textContent = wins + '승/' + total;
+        matchText.textContent = wins + '승/' + totalMatches + '전'; // 텍스트도 totalMatches로 변경
         
         rect.addEventListener('mouseover', function() {
             rect.setAttribute('stroke-width', '4');
