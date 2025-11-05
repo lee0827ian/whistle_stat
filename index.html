@@ -819,6 +819,56 @@
                 max-width: 50px;
             }
         }
+        /* 📱 모바일 전체 여백 정리 (768px 이하) */
+@media (max-width: 768px) {
+    /* 전체 기본 여백 */
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        padding: 10px;
+    }
+    
+    /* 모든 섹션 */
+    .section,
+    .regional-records-section,
+    .charts-section,
+    .schedule-venue-section {
+        margin: 10px 0 !important;
+        padding: 15px !important;
+    }
+    
+    /* 제목 여백 */
+    .section-title,
+    h2,
+    h3 {
+        margin-bottom: 10px !important;
+    }
+    
+    /* 테이블 여백 */
+    table {
+        margin: 10px 0 !important;
+    }
+    
+    /* 버튼 여백 */
+    .filter-controls {
+        margin-bottom: 10px !important;
+    }
+    
+    /* 차트 섹션 */
+    #allTimeContent .section {
+        margin: 10px 0 !important;
+        padding: 12px !important;
+    }
+    
+    /* 컨테이너 */
+    .container {
+        padding: 15px !important;
+    }
+}
+
     </style>
 </head>
 <body>
