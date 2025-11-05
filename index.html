@@ -2081,7 +2081,7 @@
             statsOverview.appendChild(fragment);
         }
 
-      async function loadData() {
+    async function loadData() {
             // 먼저 데이터 초기화
             matches = [];
             playerStats = {};
@@ -2106,8 +2106,21 @@
                     // 2025년만 구글 시트 시도, 나머지는 JSON
                     if (currentSeason === '2025') {
                         try {
-                            data = await loadFromGoogleSheets(currentSeason);
+                            const gsData = await loadFromGoogleSheets(currentSeason);
+                            console.log('📋 구글 시트 원본 데이터:', gsData);
+                            
+                            // 구글 시트 데이터를 올바른 형식으로 변환
+                            data = {
+                                matches: gsData.matches || [],
+                                players: gsData.players || {},
+                                schedules: gsData.schedules || [],
+                                regional: gsData.regional || []
+                            };
                             dataSource = '구글 시트';
+                            console.log('✅ 변환된 데이터:', {
+                                경기수: data.matches.length,
+                                선수수: Object.keys(data.players).length
+                            });
                         } catch (gsError) {
                             console.warn('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
                             const response = await fetch(`${currentSeason}_data.json`, {
@@ -2184,7 +2197,6 @@
                 }
             }
         }
-
         // ========== 테이블 업데이트 함수 ==========
         function updateTable(data, matches, tbodyId, type) {
             const tbody = document.getElementById(tbodyId);
