@@ -1,5 +1,3 @@
-기존 꺼랑 ASYNC~ 이거랑만 합치면 되지 않을까??
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -2100,26 +2098,25 @@ async function loadData() {
             dataSource = '캐시';
         } else {
             if (currentSeason === '2025') {
-    try {
-        data = await loadFromGoogleSheets(currentSeason);
-        dataSource = '구글시트';
-    } catch (gsError) {
-        console.warn('구글시트 로딩 실패, JSON 시도:', gsError.message);
-        try {
-            const response = await fetch(`${currentSeason}data.json`, {
-                signal: currentAbortController.signal,
-                headers: { 'Cache-Control': 'no-cache' }
-            });
-            if (!response.ok) throw new Error(`JSON 파일 없음: ${response.status}`);
-            const rawData = await response.json();
-            data = validateSeasonData(rawData);
-            dataSource = 'JSON';
-        } catch (jsonError) {
-            throw new Error('구글시트와 JSON 모두 로딩 실패');
+                try {
+                    data = await loadFromGoogleSheets(currentSeason);
+                    dataSource = '구글 시트';
+                } catch (gsError) {
+                    console.warn('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
+                    const response = await fetch(`${currentSeason}_data.json`, { signal: currentAbortController.signal, headers: { 'Cache-Control': 'no-cache' } });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                    const rawData = await response.json();
+                    data = validateSeasonData(rawData);
+                    dataSource = 'JSON 파일 (대체)';
+                }
+            } else {
+                const response = await fetch(`${currentSeason}_data.json`, { signal: currentAbortController.signal, headers: { 'Cache-Control': 'no-cache' } });
+                if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                const rawData = await response.json();
+                data = validateSeasonData(rawData);
+            }
+            seasonDataCache.set(currentSeason, data);
         }
-    }
-}
-
 
         // 2. 데이터 할당 후 즉시 통계 카드 업데이트
         matches = data.matches || [];
