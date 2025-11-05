@@ -2175,14 +2175,7 @@
                 }
             }
         }
-                
-                // 최종적으로 UI 업데이트
-                updateStats();
-                updateTable(playerStats, matches, 'playersTableBody', 'players');
-                updateTable(matches, [], 'matchesTableBody', 'matches');
-                updateSchedule([]);
-            }
-        }
+        
 
         // ========== 테이블 업데이트 함수 ==========
         function updateTable(data, matches, tbodyId, type) {
