@@ -2241,8 +2241,18 @@ async function loadData() {
             tbody.appendChild(fragment);
         }
 
+let lastSchedules = null;
+
 function updateSchedule(schedules) {
     console.log('🎯 updateSchedule 호출됨!', schedules);
+    console.log('📊 schedules.length:', schedules ? schedules.length : 0);
+
+    if ((!schedules || schedules.length === 0) && lastSchedules && lastSchedules.length > 0) {
+        console.log('⚠️ 빈 데이터로 덮어쓰기 방지!');
+        return;
+    }
+    
+    lastSchedules = schedules;
     
     const scheduleContainer = document.querySelector('.schedule-container');
     const fragment = document.createDocumentFragment();
@@ -2275,7 +2285,6 @@ function updateSchedule(schedules) {
         return;
     }
 
-    // ============ 여기부터 추가 (중요!) ============
     schedules.forEach(schedule => {
         const item = document.createElement('div');
         item.className = 'schedule-item';
@@ -2291,7 +2300,6 @@ function updateSchedule(schedules) {
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(fragment);
 
-    // 첫 번째 일정의 구장 정보로 업데이트
     if (schedules.length > 0) {
         const firstSchedule = schedules[0];
         const venueInfo = document.querySelector('.venue-info');
@@ -2311,7 +2319,6 @@ function updateSchedule(schedules) {
         }
     }
 }
-
 
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
