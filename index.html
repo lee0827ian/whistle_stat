@@ -1996,90 +1996,51 @@
             }
         }
 
-        function updateStats() {
-            if (matches.length === 0) {
-                const statsOverview = document.querySelector('.stats-overview');
-                // 효율화: DocumentFragment 사용
-                const fragment = document.createDocumentFragment();
-                fragment.innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-title">경기 수</div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-subtitle">총 경기</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">승률</div>
-                        <div class="stat-value">0%</div>
-                        <div class="stat-subtitle">0승 0무 0패</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">득점</div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-subtitle">경기당 0골</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">시즌 MVP</div>
-                        <div class="stat-value">-</div>
-                        <div class="stat-subtitle">MVP 0회</div>
-                    </div>
-                `;
-                statsOverview.innerHTML = '';
-                statsOverview.appendChild(fragment);
-                return;
-            }
+function updateStats() {
+    if (matches.length === 0) {
+        document.getElementById('totalMatches').textContent = '0';
+        document.getElementById('winRate').textContent = '0%';
+        document.getElementById('winRateSubtitle').textContent = '0승 0무 0패';
+        document.getElementById('totalGoals').textContent = '0';
+        document.getElementById('goalsPerMatch').textContent = '경기당 0골';
+        document.getElementById('seasonMvp').textContent = '-';
+        document.getElementById('mvpStats').textContent = 'MVP 0회';
+        return;
+    }
 
-            const totalMatches = matches.length;
-            const wins = matches.filter(match => match.result === 'win').length;
-            const draws = matches.filter(match => match.result === 'draw').length;
-            const losses = matches.filter(match => match.result === 'loss').length;
+    const totalMatches = matches.length;
+    const wins = matches.filter(match => match.result === 'win').length;
+    const draws = matches.filter(match => match.result === 'draw').length;
+    const losses = matches.filter(match => match.result === 'loss').length;
 
-            let totalGoalsFor = 0;
-            let totalGoalsAgainst = 0;
+    let totalGoalsFor = 0;
+    let totalGoalsAgainst = 0;
 
-            matches.forEach(match => {
-                const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
-                if (!isNaN(goalsFor) && !isNaN(goalsAgainst)) {
-                    totalGoalsFor += goalsFor;
-                    totalGoalsAgainst += goalsAgainst;
-                }
-            });
-
-            const winRate = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
-            const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
-
-            const seasonMvpPlayer = calculateSeasonMvp(playerStats);
-            const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
-            const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.mvp : 0;
-            const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
-
-            const statsOverview = document.querySelector('.stats-overview');
-            // 효율화: DocumentFragment 사용
-            const fragment = document.createDocumentFragment();
-            fragment.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">경기 수</div>
-                    <div class="stat-value">${totalMatches}</div>
-                    <div class="stat-subtitle">총 경기</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">승률</div>
-                    <div class="stat-value">${winRate}%</div>
-                    <div class="stat-subtitle">${wins}승 ${draws}무 ${losses}패</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">득점</div>
-                    <div class="stat-value">${totalGoalsFor}</div>
-                    <div class="stat-subtitle">경기당 ${goalsPerMatch}골</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">시즌 MVP</div>
-                    <div class="stat-value">${mvpName}</div>
-                    <div class="stat-subtitle">${mvpCount > 0 ? `MVP ${mvpCount}회, ${mvpAppearances}경기` : 'MVP 0회'}</div>
-                </div>
-            `;
-            statsOverview.innerHTML = '';
-            statsOverview.appendChild(fragment);
+    matches.forEach(match => {
+        const [goalsFor, goalsAgainst] = match.score.split(':').map(Number);
+        if (!isNaN(goalsFor) && !isNaN(goalsAgainst)) {
+            totalGoalsFor += goalsFor;
+            totalGoalsAgainst += goalsAgainst;
         }
+    });
+
+    const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
+    const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
+
+    const seasonMvpPlayer = calculateSeasonMvp(playerStats);
+    const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
+    const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.mvp : 0;
+    const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
+
+    // ID를 사용해 직접 업데이트
+    document.getElementById('totalMatches').textContent = totalMatches;
+    document.getElementById('winRate').textContent = winRate + '%';
+    document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
+    document.getElementById('totalGoals').textContent = totalGoalsFor;
+    document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
+    document.getElementById('seasonMvp').textContent = mvpName;
+    document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
+}
 
 async function loadData() {
     // 1. 함수 시작 시 데이터 초기화
