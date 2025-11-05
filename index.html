@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>휘슬 STAT 관리</title>
@@ -815,6 +816,117 @@
                 max-width: 50px;
             }
         }
+    
+
+        /* ========== 📊 차트 섹션 스타일 ========== */
+        .charts-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .charts-section h2 {
+            text-align: center;
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container h3 {
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        #winRateTrendChart {
+            max-height: 400px;
+        }
+
+        #regionalHeatmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .heatmap-cell {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heatmap-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .heatmap-cell:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .heatmap-cell:hover::before {
+            opacity: 1;
+        }
+
+        .heatmap-cell-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .heatmap-cell-rate {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+        }
+
+        .heatmap-cell-detail {
+            font-size: 0.95em;
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+        }
+
+        .rate-high {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .rate-medium {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .rate-low {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
     </style>
 </head>
 <body>
@@ -1167,44 +1279,18 @@
                     });
 
                 // 일정 데이터 변환
-// 일정 데이터 변환 (디버깅 포함)
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
-console.log('📅 오늘:', today);
-console.log('📋 scheduleData:', scheduleData);
-
-const schedules = scheduleData
-    .filter(row => {
-        if (!row['날짜'] || !row['상대팀']) {
-            console.log('❌ 제외 - 날짜/상대팀 없음:', row);
-            return false;
-        }
-        
-        const matchDate = new Date(row['날짜']);
-        if (isNaN(matchDate.getTime())) {
-            console.log('❌ 제외 - 날짜 파싱 실패:', row['날짜']);
-            return false;
-        }
-        
-        matchDate.setHours(0, 0, 0, 0);
-        const isFuture = matchDate >= today;
-        
-        console.log(`${isFuture ? '✅' : '❌'} ${row['날짜']} vs ${row['상대팀']} - ${row['구장명']}`);
-        return isFuture;
-    })
-    .map(row => ({
-        date: row['날짜'],
-        time: row['시간'] || '',
-        venue: row['구장명'] || '',
-        opponent: row['상대팀'],
-        address: row['구장주소'] || '',
-        note: row['비고'] || ''
-    }))
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-console.log('✅ 최종 schedules:', schedules);
-
+                const today = new Date();
+                const schedules = scheduleData
+                    .filter(row => row['날짜'] && row['상대팀'] && new Date(row['날짜']) > today)
+                    .map(row => ({
+                        date: row['날짜'],
+                        time: row['시간'],
+                        venue: row['구장명'],
+                        opponent: row['상대팀'],
+                        address: row['구장주소'],
+                        note: row['비고'] || ''
+                    }))
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
                 // 지역별 데이터 변환
                 const regional = regionalData
@@ -1668,12 +1754,22 @@ console.log('✅ 최종 schedules:', schedules);
                 document.getElementById('mainContent').style.display = 'grid';
                 document.getElementById('allTimeContent').style.display = 'none';
                 updateButtonStates();
+            
+            // 차트 데이터 로드
+            setTimeout(() => {
+                loadAllSeasonsForCharts();
+            }, 500);
                 await loadData();
             } else {
                 isAllTimeView = true;
                 document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('allTimeContent').style.display = 'grid';
                 updateButtonStates();
+            
+            // 차트 데이터 로드
+            setTimeout(() => {
+                loadAllSeasonsForCharts();
+            }, 500);
 
                 try {
                     const { stats: allTimeStats, records: teamRecords, regional: regionalData } = await loadAllTimeSeasonsParallel();
@@ -2014,6 +2110,11 @@ console.log('✅ 최종 schedules:', schedules);
                 if (isAllTimeView) {
                     isAllTimeView = false;
                     updateButtonStates();
+            
+            // 차트 데이터 로드
+            setTimeout(() => {
+                loadAllSeasonsForCharts();
+            }, 500);
                     document.getElementById('mainContent').style.display = 'grid';
                     document.getElementById('allTimeContent').style.display = 'none';
                 }
@@ -2068,7 +2169,197 @@ function updateStats() {
     document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
 }
 
-async function loadData() {
+
+
+        // ========== 📊 차트 관련 함수들 ==========
+        let winRateChart = null;
+
+        // 승률 트렌드 차트 생성
+        function createWinRateTrendChart() {
+            const canvas = document.getElementById('winRateTrendChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const seasons = CONFIG.AVAILABLE_SEASONS;
+            const winRateData = [];
+
+            for (const season of seasons) {
+                let seasonData = seasonDataCache.get(season);
+
+                if (seasonData && seasonData.matches) {
+                    const matches = seasonData.matches;
+                    const wins = matches.filter(m => m.result === 'win').length;
+                    const totalMatches = matches.length;
+                    const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
+
+                    winRateData.push({
+                        season: season,
+                        winRate: parseFloat(winRate)
+                    });
+                }
+            }
+
+            if (winRateChart) {
+                winRateChart.destroy();
+            }
+
+            winRateChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: winRateData.map(d => d.season + '시즌'),
+                    datasets: [{
+                        label: '승률 (%)',
+                        data: winRateData.map(d => d.winRate),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#1e40af',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return '승률: ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 11 },
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 지역별 승률 히트맵 생성
+        function createRegionalHeatmap() {
+            const container = document.getElementById('regionalHeatmap');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (!regionalStats || regionalStats.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#666;padding:20px;">지역별 데이터가 없습니다</p>';
+                return;
+            }
+
+            const sortedRegions = [...regionalStats].sort((a, b) => {
+                const winRateA = a.total > 0 ? (a.wins / a.total * 100) : 0;
+                const winRateB = b.total > 0 ? (b.wins / b.total * 100) : 0;
+                return winRateB - winRateA;
+            });
+
+            sortedRegions.forEach(region => {
+                const total = region.total || 0;
+                const wins = region.wins || 0;
+                const draws = region.draws || 0;
+                const losses = region.losses || 0;
+                const winRate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
+
+                let colorClass = 'rate-low';
+                if (winRate >= 60) {
+                    colorClass = 'rate-high';
+                } else if (winRate >= 40) {
+                    colorClass = 'rate-medium';
+                }
+
+                const cell = document.createElement('div');
+                cell.className = `heatmap-cell ${colorClass}`;
+                cell.innerHTML = `
+                    <div class="heatmap-cell-name">${escapeHtml(region.region || '미지정')}</div>
+                    <div class="heatmap-cell-rate">${winRate}%</div>
+                    <div class="heatmap-cell-detail">${wins}승 ${draws}무 ${losses}패</div>
+                    <div class="heatmap-cell-detail">총 ${total}경기</div>
+                `;
+
+                cell.addEventListener('click', () => {
+                    alert(`${region.region}\n\n총 경기: ${total}\n승: ${wins}\n무: ${draws}\n패: ${losses}\n승률: ${winRate}%`);
+                });
+
+                container.appendChild(cell);
+            });
+        }
+
+        // 역대 기록용 전체 시즌 데이터 로드
+        async function loadAllSeasonsForCharts() {
+            console.log('📊 차트용 전체 시즌 데이터 로딩 시작...');
+
+            const seasons = CONFIG.AVAILABLE_SEASONS;
+            const loadPromises = [];
+
+            for (const season of seasons) {
+                if (seasonDataCache.has(season)) continue;
+
+                const promise = fetch(`${season}_data.json`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`${season} 데이터 없음`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        seasonDataCache.set(season, data);
+                        console.log(`✅ ${season} 시즌 로드 완료`);
+                    })
+                    .catch(error => {
+                        console.warn(`⚠️ ${season} 로드 실패:`, error.message);
+                    });
+
+                loadPromises.push(promise);
+            }
+
+            await Promise.all(loadPromises);
+            console.log('📊 전체 시즌 데이터 로딩 완료');
+
+            createWinRateTrendChart();
+        }
+
+
+        async function loadData() {
     // 1. 함수 시작 시 데이터 초기화
     matches = [];
     playerStats = {};
@@ -2113,7 +2404,8 @@ async function loadData() {
 
         updateTable(playerStats, matches, 'playersTableBody', 'players');
         updateTable(matches, [], 'matchesTableBody', 'matches');
-        updateSchedule(data.schedules || []); // 첫 번째 호출
+        updateSchedule(data.schedules || []);
+                createRegionalHeatmap();
 
         showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
         setTimeout(hideStatusMessage, 2000);
@@ -2241,19 +2533,7 @@ async function loadData() {
             tbody.appendChild(fragment);
         }
 
-let lastSchedules = null;
-
 function updateSchedule(schedules) {
-    console.log('🎯 updateSchedule 호출됨!', schedules);
-    console.log('📊 schedules.length:', schedules ? schedules.length : 0);
-
-    if ((!schedules || schedules.length === 0) && lastSchedules && lastSchedules.length > 0) {
-        console.log('⚠️ 빈 데이터로 덮어쓰기 방지!');
-        return;
-    }
-    
-    lastSchedules = schedules;
-    
     const scheduleContainer = document.querySelector('.schedule-container');
     const fragment = document.createDocumentFragment();
     const title = document.createElement('h3');
@@ -2288,11 +2568,10 @@ function updateSchedule(schedules) {
     schedules.forEach(schedule => {
         const item = document.createElement('div');
         item.className = 'schedule-item';
-        
         item.innerHTML = `
             <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
-            <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
-            <div class="schedule-time-venue">${schedule.venue || ''}</div>
+            <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
+            <div class="schedule-opponent">VS ${schedule.opponent}</div>
         `;
         fragment.appendChild(item);
     });
@@ -2300,25 +2579,24 @@ function updateSchedule(schedules) {
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(fragment);
 
-    if (schedules.length > 0) {
-        const firstSchedule = schedules[0];
-        const venueInfo = document.querySelector('.venue-info');
-        venueInfo.innerHTML = `
-            <div class="venue-name">${firstSchedule.venue || '감일축구장'}</div>
-            <div class="venue-address">📍 ${firstSchedule.address || '경기 하남시 감이동 465'}</div>
-            <div class="venue-phone">📞 ${firstSchedule.note || '전화번호: 031-790-2022, 주차 편함'}</div>
-        `;
+    const firstSchedule = schedules[0];
+    const venueInfo = document.querySelector('.venue-info');
+    venueInfo.innerHTML = `
+        <div class="venue-name">${firstSchedule.venue}</div>
+        <div class="venue-address">📍 ${firstSchedule.address}</div>
+        <div class="venue-phone">📞 ${firstSchedule.note}</div>
+    `;
 
-        CONFIG.VENUE.name = firstSchedule.venue || '감일축구장';
-        CONFIG.VENUE.address = firstSchedule.address || '경기 하남시 감이동 465';
-        CONFIG.VENUE.info = firstSchedule.note || '전화번호: 031-790-2022, 주차 편함';
+    CONFIG.VENUE.name = firstSchedule.venue;
+    CONFIG.VENUE.address = firstSchedule.address;
+    CONFIG.VENUE.info = firstSchedule.note;
 
-        if (firstSchedule.address) {
-            mapInitialized = false;
-            loadKakaoMap();
-        }
+    if (firstSchedule.address) {
+        mapInitialized = false;
+        loadKakaoMap();
     }
 }
+
 
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
@@ -2467,6 +2745,11 @@ function updateSchedule(schedules) {
             }
 
             updateButtonStates();
+            
+            // 차트 데이터 로드
+            setTimeout(() => {
+                loadAllSeasonsForCharts();
+            }, 500);
             initializeScheduleAndVenue();
             loadData();
             setTimeout(loadKakaoMap, 3000);
