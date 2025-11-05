@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>휘슬 STAT 관리</title>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -1000,14 +1003,26 @@
     <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
     
     <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
-        <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률</h3>
-        <div id="regionalHeatmap"></div>
-    </div>
-    
-    <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
         <h3 style="color:#1e40af; margin-bottom:20px;">📈 시즌별 승률 트렌드</h3>
         <div style="width:100%; max-width:800px; margin:0 auto; position:relative; height:300px;">
             <canvas id="winRateTrendChart" style="width:100% !important; height:100% !important;"></canvas>
+            
+<div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
+    <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률 히트맵</h3>
+    <div id="mapContainer" style="width:100%; max-width:900px; margin:0 auto; text-align:center;">
+        <svg id="seoulMap" viewBox="0 0 400 500" style="width:100%; height:auto; max-width:100%; border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <!-- SVG 지도가 여기 표시됩니다 -->
+        </svg>
+    </div>
+    <div id="mapLegend" style="margin-top:20px; font-size:14px;">
+        <div style="display:flex; justify-content:center; gap:30px;">
+            <div><span style="display:inline-block; width:20px; height:20px; background:#10b981; border-radius:4px; margin-right:8px;"></span>60% 이상</div>
+            <div><span style="display:inline-block; width:20px; height:20px; background:#f59e0b; border-radius:4px; margin-right:8px;"></span>40-60%</div>
+            <div><span style="display:inline-block; width:20px; height:20px; background:#ef4444; border-radius:4px; margin-right:8px;"></span>40% 미만</div>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
 </div>
