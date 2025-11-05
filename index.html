@@ -2578,68 +2578,109 @@ function updateSchedule(schedules) {
             loadData();
             setTimeout(loadKakaoMap, 3000);
         });
-        function createRegionalHeatmap() {
-    const container = document.getElementById('regionalHeatmap');
-    if (!container) {
-        console.log('❌ regionalHeatmap 컨테이너 없음');
-        return;
-    }
+       function createRegionalHeatmap() {
+    const svg = document.getElementById('seoulMap');
+    if (!svg) return;
     
-    console.log('✅ createRegionalHeatmap 실행');
+    svg.innerHTML = '';
     
-    container.innerHTML = '';
+    const guData = [
+        { name: '강남구' }, { name: '강북구' }, { name: '강동구' }, { name: '강서구' },
+        { name: '관악구' }, { name: '광진구' }, { name: '구로구' }, { name: '금천구' },
+        { name: '노원구' }, { name: '도봉구' }, { name: '동대문구' }, { name: '동작구' },
+        { name: '마포구' }, { name: '서대문구' }, { name: '서초구' }, { name: '성동구' },
+        { name: '성북구' }, { name: '송파구' }, { name: '양천구' }, { name: '영등포구' },
+        { name: '용산구' }, { name: '은평구' }, { name: '종로구' }, { name: '중구' },
+        { name: '중랑구' }
+    ];
     
-    if (!regionalStats || regionalStats.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:#666;">지역별 데이터가 없습니다</p>';
-        return;
-    }
+    svg.setAttribute('viewBox', '0 0 400 450');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     
-    const sortedRegions = [...regionalStats].sort((a, b) => {
-        const rateA = a.total > 0 ? (a.wins / a.total * 100) : 0;
-        const rateB = b.total > 0 ? (b.wins / b.total * 100) : 0;
-        return rateB - rateA;
+    guData.forEach((gu, index) => {
+        let rate = 50;
+        let wins = 0;
+        let total = 1;
+        
+        if (typeof regionalStats !== 'undefined' && regionalStats && regionalStats.length > 0) {
+            const stats = regionalStats.find(s => s.region === gu.name);
+            if (stats) {
+                wins = stats.wins || 0;
+                total = stats.total || 1;
+                rate = total > 0 ? (wins / total * 100) : 50;
+            }
+        }
+        
+        let color = '#ef4444';
+        if (rate >= 60) color = '#10b981';
+        else if (rate >= 40) color = '#f59e0b';
+        
+        const x = (index % 5) * 75 + 10;
+        const y = Math.floor(index / 5) * 85 + 10;
+        
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x);
+        rect.setAttribute('y', y);
+        rect.setAttribute('width', '70');
+        rect.setAttribute('height', '80');
+        rect.setAttribute('fill', color);
+        rect.setAttribute('stroke', '#1e40af');
+        rect.setAttribute('stroke-width', '2');
+        rect.setAttribute('rx', '5');
+        rect.style.cursor = 'pointer';
+        rect.style.transition = 'all 0.3s ease';
+        
+        const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        nameText.setAttribute('x', x + 35);
+        nameText.setAttribute('y', y + 30);
+        nameText.setAttribute('text-anchor', 'middle');
+        nameText.setAttribute('font-size', '12');
+        nameText.setAttribute('fill', '#fff');
+        nameText.setAttribute('font-weight', 'bold');
+        nameText.setAttribute('pointer-events', 'none');
+        nameText.textContent = gu.name;
+        
+        const rateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        rateText.setAttribute('x', x + 35);
+        rateText.setAttribute('y', y + 50);
+        rateText.setAttribute('text-anchor', 'middle');
+        rateText.setAttribute('font-size', '16');
+        rateText.setAttribute('fill', '#fff');
+        rateText.setAttribute('font-weight', 'bold');
+        rateText.setAttribute('pointer-events', 'none');
+        rateText.textContent = rate.toFixed(1) + '%';
+        
+        const matchText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        matchText.setAttribute('x', x + 35);
+        matchText.setAttribute('y', y + 68);
+        matchText.setAttribute('text-anchor', 'middle');
+        matchText.setAttribute('font-size', '10');
+        matchText.setAttribute('fill', '#fff');
+        matchText.setAttribute('pointer-events', 'none');
+        matchText.textContent = wins + '승/' + total;
+        
+        rect.addEventListener('mouseover', function() {
+            rect.setAttribute('stroke-width', '4');
+            rect.style.filter = 'drop-shadow(0 0 5px rgba(0,0,0,0.3))';
+        });
+        
+        rect.addEventListener('mouseout', function() {
+            rect.setAttribute('stroke-width', '2');
+            rect.style.filter = 'none';
+        });
+        
+        g.appendChild(rect);
+        g.appendChild(nameText);
+        g.appendChild(rateText);
+        g.appendChild(matchText);
+        svg.appendChild(g);
     });
     
-    sortedRegions.forEach(region => {
-        const total = region.total || 0;
-        const wins = region.wins || 0;
-        const draws = region.draws || 0;
-        const losses = region.losses || 0;
-        const rate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
-        
-        let bgColor = '#ef4444';
-        if (rate >= 60) bgColor = '#10b981';
-        else if (rate >= 40) bgColor = '#f59e0b';
-        
-        const cell = document.createElement('div');
-        cell.style.cssText = `
-            background: ${bgColor};
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 10px;
-            display: inline-block;
-            min-width: 180px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        `;
-        cell.innerHTML = `
-            <div style="font-size:1.2em; font-weight:bold;">${region.region}</div>
-            <div style="font-size:2em; margin:10px 0; font-weight:bold;">${rate}%</div>
-            <div>${wins}승 ${draws}무 ${losses}패</div>
-        `;
-        
-        cell.onmouseover = function() {
-            this.style.transform = 'translateY(-5px)';
-        };
-        cell.onmouseout = function() {
-            this.style.transform = 'translateY(0)';
-        };
-        
-        container.appendChild(cell);
-    });
+    console.log('✅ SVG 지도 생성 완료');
 }
+
         let winRateChart = null;
 
 function createWinRateTrendChart() {
