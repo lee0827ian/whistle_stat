@@ -2242,6 +2242,8 @@ async function loadData() {
         }
 
 function updateSchedule(schedules) {
+    console.log('🎯 updateSchedule 호출됨!', schedules);
+    
     const scheduleContainer = document.querySelector('.schedule-container');
     const fragment = document.createDocumentFragment();
     const title = document.createElement('h3');
@@ -2273,7 +2275,7 @@ function updateSchedule(schedules) {
         return;
     }
 
-    // ============ 여기부터 누락된 코드 ============
+    // ============ 여기부터 추가 (중요!) ============
     schedules.forEach(schedule => {
         const item = document.createElement('div');
         item.className = 'schedule-item';
@@ -2281,7 +2283,7 @@ function updateSchedule(schedules) {
         item.innerHTML = `
             <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
             <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
-            <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
+            <div class="schedule-time-venue">${schedule.venue || ''}</div>
         `;
         fragment.appendChild(item);
     });
@@ -2309,6 +2311,7 @@ function updateSchedule(schedules) {
         }
     }
 }
+
 
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
