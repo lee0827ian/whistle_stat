@@ -1029,7 +1029,7 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         // ========== 설정 ==========
         const CONFIG = {
@@ -2480,6 +2480,68 @@ function updateSchedule(schedules) {
             loadData();
             setTimeout(loadKakaoMap, 3000);
         });
+        function createRegionalHeatmap() {
+    const container = document.getElementById('regionalHeatmap');
+    if (!container) {
+        console.log('❌ regionalHeatmap 컨테이너 없음');
+        return;
+    }
+    
+    console.log('✅ createRegionalHeatmap 실행');
+    
+    container.innerHTML = '';
+    
+    if (!regionalStats || regionalStats.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#666;">지역별 데이터가 없습니다</p>';
+        return;
+    }
+    
+    const sortedRegions = [...regionalStats].sort((a, b) => {
+        const rateA = a.total > 0 ? (a.wins / a.total * 100) : 0;
+        const rateB = b.total > 0 ? (b.wins / b.total * 100) : 0;
+        return rateB - rateA;
+    });
+    
+    sortedRegions.forEach(region => {
+        const total = region.total || 0;
+        const wins = region.wins || 0;
+        const draws = region.draws || 0;
+        const losses = region.losses || 0;
+        const rate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
+        
+        let bgColor = '#ef4444';
+        if (rate >= 60) bgColor = '#10b981';
+        else if (rate >= 40) bgColor = '#f59e0b';
+        
+        const cell = document.createElement('div');
+        cell.style.cssText = `
+            background: ${bgColor};
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 10px;
+            display: inline-block;
+            min-width: 180px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        `;
+        cell.innerHTML = `
+            <div style="font-size:1.2em; font-weight:bold;">${region.region}</div>
+            <div style="font-size:2em; margin:10px 0; font-weight:bold;">${rate}%</div>
+            <div>${wins}승 ${draws}무 ${losses}패</div>
+        `;
+        
+        cell.onmouseover = function() {
+            this.style.transform = 'translateY(-5px)';
+        };
+        cell.onmouseout = function() {
+            this.style.transform = 'translateY(0)';
+        };
+        
+        container.appendChild(cell);
+    });
+}
     </script>
 </body>
 </html>
