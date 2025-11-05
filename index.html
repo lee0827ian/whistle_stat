@@ -998,6 +998,11 @@
             </div>
             <div class="charts-section" style="margin:40px 0; padding:30px; background:white; border-radius:15px;">
     <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
+                <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
+    <h3 style="color:#1e40af; margin-bottom:20px;">📈 시즌별 승률 트렌드</h3>
+    <canvas id="winRateTrendChart" style="max-height:400px;"></canvas>
+</div>
+
     
     <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
         <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률</h3>
@@ -2124,6 +2129,67 @@ async function loadData() {
         updateTable(matches, [], 'matchesTableBody', 'matches');
         updateSchedule(data.schedules || []); // 첫 번째 호출
         createRegionalHeatmap();
+        createWinRateTrendChart();
+        
+        function createWinRateTrendChart() {
+    const canvas = document.getElementById('winRateTrendChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const seasons = CONFIG.AVAILABLE_SEASONS;
+    const winRateData = [];
+    
+    for (const season of seasons) {
+        let seasonData = seasonDataCache.get(season);
+        if (seasonData && seasonData.matches) {
+            const matches = seasonData.matches;
+            const wins = matches.filter(m => m.result === 'win').length;
+            const total = matches.length;
+            const rate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
+            winRateData.push({
+                season: season,
+                rate: parseFloat(rate)
+            });
+        }
+    }
+    
+    if (winRateData.length === 0) {
+        console.log('⚠️ 라인 차트용 데이터 없음');
+        return;
+    }
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: winRateData.map(d => d.season + '시즌'),
+            datasets: [{
+                label: '승률 (%)',
+                data: winRateData.map(d => d.rate),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5,
+                pointBackgroundColor: '#1e40af'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { callback: v => v + '%' }
+                }
+            }
+        }
+    });
+}
+
 
         showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
         setTimeout(hideStatusMessage, 2000);
