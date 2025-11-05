@@ -1167,18 +1167,44 @@
                     });
 
                 // 일정 데이터 변환
-                const today = new Date();
-                const schedules = scheduleData
-                    .filter(row => row['날짜'] && row['상대팀'] && new Date(row['날짜']) > today)
-                    .map(row => ({
-                        date: row['날짜'],
-                        time: row['시간'],
-                        venue: row['구장명'],
-                        opponent: row['상대팀'],
-                        address: row['구장주소'],
-                        note: row['비고'] || ''
-                    }))
-                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+// 일정 데이터 변환 (디버깅 포함)
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+console.log('📅 오늘:', today);
+console.log('📋 scheduleData:', scheduleData);
+
+const schedules = scheduleData
+    .filter(row => {
+        if (!row['날짜'] || !row['상대팀']) {
+            console.log('❌ 제외 - 날짜/상대팀 없음:', row);
+            return false;
+        }
+        
+        const matchDate = new Date(row['날짜']);
+        if (isNaN(matchDate.getTime())) {
+            console.log('❌ 제외 - 날짜 파싱 실패:', row['날짜']);
+            return false;
+        }
+        
+        matchDate.setHours(0, 0, 0, 0);
+        const isFuture = matchDate >= today;
+        
+        console.log(`${isFuture ? '✅' : '❌'} ${row['날짜']} vs ${row['상대팀']} - ${row['구장명']}`);
+        return isFuture;
+    })
+    .map(row => ({
+        date: row['날짜'],
+        time: row['시간'] || '',
+        venue: row['구장명'] || '',
+        opponent: row['상대팀'],
+        address: row['구장주소'] || '',
+        note: row['비고'] || ''
+    }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+console.log('✅ 최종 schedules:', schedules);
+
 
                 // 지역별 데이터 변환
                 const regional = regionalData
