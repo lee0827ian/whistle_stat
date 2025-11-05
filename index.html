@@ -2247,13 +2247,15 @@ function updateSchedule(schedules) {
         return;
     }
 
+    // ============ 여기부터 누락된 코드 ============
     schedules.forEach(schedule => {
         const item = document.createElement('div');
         item.className = 'schedule-item';
+        
         item.innerHTML = `
             <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
+            <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
             <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
-            <div class="schedule-opponent">VS ${schedule.opponent}</div>
         `;
         fragment.appendChild(item);
     });
@@ -2261,24 +2263,26 @@ function updateSchedule(schedules) {
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(fragment);
 
-    const firstSchedule = schedules[0];
-    const venueInfo = document.querySelector('.venue-info');
-    venueInfo.innerHTML = `
-        <div class="venue-name">${firstSchedule.venue}</div>
-        <div class="venue-address">📍 ${firstSchedule.address}</div>
-        <div class="venue-phone">📞 ${firstSchedule.note}</div>
-    `;
+    // 첫 번째 일정의 구장 정보로 업데이트
+    if (schedules.length > 0) {
+        const firstSchedule = schedules[0];
+        const venueInfo = document.querySelector('.venue-info');
+        venueInfo.innerHTML = `
+            <div class="venue-name">${firstSchedule.venue || '감일축구장'}</div>
+            <div class="venue-address">📍 ${firstSchedule.address || '경기 하남시 감이동 465'}</div>
+            <div class="venue-phone">📞 ${firstSchedule.note || '전화번호: 031-790-2022, 주차 편함'}</div>
+        `;
 
-    CONFIG.VENUE.name = firstSchedule.venue;
-    CONFIG.VENUE.address = firstSchedule.address;
-    CONFIG.VENUE.info = firstSchedule.note;
+        CONFIG.VENUE.name = firstSchedule.venue || '감일축구장';
+        CONFIG.VENUE.address = firstSchedule.address || '경기 하남시 감이동 465';
+        CONFIG.VENUE.info = firstSchedule.note || '전화번호: 031-790-2022, 주차 편함';
 
-    if (firstSchedule.address) {
-        mapInitialized = false;
-        loadKakaoMap();
+        if (firstSchedule.address) {
+            mapInitialized = false;
+            loadKakaoMap();
+        }
     }
 }
-
 
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
