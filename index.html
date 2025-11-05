@@ -2215,79 +2215,70 @@ async function loadData() {
             tbody.appendChild(fragment);
         }
 
-        function updateSchedule(schedules) {
-            const scheduleContainer = document.querySelector('.schedule-container');
-            // 효율화: DocumentFragment 사용
-            const fragment = document.createDocumentFragment();
-            const title = document.createElement('h3');
-            title.style.color = '#1e40af';
-            title.style.marginBottom = '15px';
-            title.textContent = '다음 경기 일정';
-            fragment.appendChild(title);
+function updateSchedule(schedules) {
+    const scheduleContainer = document.querySelector('.schedule-container');
+    const fragment = document.createDocumentFragment();
+    const title = document.createElement('h3');
+    title.style.color = '#1e40af';
+    title.style.marginBottom = '15px';
+    title.textContent = '다음 경기 일정';
+    fragment.appendChild(title);
 
-            // 데이터가 없거나 빈 배열일 경우 처리
-            if (!schedules || schedules.length === 0) {
-                const noData = document.createElement('div');
-                noData.className = 'no-data';
-                noData.textContent = '다음 경기 일정이 없습니다';
-                fragment.appendChild(noData);
+    if (!schedules || schedules.length === 0) {
+        const noData = document.createElement('div');
+        noData.className = 'no-data';
+        noData.textContent = '다음 경기 일정이 없습니다';
+        fragment.appendChild(noData);
 
-                // 기본 구장 정보 유지 (하드코딩된 기본값)
-                const venueInfo = document.querySelector('.venue-info');
-                venueInfo.innerHTML = `
-                    <div class="venue-name">감일축구장</div>
-                    <div class="venue-address">📍 경기 하남시 감이동 465</div>
-                    <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
-                `;
+        const venueInfo = document.querySelector('.venue-info');
+        venueInfo.innerHTML = `
+            <div class="venue-name">감일축구장</div>
+            <div class="venue-address">📍 경기 하남시 감이동 465</div>
+            <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
+        `;
+        
+        CONFIG.VENUE.name = '감일축구장';
+        CONFIG.VENUE.address = '경기 하남시 감이동 465';
+        CONFIG.VENUE.info = '전화번호: 031-790-2022, 주차 편함';
+        loadKakaoMap();
+        
+        scheduleContainer.innerHTML = '';
+        scheduleContainer.appendChild(fragment);
+        return;
+    }
 
-                CONFIG.VENUE.name = '감일축구장';
-                CONFIG.VENUE.address = '경기 하남시 감이동 465';
-                CONFIG.VENUE.info = '전화번호: 031-790-2022, 주차 편함';
-                loadKakaoMap();
-                
-                scheduleContainer.innerHTML = '';
-                scheduleContainer.appendChild(fragment);
-                return;
-            }
+    schedules.forEach(schedule => {
+        const item = document.createElement('div');
+        item.className = 'schedule-item';
+        item.innerHTML = `
+            <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
+            <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
+            <div class="schedule-opponent">VS ${schedule.opponent}</div>
+        `;
+        fragment.appendChild(item);
+    });
 
-            // 일정 데이터가 있을 경우 표시
-            schedules.forEach(schedule => {
-                const item = document.createElement('div');
-                item.className = 'schedule-item';
+    scheduleContainer.innerHTML = '';
+    scheduleContainer.appendChild(fragment);
 
-                item.innerHTML = `
-                    <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
-                    <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
-                    <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
-                `;
+    const firstSchedule = schedules[0];
+    const venueInfo = document.querySelector('.venue-info');
+    venueInfo.innerHTML = `
+        <div class="venue-name">${firstSchedule.venue}</div>
+        <div class="venue-address">📍 ${firstSchedule.address}</div>
+        <div class="venue-phone">📞 ${firstSchedule.note}</div>
+    `;
 
-                fragment.appendChild(item);
-            });
+    CONFIG.VENUE.name = firstSchedule.venue;
+    CONFIG.VENUE.address = firstSchedule.address;
+    CONFIG.VENUE.info = firstSchedule.note;
 
-            scheduleContainer.innerHTML = '';
-            scheduleContainer.appendChild(fragment);
+    if (firstSchedule.address) {
+        mapInitialized = false;
+        loadKakaoMap();
+    }
+}
 
-            // 첫 번째 일정의 구장 정보로 지도 및 정보 업데이트
-            const firstSchedule = schedules[0];
-            const venueInfo = document.querySelector('.venue-info');
-            venueInfo.innerHTML = `
-                <div class="venue-name">${firstSchedule.venue || '미정'}</div>
-                <div class="venue-address">📍 ${firstSchedule.address || '주소 미정'}</div>
-                <div class="venue-phone">📞 ${firstSchedule.note || ''}</div>
-            `;
-
-            // 구장 정보 업데이트
-            CONFIG.VENUE.name = firstSchedule.venue || '미정';
-            CONFIG.VENUE.address = firstSchedule.address || '주소 미정';
-            CONFIG.VENUE.info = firstSchedule.note || '';
-            
-            // 지도 로드 (주소가 있는 경우에만)
-            if (firstSchedule.address) {
-                // 지도 초기화 플래그 리셋하여 새 위치로 지도를 다시 로드
-                mapInitialized = false;
-                loadKakaoMap();
-            }
-        }
 
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
