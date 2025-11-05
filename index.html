@@ -2157,9 +2157,9 @@ async function loadData() {
         updateTable(playerStats, matches, 'playersTableBody', 'players');
         updateTable(matches, [], 'matchesTableBody', 'matches');
         updateSchedule(data.schedules || []); // 첫 번째 호출
-        createWinRateTrendChart();
-        createRegionalHeatmap();
-        
+        createRegionalHeatmap();
+        createWinRateTrendChart();
+        
         function createWinRateTrendChart() {
     const canvas = document.getElementById('winRateTrendChart');
     if (!canvas) return;
