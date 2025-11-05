@@ -336,7 +336,6 @@
             overflow-y: auto;
             border-radius: 8px;
             border: 1px solid #ddd;
-            /* 수정: 표 높이를 맞추기 위해 max-height 조정 */
             max-height: 410px; 
         }
 
@@ -402,7 +401,6 @@
             opacity: 0.9;
         }
 
-        /* 지역별 기록 섹션 - 테이블 형태로 변경 */
         .regional-records-section {
             background: #f8f9fa;
             padding: 25px;
@@ -708,7 +706,6 @@
                 width: 30%;
             }
 
-            /* 지역별 테이블 모바일 반응형 */
             .regional-table th:nth-child(1), .regional-table td:nth-child(1) {
                 width: 25%;
             }
@@ -914,7 +911,7 @@
                     <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
                     <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
                     <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
-                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟�수</button>
                 </div>
                 <div class="table-container">
                     <table class="players-table">
@@ -1094,7 +1091,7 @@
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(',').map(v => v.trim());
                 
-                if (values[0] && !values[0].includes('🔽') && !values[0].includes('새') && !values[0].includes('예시:')) {
+                if (values[0] && !values[0].includes('🔽�') && !values[0].includes('새') && !values[0].includes('예시:')) {
                     const row = {};
                     headers.forEach((header, index) => {
                         row[header] = values[index] || '';
@@ -1129,7 +1126,7 @@
                 const playersData = parseCSV(playersCsv);
 
                 // 다음 경기 일정 데이터 로드
-                const scheduleUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.schedule}`;
+                const scheduleUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=const csv&gid=${seasonConfig.schedule}`;
                 const scheduleResponse = await fetch(scheduleUrl);
                 if (!scheduleResponse.ok) throw new Error('다음 경기 일정 시트를 불러올 수 없습니다.');
                 const scheduleCsv = await scheduleResponse.text();
@@ -1186,7 +1183,7 @@
                     .map(row => ({
                         region: row['지역'],
                         matches: parseInt(row['경기수']) || 0,
-                        wins: parseInt(row['승']) || 0,
+                        wins: parseInt(row['승�']) || 0,
                         draws: parseInt(row['무']) || 0,
                         losses: parseInt(row['패']) || 0
                     }));
@@ -1392,7 +1389,7 @@
                     }
 
                     if (i < retries) {
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1));
                     }
                 }
             }
@@ -1428,7 +1425,7 @@
                             successCount++;
                             seasonData[season] = data;
 
-                            allMatches.push(...data.matches.map(match => ({ ...match, season: season })));
+                            allMatches.push(...data.matches.map(match => ({ ...match, season: season }));
 
                             Object.entries(data.players).forEach(([name, stats]) => {
                                 if (!allTimeStats[name]) {
@@ -1453,7 +1450,7 @@
                 }
 
                 if (batches.indexOf(batch) < batches.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 100);
                 }
             }
 
@@ -1532,12 +1529,8 @@
                 seasonStats[season] = {
                     matches: seasonTotalMatches,
                     wins: seasonWins,
-                    draws: seasonDraws,
-                    losses: seasonLosses,
-                    goalsFor: seasonGoalsFor,
-                    goalsAgainst: seasonGoalsAgainst,
-                    winRate: winRate
-                };
+                    draws: sortIndicator('name', a.region, b.region);
+                });
             });
 
             let bestSeason = null;
@@ -1676,7 +1669,7 @@
                 .sort((a, b) => {
                     if (b.totalMvp !== a.totalMvp) return b.totalMvp - a.totalMvp;
                     if (b.totalAppearances !== a.totalAppearances) return b.totalAppearances - a.totalAppearances;
-                    return koreanCollator.compare(a.name, b.name);
+                    return koreanSortIndicator(a.name, b.name);
                 });
 
             const topAppearances = Object.entries(allTimeStats)
@@ -1748,11 +1741,12 @@
 
             const recordsHtml = [
                 { class: 'team-record-win-streak', title: '🔥 최고 연승 기록', value: `${teamRecords.maxWinStreak.count}연승`, detail: teamRecords.maxWinStreak.startDate ? `${formatDate(teamRecords.maxWinStreak.startDate)} ~ ${formatDate(teamRecords.maxWinStreak.endDate)}` : '기록 없음' },
-                { class: 'team-record-loss-streak', title: '💔 최다 연패 기록', value: `${teamRecords.maxLossStreak.count}연패`, detail: teamRecords.maxLossStreak.startDate ? `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` : '기록 없음' },
+                { class: 'team-record-loss-streak', title: '💔� 최다 연패 기록', value: `${teamRecords.maxLossStreak.count}연패`, detail: teamRecords.maxLossStreak.startDate ? `${formatDate(teamRecords.maxLossStreak.startDate)} ~ ${formatDate(teamRecords.maxLossStreak.endDate)}` : '기록 없음' },
                 { class: 'team-record-max-goals', title: '⚽ 최다 득점 경기', value: `${teamRecords.maxGoalsMatch ? teamRecords.maxGoalsMatch.score.split(':')[0] : 0}골`, detail: teamRecords.maxGoalsMatch ? `vs ${teamRecords.maxGoalsMatch.opponent}<br>${formatDate(teamRecords.maxGoalsMatch.date)}` : '기록 없음' },
                 { class: 'team-record-max-conceded', title: '😱 최다 실점 경기', value: `${teamRecords.maxConcededMatch ? teamRecords.maxConcededMatch.score.split(':')[1] : 0}실점`, detail: teamRecords.maxConcededMatch ? `vs ${teamRecords.maxConcededMatch.opponent}<br>${formatDate(teamRecords.maxConcededMatch.date)}` : '기록 없음' },
                 { class: 'team-record-best-season', title: '🏆 최고 시즌', value: teamRecords.bestSeason ? teamRecords.bestSeason.season : '-', detail: teamRecords.bestSeason ? `승률 ${teamRecords.bestSeason.winRate.toFixed(1)}%<br>${teamRecords.bestSeason.wins}승 ${teamRecords.bestSeason.draws}무 ${teamRecords.bestSeason.losses}패` : '기록 없음' },
-                { class: 'team-record-worst-season', title: '📉 아쉬운 시즌', value: teamRecords.worstSeason ? teamRecords.worstSeason.season : '-', detail: teamRecords.worstSeason ? `승률 ${teamRecords.worstSeason.winRate.toFixed(1)}%<br>${teamRecords.worstSeason.wins}승 ${teamRecords.worstSeason.draws}무 ${teamRecords.worstSeason.losses}패` : '기록 없음' }
+                { class: 'team-record-worst-season', title: '📉 아쉬운 시즌', value: teamRecords.worstSeason ? teamRecords.worstSeason.season : '-', detail: teamRecords.worstSeason ? `승률 ${teamRecords.worstSeason.winRate.toFixed(1)}%<br>${teamRecords.worstSeason.wins}승 ${teamRecords.worstSeason.draws}무 ${teamRecords.worstSeason.losses}패` : '기록 없음' },
+                { class: 'team-record-worst-season', title: '📉 아쉬운 시즌', value: teamRecords.worstSeason ? teamRecords.worstSeason.season : '-', detail: teamRecords.worstSeason ? `승률 ${teamRecords.worstSeason.winRate.toFixed(1)}%<br>${teamRecords.worstSeason.wins}승 ${teamRecords.worstSeason.draws}무 ${teamRecords.worstSeason.losses}패` : '기록 없음' },
             ];
 
             recordsHtml.forEach(rec => {
@@ -1945,7 +1939,7 @@
 
                 let rankDisplay = '';
                 if (index < 3) {
-                    const rankEmoji = ['🥇', '🥈', '🥉'];
+                    const rankEmoji = ['🥇', '🥈�', '🥉'];
                     let showMedal = false;
 
                     switch(sortBy) {
@@ -2002,26 +1996,10 @@
                 // 효율화: DocumentFragment 사용
                 const fragment = document.createDocumentFragment();
                 fragment.innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-title">경기 수</div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-subtitle">총 경기</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">승률</div>
-                        <div class="stat-value">0%</div>
-                        <div class="stat-subtitle">0승 0무 0패</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">득점</div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-subtitle">경기당 0골</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">시즌 MVP</div>
-                        <div class="stat-value">-</div>
-                        <div class="stat-subtitle">MVP 0회</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-title">경기 수</div><div class="stat-value">0</div><div class="stat-subtitle">총 경기</div></div></div>
+                    <div class="stat-card"><div class="stat-title">승률</div><div class="stat-value">0%</div><div class="stat-subtitle">0승 0무 0패</div></div></div>
+                    <div class="stat-card"><div class="stat-title">득점</div><div class="stat-value">0</div><div class="stat-subtitle">경기당 0골</div></div></div>
+                    <div class="stat-card"><div class="stat-title">시즌 MVP</div><div class="stat-value">-</div><div class="stat-subtitle">MVP 0회</div></div></div>
                 `;
                 statsOverview.innerHTML = '';
                 statsOverview.appendChild(fragment);
@@ -2056,114 +2034,29 @@
             // 효율화: DocumentFragment 사용
             const fragment = document.createDocumentFragment();
             fragment.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">경기 수</div>
-                    <div class="stat-value">${totalMatches}</div>
-                    <div class="stat-subtitle">총 경기</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">승률</div>
-                    <div class="stat-value">${winRate}%</div>
-                    <div class="stat-subtitle">${wins}승 ${draws}무 ${losses}패</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">득점</div>
-                    <div class="stat-value">${totalGoalsFor}</div>
-                    <div class="stat-subtitle">경기당 ${goalsPerMatch}골</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">시즌 MVP</div>
-                    <div class="stat-value">${mvpName}</div>
-                    <div class="stat-subtitle">${mvpCount > 0 ? `MVP ${mvpCount}회, ${mvpAppearances}경기` : 'MVP 0회'}</div>
-                </div>
+                <div class="stat-card"><div class="stat-title">경기 수</div><div class="stat-value">${totalMatches}</div><div><div class="stat-subtitle">총 경기</div></div></div>
+                <div class="stat-card"><div class="stat-title">승률</div><div><div class="stat-value">${winRate}%</div><div><div class="stat-subtitle">${wins}승 ${draws}무 ${losses}패</div></div></div>
+                <div class="stat-card"><div class="stat-title">득점</div><div class="stat-value">${totalGoalsFor}</div><div class="stat-subtitle">경기당 ${goalsPerMatch}골</div></div></div>
+                <div class="stat-card"><div class="stat-title">시즌 MVP</div><div class="stat-value">${mvpName}</div><div class="stat-subtitle">${mvpCount > 0 ? `MVP ${mvpCount}회, ${mvpAppearances}경기` : 'MVP 0회'}</div></div></div>
             `;
             statsOverview.innerHTML = '';
             statsOverview.appendChild(fragment);
         }
 
-async function loadData() {
-    // 1. 함수 시작 시 데이터 초기화
-    matches = [];
-    playerStats = {};
-    regionalStats = [];
-
-    try {
-        showStatusMessage(`${currentSeason} 시즌 데이터를 불러오는 중...`, 'loading');
-        if (currentAbortController) currentAbortController.abort();
-        currentAbortController = new AbortController();
-
-        let data, dataSource = 'JSON 파일';
-        if (seasonDataCache.has(currentSeason)) {
-            data = seasonDataCache.get(currentSeason);
-            dataSource = '캐시';
-        } else {
-            if (currentSeason === '2025') {
-                try {
-                    data = await loadFromGoogleSheets(currentSeason);
-                    dataSource = '구글 시트';
-                } catch (gsError) {
-                    console.warn('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
-                    const response = await fetch(`${currentSeason}_data.json`, { signal: currentAbortController.signal, headers: { 'Cache-Control': 'no-cache' } });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
-                    const rawData = await response.json();
-                    data = validateSeasonData(rawData);
-                    dataSource = 'JSON 파일 (대체)';
-                }
-            } else {
-                const response = await fetch(`${currentSeason}_data.json`, { signal: currentAbortController.signal, headers: { 'Cache-Control': 'no-cache' } });
-                if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
-                const rawData = await response.json();
-                data = validateSeasonData(rawData);
-            }
-            seasonDataCache.set(currentSeason, data);
-        }
-
-        // 2. 데이터 할당 후 즉시 통계 카드 업데이트
-        matches = data.matches || [];
-        playerStats = data.players || {};
-        regionalStats = data.regional || [];
-        updateStats(); // 가장 먼저 호출
-
-        updateTable(playerStats, matches, 'playersTableBody', 'players');
-        updateTable(matches, [], 'matchesTableBody', 'matches');
-        updateSchedule(data.schedules || []);
-
-        showStatusMessage(`${dataSource}에서 데이터 로드 완료`, 'success');
-        setTimeout(hideStatusMessage, 2000);
-
-    } catch (error) {
-        if (error.name !== 'AbortError') {
-            let errorMessage = `${currentSeason} 시즌 데이터를 불러올 수 없습니다.`;
-            if (error.message.includes('404')) errorMessage += ' (파일이 존재하지 않습니다)';
-            else if (error.message.includes('Failed to fetch')) errorMessage += ' (인터넷 연결을 확인해주세요)';
-            showStatusMessage(errorMessage, 'error');
-            console.error(`${currentSeason} 시즌 데이터 로딩 실패:`, error);
-        }
-    } finally {
-        // 3. 에러 발생 시에도 통계 카드 업데이트 (데이터는 이미 빈 상태)
-        updateStats();
-        updateTable(playerStats, matches, 'playersTableBody', 'players');
-        updateTable(matches, [], 'matchesTableBody', 'matches');
-        updateSchedule([]);
-    }
-}
         // ========== 테이블 업데이트 함수 ==========
-        function updateTable(data, matches, tbodyId, type) {
+        function updateTable(data, matchesData, tbodyId, type) {
             const tbody = document.getElementById(tbodyId);
             tbody.innerHTML = '';
 
             if (type === 'players') {
-                updatePlayersTableContent(tbody, data, matches);
+                updatePlayersTableContent(tbody, data, matchesData);
             } else if (type === 'matches') {
-                updateMatchesTableContent(tbody, data);
+                updateMatchesTableContent(tbody, matchesData);
             }
         }
 
         function updatePlayersTableContent(tbody, playerStats, matches) {
-            if (Object.keys(playerStats).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 데이터가 없습니다.</td></tr>';
-                return;
-            }
+            if (Object.keys(playerStats).length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 데이터가 없습니다.</td></tr>'; return; }
 
             let playersArray = Object.entries(playerStats).map(([name, stats]) => ({
                 name,
@@ -2220,10 +2113,7 @@ async function loadData() {
         }
 
         function updateMatchesTableContent(tbody, matches) {
-            if (matches.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 경기 기록이 없습니다.</td></tr>';
-                return;
-            }
+            if (matches.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">해당 시즌 경기 기록이 없습니다.</td></tr>'; return; }
 
             // 효율화: DocumentFragment 사용
             const fragment = document.createDocumentFragment();
@@ -2233,13 +2123,8 @@ async function loadData() {
                 let resultClass = 'result-loss';
                 let resultText = '패';
 
-                if (match.result === 'win') {
-                    resultClass = 'result-win';
-                    resultText = '승';
-                } else if (match.result === 'draw') {
-                    resultClass = 'result-draw';
-                    resultText = '무';
-                }
+                if (match.result === 'win') { resultClass = 'result-win'; resultText = '승'; } 
+                else if (match.result === 'draw') { resultClass = 'result-draw'; resultText = '무'; }
 
                 row.innerHTML = `
                     <td style="white-space: nowrap;">${match.date}</td>
@@ -2266,150 +2151,73 @@ async function loadData() {
 
             // 데이터가 없거나 빈 배열일 경우 처리
             if (!schedules || schedules.length === 0) {
-                const noData = document.createElement('div');
-                noData.className = 'no-data';
-                noData.textContent = '다음 경기 일정이 없습니다';
-                fragment.appendChild(noData);
-
-                // 기본 구장 정보 유지 (하드코딩된 기본값)
+                const noData = document.createElement('div'); noData.className = 'no-data'; noData.textContent = '다음 경기 일정이 없습니다'; fragment.appendChild(noData);
                 const venueInfo = document.querySelector('.venue-info');
-                venueInfo.innerHTML = `
-                    <div class="venue-name">감일축구장</div>
-                    <div class="venue-address">📍 경기 하남시 감이동 465</div>
-                    <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
-                `;
-
-                CONFIG.VENUE.name = '감일축구장';
-                CONFIG.VENUE.address = '경기 하남시 감이동 465';
-                CONFIG.VENUE.info = '전화번호: 031-790-2022, 주차 편함';
+                venueInfo.innerHTML = `<div class="venue-name">감일축구장</div><div><div class="venue-address">📍 경기 하남시 감이동 465</div><div><div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>`;
+                CONFIG.VENUE = { name: '감일축구장', address: '경기 하남시 감이동 465', info: '전화번호: 031-790-2022, 주차 편함' };
                 loadKakaoMap();
                 
                 scheduleContainer.innerHTML = '';
                 scheduleContainer.appendChild(fragment);
                 return;
-            }
+            } else {
+                schedules.forEach(schedule => {
+                    const item = document.createElement('div'); item.className = 'schedule-item';
+                    item.innerHTML = `
+                        <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
+                        <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
+                        <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
+                    `;
+                    fragment.appendChild(item);
+                });
+                scheduleContainer.innerHTML = '';
+                scheduleContainer.appendChild(fragment);
 
-            // 일정 데이터가 있을 경우 표시
-            schedules.forEach(schedule => {
-                const item = document.createElement('div');
-                item.className = 'schedule-item';
-
-                item.innerHTML = `
-                    <div class="schedule-date">${schedule.date || ''} ${schedule.time ? '(' + schedule.time + ')' : ''}</div>
-                    <div class="schedule-time-venue">${schedule.venue || ''} ${schedule.note ? '- ' + schedule.note : ''}</div>
-                    <div class="schedule-opponent">VS ${schedule.opponent || ''}</div>
+                const firstSchedule = schedules[0];
+                const venueInfo = document.querySelector('.venue-info');
+                venueInfo.innerHTML = `
+                    <div class="venue-name">${firstSchedule.venue || '미정'}</div>
+                    <div class="venue-address">📍 ${firstSchedule.address || '주소 미정'}</div>
+                    <div class="venue-phone">📞 ${firstSchedule.note || ''}</div>
                 `;
-
-                fragment.appendChild(item);
-            });
-
-            scheduleContainer.innerHTML = '';
-            scheduleContainer.appendChild(fragment);
-
-            // 첫 번째 일정의 구장 정보로 지도 및 정보 업데이트
-            const firstSchedule = schedules[0];
-            const venueInfo = document.querySelector('.venue-info');
-            venueInfo.innerHTML = `
-                <div class="venue-name">${firstSchedule.venue || '미정'}</div>
-                <div class="venue-address">📍 ${firstSchedule.address || '주소 미정'}</div>
-                <div class="venue-phone">📞 ${firstSchedule.note || ''}</div>
-            `;
-
-            // 구장 정보 업데이트
-            CONFIG.VENUE.name = firstSchedule.venue || '미정';
-            CONFIG.VENUE.address = firstSchedule.address || '주소 미정';
-            CONFIG.VENUE.info = firstSchedule.note || '';
-            
-            // 지도 로드 (주소가 있는 경우에만)
-            if (firstSchedule.address) {
-                // 지도 초기화 플래그 리셋하여 새 위치로 지도를 다시 로드
-                mapInitialized = false;
-                loadKakaoMap();
+                CONFIG.VENUE = { name: firstSchedule.venue || '미정', address: firstSchedule.address || '주소 미정', info: firstSchedule.note || '' };
+                if (firstSchedule.address) { mapInitialized = false; loadKakaoMap(); }
             }
         }
 
         // ========== 카카오맵 관리 ==========
         function loadKakaoMap() {
-            if (mapScriptLoaded) {
-                initializeMap();
-                return;
-            }
+            if (mapScriptLoaded) { initializeMap(); return; }
 
             const script = document.createElement('script');
             script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CONFIG.KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
             
-            script.onload = function () {
-                mapScriptLoaded = true;
-                initializeMap();
-            };
-
-            script.onerror = function () {
-                console.error('카카오맵 API 로드 실패');
-                document.getElementById('map-placeholder').innerHTML = `
-                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
-                        <div>🗺️</div>
-                        <div style="margin-top:10px;">${CONFIG.VENUE.name}</div>
-                        <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
-                    </div>
-                `;
-            };
-
+            script.onload = function () { mapScriptLoaded = true; initializeMap(); };
+            script.onerror = function () { console.error('카카오맵 API 로드 실패'); document.getElementById('map-placeholder').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;"><div>🗺️</div><div style="margin-top:10px;">${CONFIG.VENUE.name}</div><div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div></div>`; };
             document.head.appendChild(script);
         }
 
         function initializeMap() {
-            // mapInitialized가 true이고 CONFIG.VENUE.address가 변경되지 않았으면 리턴
-            // 그러나 updateSchedule에서 mapInitialized를 false로 설정할 수 있으므로 재초기화 가능
-
             kakao.maps.load(function () {
                 const mapContainer = document.getElementById('map-placeholder');
                 mapContainer.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
-
-                // 기본 중심 좌표 (감일축구장)
                 const defaultCenter = new kakao.maps.LatLng(37.4656, 127.0347);
                 
-                const map = new kakao.maps.Map(document.getElementById('map'), {
-                    center: defaultCenter,
-                    level: 3
-                });
-
+                const map = new kakao.maps.Map(document.getElementById('map'), { center: defaultCenter, level: 3 });
                 const geocoder = new kakao.maps.services.Geocoder();
-
-                // CONFIG.VENUE.address를 사용하여 주소 검색
                 const searchAddress = CONFIG.VENUE.address || '경기 하남시 감이동 465';
                 
                 geocoder.addressSearch(searchAddress, function (result, status) {
                     if (status === kakao.maps.services.Status.OK) {
-                        const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                        map.setCenter(coords);
-
-                        const marker = new kakao.maps.Marker({
-                            map: map,
-                            position: coords
-                        });
-
-                        const infowindow = new kakao.maps.InfoWindow({
-                            content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
-                        });
-
-                        infowindow.open(map, marker);
-                        mapInitialized = true;
+                        const coords = new kakao.maps.LatLng(result[0].y, result[0].x); map.setCenter(coords);
+                        const marker = new kakao.maps.Marker({ map: map, position: coords });
+                        const infowindow = new kakao.maps.InfoWindow({ content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>` });
+                        infowindow.open(map, marker); mapInitialized = true;
                     } else {
-                        console.warn('주소 검색 실패:', searchAddress, status);
-                        // 검색 실패시 기본 위치 사용
-                        map.setCenter(defaultCenter);
-                        
-                        const marker = new kakao.maps.Marker({
-                            map: map,
-                            position: defaultCenter
-                        });
-
-                        const infowindow = new kakao.maps.InfoWindow({
-                            content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
-                        });
-
-                        infowindow.open(map, marker);
-                        mapInitialized = true;
+                        console.warn('주소 검색 실패:', searchAddress, status); map.setCenter(defaultCenter);
+                        const marker = new kakao.maps.Marker({ map: map, position: defaultCenter });
+                        const infowindow = new kakao.maps.InfoWindow({ content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>` });
+                        infowindow.open(map, marker); mapInitialized = true;
                     }
                 });
             });
@@ -2420,14 +2228,10 @@ async function loadData() {
             currentFilter = filter;
 
             // 필터 버튼 상태 업데이트
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.filter === filter);
-            });
+            document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.filter === filter); });
 
             if (isAllTimeView) {
-                loadAllTimeSeasonsParallel().then(({ stats: allTimeStats }) => {
-                    updateAllTimeTable(allTimeStats, filter);
-                });
+                loadAllTimeSeasonsParallel().then(({ stats: allTimeStats }) => { updateAllTimeTable(allTimeStats, filter); });
             } else {
                 updateTable(playerStats, matches, 'playersTableBody', 'players');
             }
@@ -2455,25 +2259,15 @@ async function loadData() {
 
         // ========== 페이지 이벤트 처리 ==========
         window.addEventListener('beforeunload', function() {
-            if (currentAbortController) {
-                currentAbortController.abort();
-            }
+            if (currentAbortController) { currentAbortController.abort(); }
         });
 
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const seasonParam = urlParams.get('season');
-
             if (seasonParam && [...CONFIG.AVAILABLE_SEASONS, 'all-time'].includes(seasonParam)) {
-                if (seasonParam === 'all-time') {
-                    toggleAllTimeView();
-                    return;
-                } else {
-                    currentSeason = seasonParam;
-                    document.getElementById('seasonSelect').value = seasonParam;
-                }
+                if (seasonParam === 'all-time') { toggleAllTimeView(); return; } else { currentSeason = seasonParam; document.getElementById('seasonSelect').value = seasonParam; }
             }
-
             updateButtonStates();
             initializeScheduleAndVenue();
             loadData();
