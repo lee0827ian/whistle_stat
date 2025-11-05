@@ -1863,26 +1863,28 @@ if (scheduleSection) {
 
             // 효율화: DocumentFragment 사용
             const fragment = document.createDocumentFragment();
-            regionsWithWinRate.forEach(region => {
-                const row = document.createElement('tr');
+            regionsWithWinRate.forEach(region => {
+                const row = document.createElement('tr');
 
-                // 승률에 따른 색상 클래스 결정
-                const winRateClass = 
-                    region.winRate >= 80 ? 'winrate-excellent' :
-                    region.winRate >= 60 ? 'winrate-good' :
-                    region.winRate >= 40 ? 'winrate-average' : 'winrate-poor';
+                // 승률에 따른 색상 클래스 결정
+                const winRateClass =
+                    region.winRate >= 80 ? 'winrate-excellent' :
+                    region.winRate >= 60 ? 'winrate-good' :
+                    region.winRate >= 40 ? 'winrate-average' : 'winrate-poor';
 
-                row.innerHTML = `
-                    <td><strong>${region.region}</strong></td>
-                    <td><strong>${region.matches}</strong></td>
-                    <td>${region.wins}</td>
-                    <td>${region.draws}</td>
-                    <td>${region.losses}</td>
-                    <td><span class="winrate-cell ${winRateClass}">${region.winRate.toFixed(1)}%</span></td>
-                `;
+                const cells = [
+                    `<td><strong>${region.region}</strong></td>`,
+                    `<td><strong>${region.matches}</strong></td>`,
+                    `<td>${region.wins}</td>`,
+                    `<td>${region.draws}</td>`,
+                    `<td>${region.losses}</td>`,
+                    `<td><span class="winrate-cell ${winRateClass}">${region.winRate.toFixed(1)}%</span></td>`
+                ];
 
-                fragment.appendChild(row);
-            });
+                row.innerHTML = cells.join('');
+
+                fragment.appendChild(row);
+            });
             tbody.appendChild(fragment);
         }
 
@@ -2012,42 +2014,44 @@ if (scheduleSection) {
 
             // 효율화: DocumentFragment 사용
             const fragment = document.createDocumentFragment();
-            playersBySort.forEach((player, index) => {
-                const row = document.createElement('tr');
+            playersBySort.forEach((player, index) => {
+                const row = document.createElement('tr');
 
-                let rankDisplay = '';
-                if (index < 3) {
-                    const rankEmoji = ['🥇', '🥈', '🥉'];
-                    let showMedal = false;
+                let rankDisplay = '';
+                if (index < 3) {
+                    const rankEmoji = ['🥇', '🥈', '🥉'];
+                    let showMedal = false;
 
-                    switch(sortBy) {
-                        case 'goals':
-                            showMedal = player.totalGoals > 0;
-                            break;
-                        case 'attendance':
-                            showMedal = player.totalAppearances > 0;
-                            break;
-                        case 'mvp':
-                            showMedal = player.totalMvp > 0;
-                            break;
-                        default:
-                            showMedal = false;
-                    }
+                    switch(sortBy) {
+                        case 'goals':
+                            showMedal = player.totalGoals > 0;
+                            break;
+                        case 'attendance':
+                            showMedal = player.totalAppearances > 0;
+                            break;
+                        case 'mvp':
+                            showMedal = player.totalMvp > 0;
+                            break;
+                        default:
+                            showMedal = false;
+                    }
 
-                    if (showMedal) {
-                        rankDisplay = `${rankEmoji[index]}`;
-                    }
-                }
+                    if (showMedal) {
+                        rankDisplay = `${rankEmoji[index]}`;
+                    }
+                }
 
-                row.innerHTML = `
-                    <td><strong>${player.name}</strong>${rankDisplay}</td>
-                    <td><strong>${player.totalAppearances}</strong></td>
-                    <td><strong>${player.totalGoals}</strong></td>
-                    <td>${player.totalMvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.totalMvp}회">${player.totalMvp}회</span>` : '0'}</td>
-                `;
+                const cells = [
+                    `<td><strong>${player.name}</strong>${rankDisplay}</td>`,
+                    `<td><strong>${player.totalAppearances}</strong></td>`,
+                    `<td><strong>${player.totalGoals}</strong></td>`,
+                    `<td>${player.totalMvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.totalMvp}회">${player.totalMvp}회</span>` : '0'}</td>`
+                ];
 
-                fragment.appendChild(row);
-            });
+                row.innerHTML = cells.join('');
+
+                fragment.appendChild(row);
+            });
             tbody.appendChild(fragment);
         }
 
@@ -2296,23 +2300,25 @@ async function loadData() {
 
             // 효율화: DocumentFragment 사용
             const fragment = document.createDocumentFragment();
-            playersArray.forEach(player => {
-                const row = document.createElement('tr');
+            playersArray.forEach(player => {
+                const row = document.createElement('tr');
 
-                let rateClass = 'rate-low';
-                if (player.attendanceRate >= 70) rateClass = 'rate-high';
-                else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
+                let rateClass = 'rate-low';
+                if (player.attendanceRate >= 70) rateClass = 'rate-high';
+                else if (player.attendanceRate >= 50) rateClass = 'rate-medium';
 
-                row.innerHTML = `
-                    <td>${player.name}</td>
-                    <td>${player.appearances}</td>
-                    <td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>
-                    <td>${player.goals}</td>
-                    <td>${player.mvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.mvp}회">${player.mvp}회</span>` : '0'}</td>
-                `;
+                const cells = [
+                    `<td>${player.name}</td>`,
+                    `<td>${player.appearances}</td>`,
+                    `<td><span class="attendance-rate ${rateClass}">${player.attendanceRate}%</span></td>`,
+                    `<td>${player.goals}</td>`,
+                    `<td>${player.mvp > 0 ? `<span class="mvp-badge" title="${player.name} ${player.mvp}회">${player.mvp}회</span>` : '0'}</td>`
+                ];
 
-                fragment.appendChild(row);
-            });
+                row.innerHTML = cells.join('');
+
+                fragment.appendChild(row);
+            });
             tbody.appendChild(fragment);
         }
 
@@ -2324,30 +2330,32 @@ async function loadData() {
 
             // 효율화: DocumentFragment 사용
             const fragment = document.createDocumentFragment();
-            matches.forEach(match => {
-                const row = document.createElement('tr');
+            matches.forEach(match => {
+                const row = document.createElement('tr');
 
-                let resultClass = 'result-loss';
-                let resultText = '패';
+                let resultClass = 'result-loss';
+                let resultText = '패';
 
-                if (match.result === 'win') {
-                    resultClass = 'result-win';
-                    resultText = '승';
-                } else if (match.result === 'draw') {
-                    resultClass = 'result-draw';
-                    resultText = '무';
-                }
+                if (match.result === 'win') {
+                    resultClass = 'result-win';
+                    resultText = '승';
+                } else if (match.result === 'draw') {
+                    resultClass = 'result-draw';
+                    resultText = '무';
+                }
 
-                row.innerHTML = `
-                    <td style="white-space: nowrap;">${match.date}</td>
-                    <td>${match.opponent}</td>
-                    <td><span class="result-badge ${resultClass}">${resultText}</span></td>
-                    <td>${match.score}</td>
-                    <td>${match.mvp ? `<span class="mvp-badge" title="${match.mvp}">${match.mvp}</span>` : ''}</td>
-                `;
+                const cells = [
+                    `<td style="white-space: nowrap;">${match.date}</td>`,
+                    `<td>${match.opponent}</td>`,
+                    `<td><span class="result-badge ${resultClass}">${resultText}</span></td>`,
+                    `<td>${match.score}</td>`,
+                    `<td>${match.mvp ? `<span class="mvp-badge" title="${match.mvp}">${match.mvp}</span>` : ''}</td>`
+                ];
 
-                fragment.appendChild(row);
-            });
+                row.innerHTML = cells.join('');
+
+                fragment.appendChild(row);
+            });
             tbody.appendChild(fragment);
         }
 
