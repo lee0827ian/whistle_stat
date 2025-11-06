@@ -967,8 +967,7 @@
             <div class="team-records-section">
                 <div class="section-title">역대 팀 기록</div>
                 <div id="teamRecordsContainer">
-                    <!-- 팀 기록 카드들이 여기에 동적으로 추가됩니다 -->
-                </div>
+                    </div>
             </div>
 
             <div class="regional-records-section">
@@ -999,8 +998,7 @@
             </div>
         </div>
 
-        <div class="charts-section" style="margin:40px 0; padding:30px; background:white; border-radius:15px;">
-            <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
+        <div class="charts-section" style="margin:40px 0; padding:30px; background:white; border-radius:15px; display: none;"> <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
             
             <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
                 <h3 style="color:#1e40af; margin-bottom:20px;">📈 시즌별 승률 트렌드</h3>
@@ -1013,8 +1011,7 @@
                 <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률 히트맵</h3>
                 <div id="mapContainer" style="width:100%; max-width:900px; margin:0 auto; text-align:center;">
                     <svg id="seoulMap" viewBox="0 0 400 500" style="width:100%; height:auto; max-width:100%; border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <!-- SVG 지도가 여기 표시됩니다 -->
-                    </svg>
+                        </svg>
                 </div>
                 <div id="mapLegend" style="margin-top:20px; font-size:14px;">
                     <div style="display:flex; justify-content:center; gap:30px;">
@@ -1026,14 +1023,12 @@
             </div>
         </div>
 
-        <!-- 다음 경기 일정 및 구장 위치 -->
         <div class="schedule-venue-section next-matches-section">
             <div class="section-title">다음 경기 일정 및 구장 위치</div>
             <div class="schedule-and-map">
                 <div class="schedule-container">
                     <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
-                    <!-- 동적으로 업데이트될 부분 -->
-                </div>
+                    </div>
                 <div class="map-container">
                     <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
                     <div id="map-placeholder" class="map-placeholder">
@@ -1055,7 +1050,8 @@
         const AppState = {
             map: {
                 scriptLoaded: false,
-                initialized: false
+                initialized: false,
+                lastAddress: null // Fix 2: 마지막 검색 주소 추적
             },
             network: {
                 currentAbortController: null
@@ -1080,6 +1076,7 @@
         const CONFIG = {
             AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025'],
             DEFAULT_SEASON: '2025',
+            KAKAO_MAP_API_KEY: 'YOUR_KAKAO_API_KEY_HERE', // 실제 키를 여기에 입력해야 함
             VENUE: {
                 name: '감일축구장',
                 address: '경기 하남시 감이동 465',
@@ -1215,15 +1212,7 @@
         // ========== 데이터 처리 함수 ==========
         function processSheetData(matchesData, playersData, scheduleData, regionalData, season) {
             // 경기 데이터 변환
-            const matches = matchesData
-                .filter(row => row['날짜'] && row['상대팀'])
-                .map(row => ({
-                    date: row['날짜'],
-                    opponent: row['상대팀'],
-                    result: row['결과'],
-                    score: row['스코어'],
-                    mvp: row['MVP'] || ''
-                }))
+            const matches = validateMatches(matchesData)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
 
             // 선수 데이터 변환 및 초기화 최적화
@@ -1289,7 +1278,19 @@
             };
         }
 
-        // ========== 상태 메시지 관리 ==========
+        function validateMatches(matchesData) {
+            return matchesData
+                .filter(row => row['날짜'] && row['상대팀'])
+                .map(row => ({
+                    date: sanitizeTableData(row['날짜']),
+                    opponent: sanitizeTableData(row['상대팀']),
+                    result: row['결과'],
+                    score: row['스코어'],
+                    mvp: sanitizeTableData(row['MVP'] || '')
+                }));
+        }
+
+        // ========== 상태 메시지 관리 (기존 로직 유지) ==========
         function showStatusMessage(message, type = 'loading') {
             const statusElement = document.getElementById('statusMessage');
             if (statusElement) {
@@ -1331,7 +1332,7 @@
             if (statsElement) statsElement.style.display = 'none';
         }
 
-        // ========== 안전한 DOM 요소 생성 함수 ==========
+        // ========== 안전한 DOM 요소 생성 함수 (기존 로직 유지) ==========
         function createStatsCard(title, value, subtitle, className = '') {
             const card = document.createElement('div');
             card.className = `stat-card ${className}`;
@@ -1376,7 +1377,7 @@
             return row;
         }
 
-        // ========== 차트 메모리 관리 개선 ==========
+        // ========== 차트 메모리 관리 개선 (기존 로직 유지) ==========
         function destroyChart(chartInstance) {
             if (chartInstance) {
                 chartInstance.destroy();
@@ -1452,7 +1453,7 @@
             });
         }
 
-        // ========== 데이터 검증 ==========
+        // ========== 데이터 검증 (기존 로직 유지) ==========
         function validateSeasonData(data) {
             const validatedData = {
                 matches: [],
@@ -1492,7 +1493,7 @@
             return validatedData;
         }
 
-        // ========== MVP 선정 함수 ==========
+        // ========== MVP 선정 함수 (기존 로직 유지) ==========
         function calculateSeasonMvp(playerStats) {
             if (!playerStats || Object.keys(playerStats).length === 0) {
                 return null;
@@ -1515,7 +1516,7 @@
             return playersArray[0];
         }
 
-        // ========== UI 상태 관리 ==========
+        // ========== UI 상태 관리 (기존 로직 유지) ==========
         function updateButtonStates() {
             const allTimeButton = document.getElementById('allTimeButton');
             const seasonSelect = document.getElementById('seasonSelect');
@@ -1540,7 +1541,7 @@
             }
         }
 
-        // ========== 시즌 데이터 로딩 (캐싱 포함) ==========
+        // ========== 시즌 데이터 로딩 (캐싱 포함 - 기존 로직 유지) ==========
         async function loadSeasonDataWithRetry(season, retries = 2) {
             // 캐시 확인
             if (seasonDataCache.has(season)) {
@@ -1603,7 +1604,7 @@
             return { season, data: null, success: false, error: lastError };
         }
 
-        // ========== 병렬 데이터 로딩 (개선된 버전) ==========
+        // ========== 병렬 데이터 로딩 (기존 로직 유지) ==========
         async function loadAllTimeSeasonsParallel() {
             const allTimeStats = {};
             const allMatches = [];
@@ -1840,9 +1841,41 @@
             };
         }
 
+        // Fix 3: 시즌 오버뷰 카드 구조를 다시 그리는 함수
+        function renderSeasonStatCards() {
+            const statsOverview = document.querySelector('.stats-overview');
+            if (!statsOverview) return;
+
+            statsOverview.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-title">경기 수</div>
+                    <div class="stat-value" id="totalMatches">0</div>
+                    <div class="stat-subtitle">총 경기</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">승률</div>
+                    <div class="stat-value" id="winRate">0%</div>
+                    <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">득점</div>
+                    <div class="stat-value" id="totalGoals">0</div>
+                    <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title" id="mvpCardTitle">시즌 MVP</div>
+                    <div class="stat-value" id="seasonMvp">-</div>
+                    <div class="stat-subtitle" id="mvpStats">MVP 0회</div>
+                </div>
+            `;
+        }
+
         // ========== 역대 기록 관리 ==========
         async function toggleAllTimeView() {
+            const chartsSection = document.querySelector('.charts-section');
+
             if (AppState.data.isAllTimeView) {
+                // All-Time -> Season 전환
                 AppState.data.isAllTimeView = false;
                 const seasonSelect = document.getElementById('seasonSelect');
                 AppState.data.currentSeason = seasonSelect?.value || CONFIG.DEFAULT_SEASON;
@@ -1860,8 +1893,15 @@
                     scheduleSection.style.display = 'block';
                 }
                 
+                // Fix 3: 시즌 통계 카드로 복구
+                renderSeasonStatCards();
+
+                // Fix 1: 차트 섹션 숨기기
+                if (chartsSection) chartsSection.style.display = 'none';
+                
                 await loadData();
             } else {
+                // Season -> All-Time 전환
                 AppState.data.isAllTimeView = true;
                 
                 const mainContent = document.getElementById('mainContent');
@@ -1877,12 +1917,22 @@
                     scheduleSection.style.display = 'none';
                 }
 
+                // Fix 1: 차트 섹션 보이기
+                if (chartsSection) chartsSection.style.display = 'block';
+
                 try {
                     const { stats: allTimeStats, records: teamRecords, regional: regionalData } = await loadAllTimeSeasonsParallel();
+                    
+                    // All-Time UI 업데이트
                     updateAllTimeRankings(allTimeStats);
                     updateAllTimeTable(allTimeStats, AppState.ui.currentFilter);
                     updateTeamRecords(teamRecords);
                     updateRegionalTable(regionalData);
+                    
+                    // Fix 1: 차트 생성
+                    createRegionalHeatmap();
+                    createWinRateTrendChart();
+                    
                 } catch (error) {
                     showStatusMessage('역대 기록을 불러오는 중 오류가 발생했습니다.', 'error');
                     logError('역대 기록 로딩 오류:', error);
@@ -1890,7 +1940,7 @@
             }
         }
 
-        // ========== 안전한 DOM 요소 업데이트 함수들 ==========
+        // ========== 안전한 DOM 요소 업데이트 함수들 (기존 로직 유지) ==========
         function updateAllTimeRankings(allTimeStats) {
             const statsOverview = document.querySelector('.stats-overview');
             if (!statsOverview) return;
@@ -2043,7 +2093,7 @@
             });
         }
 
-        // ========== 지역별 기록 테이블 업데이트 함수 ==========
+        // ========== 지역별 기록 테이블 업데이트 함수 (기존 로직 유지) ==========
         function updateRegionalTable(regionalData) {
             const tbody = document.getElementById('regionalTableBody');
             if (!tbody) return;
@@ -2117,7 +2167,7 @@
             });
         }
 
-        // ========== 지역별 정렬 함수 ==========
+        // ========== 지역별 정렬 함수 (기존 로직 유지) ==========
         function sortRegionalData(data, sortBy) {
             switch(sortBy) {
                 case 'matches':
@@ -2163,7 +2213,7 @@
             }
         }
 
-        // ========== 지역별 필터 함수 ==========
+        // ========== 지역별 필터 함수 (기존 로직 유지) ==========
         function filterRegional(filter) {
             AppState.ui.currentRegionalFilter = filter;
 
@@ -2183,7 +2233,7 @@
             }
         }
 
-        // ========== 정렬 표시기 업데이트 ==========
+        // ========== 정렬 표시기 업데이트 (기존 로직 유지) ==========
         function updateRegionalSortIndicators(activeSort) {
             const indicators = {
                 'regionNameSort': 'name',
@@ -2316,7 +2366,7 @@
             });
         }
 
-        // ========== 시즌 데이터 관리 ==========
+        // ========== 시즌 데이터 관리 (기존 로직 유지) ==========
         async function changeSeason() {
             const seasonSelect = document.getElementById('seasonSelect');
             const newSeason = seasonSelect?.value || CONFIG.DEFAULT_SEASON;
@@ -2331,6 +2381,13 @@
                     
                     if (mainContent) mainContent.style.display = 'grid';
                     if (allTimeContent) allTimeContent.style.display = 'none';
+                    
+                    // Fix 3: 시즌 통계 카드로 복구
+                    renderSeasonStatCards();
+
+                    // Fix 1: 차트 섹션 숨기기
+                    const chartsSection = document.querySelector('.charts-section');
+                    if (chartsSection) chartsSection.style.display = 'none';
                 }
                 AppState.data.currentSeason = newSeason;
                 await loadData();
@@ -2452,8 +2509,13 @@
                 updateTable(AppState.data.playerStats, AppState.data.matches, 'playersTableBody', 'players');
                 updateTable(AppState.data.matches, [], 'matchesTableBody', 'matches');
                 updateSchedule(data.schedules || []);
-                createRegionalHeatmap();
-                createWinRateTrendChart();
+                
+                // Fix 1: chart/map generation moved to toggleAllTimeView for All-Time mode.
+                // Fix 2: Map initialization logic is now inside initializeMap/loadKakaoMap,
+                // and it will check if AppState.map.lastAddress has changed from the schedule update.
+                if (data.schedules && data.schedules.length > 0) {
+                     loadKakaoMap();
+                }
 
                 hideStatusMessage();
                 logInfo(`${AppState.data.currentSeason} 시즌 데이터 로드 완료 (${dataSource})`, {
@@ -2658,31 +2720,158 @@
         // ========== 일정 업데이트 함수 ==========
         function updateSchedule(schedules) {
             const scheduleContainer = document.querySelector('.schedule-container');
-            if (!scheduleContainer) return;
+            const venueInfo = document.querySelector('.venue-info');
+
+            if (!scheduleContainer || !venueInfo) return;
+
+            // 기본값 설정 (감일축구장)
+            let currentVenue = {
+                name: '감일축구장',
+                address: '경기 하남시 감이동 465',
+                info: '전화번호: 031-790-2022, 주차 편함'
+            };
 
             if (!schedules || schedules.length === 0) {
                 scheduleContainer.innerHTML = `
                     <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
                     <div class="no-data">예정된 경기가 없습니다.</div>
                 `;
+            } else {
+                const nextMatch = schedules[0]; // 가장 가까운 경기
+                currentVenue = {
+                    name: nextMatch.venue || '구장 정보 없음',
+                    address: nextMatch.address || '주소 정보 없음',
+                    info: nextMatch.note || '비고 정보 없음'
+                };
+
+                scheduleContainer.innerHTML = `
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
+                    <div class="schedule-item">
+                        <div class="schedule-date">${nextMatch.date}</div>
+                        <div class="schedule-time-venue">${nextMatch.time} | ${nextMatch.venue}</div>
+                        <div class="schedule-opponent">vs ${nextMatch.opponent}</div>
+                    </div>
+                `;
+                logInfo('일정 업데이트 완료', { nextMatch });
+            }
+
+            // Fix 2: Venue 정보 업데이트
+            CONFIG.VENUE = currentVenue;
+            venueInfo.innerHTML = `
+                <div class="venue-name">${currentVenue.name}</div>
+                <div class="venue-address">📍 ${currentVenue.address}</div>
+                <div class="venue-phone">📞 ${currentVenue.info}</div>
+            `;
+             // Fix 2: 맵 로딩
+            if (currentVenue.address && currentVenue.address !== '주소 정보 없음') {
+                loadKakaoMap();
+            } else {
+                // 주소 정보가 없으면 맵 초기화하지 않음
+                 const mapPlaceholder = document.getElementById('map-placeholder');
+                 if (mapPlaceholder) {
+                     mapPlaceholder.innerHTML = '<div class="map-placeholder">주소 정보가 없어 지도를 표시할 수 없습니다</div>';
+                 }
+            }
+        }
+
+        // Fix 2: 카카오맵 관련 함수들
+
+        function loadKakaoMap() {
+            if (AppState.map.scriptLoaded) {
+                initializeMap();
                 return;
             }
 
-            const nextMatch = schedules[0]; // 가장 가까운 경기
+            const script = document.createElement('script');
+            // Assuming KAKAO_MAP_API_KEY is available globally/in CONFIG
+            script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CONFIG.KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
             
-            scheduleContainer.innerHTML = `
-                <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
-                <div class="schedule-item">
-                    <div class="schedule-date">${nextMatch.date}</div>
-                    <div class="schedule-time-venue">${nextMatch.time} | ${nextMatch.venue}</div>
-                    <div class="schedule-opponent">vs ${nextMatch.opponent}</div>
-                </div>
-            `;
+            script.onload = function () {
+                AppState.map.scriptLoaded = true;
+                // Defer initialization slightly to ensure all DOM elements are ready
+                kakao.maps.load(initializeMap);
+            };
 
-            logInfo('일정 업데이트 완료', { nextMatch });
+            script.onerror = function () {
+                logError('카카오맵 API 로드 실패');
+                document.getElementById('map-placeholder').innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;">
+                        <div>🗺️</div>
+                        <div style="margin-top:10px;">${CONFIG.VENUE.name || '구장'}</div>
+                        <div style="font-size:12px;margin-top:5px;">지도를 불러올 수 없습니다</div>
+                    </div>
+                `;
+            };
+
+            document.head.appendChild(script);
         }
 
-        // ========== 선수 필터 함수 ==========
+
+        function initializeMap() {
+             const searchAddress = CONFIG.VENUE.address || '경기 하남시 감이동 465';
+             
+             // Fix 2: 주소가 바뀌지 않았으면 맵 재초기화 건너뛰기
+             if (AppState.map.initialized && AppState.map.lastAddress === searchAddress) {
+                 logInfo('맵이 이미 초기화되어 있고 주소 변경 없음');
+                 return;
+             }
+
+             const mapPlaceholder = document.getElementById('map-placeholder');
+             if (!mapPlaceholder) return;
+
+             // Map Container 재설정
+             mapPlaceholder.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
+             const mapContainer = document.getElementById('map');
+             
+             // 기본 중심 좌표 (감일축구장)
+             const defaultCenter = new kakao.maps.LatLng(37.4656, 127.0347);
+
+             const map = new kakao.maps.Map(mapContainer, {
+                 center: defaultCenter,
+                 level: 3
+             });
+
+             const geocoder = new kakao.maps.services.Geocoder();
+             
+             geocoder.addressSearch(searchAddress, function (result, status) {
+                 if (status === kakao.maps.services.Status.OK) {
+                     const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                     map.setCenter(coords);
+
+                     const marker = new kakao.maps.Marker({
+                         map: map,
+                         position: coords
+                     });
+
+                     const infowindow = new kakao.maps.InfoWindow({
+                         content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
+                     });
+
+                     infowindow.open(map, marker);
+                     AppState.map.initialized = true;
+                     AppState.map.lastAddress = searchAddress;
+
+                 } else {
+                     logInfo(`주소 검색 실패: ${searchAddress}. 기본 위치로 설정.`, status);
+                     map.setCenter(defaultCenter);
+                     
+                     const marker = new kakao.maps.Marker({
+                         map: map,
+                         position: defaultCenter
+                     });
+                     
+                     const infowindow = new kakao.maps.InfoWindow({
+                         content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '감일축구장'}</div>`
+                     });
+
+                     infowindow.open(map, marker);
+                     AppState.map.initialized = true;
+                     AppState.map.lastAddress = searchAddress;
+                 }
+             });
+        }
+        
+        // ========== 선수 필터 함수 (기존 로직 유지) ==========
         function filterPlayers(filter) {
             AppState.ui.currentFilter = filter;
 
@@ -2694,13 +2883,15 @@
 
             // 테이블 업데이트
             if (AppState.data.isAllTimeView) {
-                // 역대 기록 테이블 업데이트는 다른 함수에서 처리
+                loadAllTimeSeasonsParallel().then(({ stats: allTimeStats }) => {
+                    updateAllTimeTable(allTimeStats, filter);
+                });
             } else {
                 updateTable(AppState.data.playerStats, AppState.data.matches, 'playersTableBody', 'players');
             }
         }
 
-        // ========== 지역별 히트맵 생성 함수 ==========
+        // ========== 지역별 히트맵 생성 함수 (기존 로직 유지) ==========
         function createRegionalHeatmap() {
             const svg = document.getElementById('seoulMap');
             if (!svg) return;
@@ -2803,13 +2994,16 @@
             logInfo('SVG 지도 생성 완료');
         }
 
-        // ========== 초기화 함수 ==========
+        // ========== 초기화 함수 (기존 로직 유지) ==========
         function initializeApp() {
             // 앱 상태 초기화
             AppState.data.currentSeason = CONFIG.DEFAULT_SEASON;
             AppState.ui.currentFilter = 'all';
             AppState.ui.currentRegionalFilter = 'winrate';
             
+            // Fix 3: 초기 로드 시 시즌 통계 카드 구조를 먼저 그림
+            renderSeasonStatCards();
+
             // 버튼 상태 업데이트
             updateButtonStates();
             
@@ -2828,7 +3022,6 @@
         window.onSeasonSelectClick = onSeasonSelectClick;
         window.filterPlayers = filterPlayers;
         window.filterRegional = filterRegional;
-
     </script>
 </body>
 </html>
