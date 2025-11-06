@@ -1033,12 +1033,12 @@
                 <div class="map-container">
                     <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
                     <div id="map-placeholder" class="map-placeholder">
-                        🗺️<br>감일축구장<br>
+                        🗺️<br>성불빌라<br>
                         <small>지도 로딩 중...</small>
                     </div>
                     <div class="venue-info">
-                        <div class="venue-name">감일축구장</div>
-                        <div class="venue-address">📍 경기 하남시 감이동 465</div>
+                        <div class="venue-name">성불빌라</div>
+                        <div class="venue-address">📍 서울 노원구 동일로231가길 7</div>
                         <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
                     </div>
                 </div>
@@ -1079,8 +1079,8 @@
             DEFAULT_SEASON: '2025',
             KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24', // 실제 키를 여기에 입력해야 함
             VENUE: {
-                name: '감일축구장',
-                address: '경기 하남시 감이동 465',
+                name: '성불빌라',
+                address: '서울 노원구 동일로231가길 75',
                 info: '전화번호: 031-790-2022, 주차 편함'
             },
             PARALLEL_LOADING: {
@@ -2727,8 +2727,8 @@
 
             // 기본값 설정 (감일축구장)
             let currentVenue = {
-                name: '감일축구장',
-                address: '경기 하남시 감이동 465',
+                name: '성불빌라',
+                address: '서울 노원구 동일로231가길 7',
                 info: '전화번호: 031-790-2022, 주차 편함'
             };
 
@@ -2809,7 +2809,7 @@
 
 
         function initializeMap() {
-             const searchAddress = CONFIG.VENUE.address || '경기 하남시 감이동 465';
+             const searchAddress = CONFIG.VENUE.address || '경서울 노원구 동일로231가길 7';
              
              // Fix 2: 주소가 바뀌지 않았으면 맵 재초기화 건너뛰기
              if (AppState.map.initialized && AppState.map.lastAddress === searchAddress) {
@@ -2862,7 +2862,7 @@
                      });
                      
                      const infowindow = new kakao.maps.InfoWindow({
-                         content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '감일축구장'}</div>`
+                         content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '성불빌라'}</div>`
                      });
 
                      infowindow.open(map, marker);
