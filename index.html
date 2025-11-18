@@ -103,7 +103,7 @@
 
             <div class="section">
                 <div class="section-title">선수별 통계</div>
-                <div class="filter-controls">
+                <div class="filter-controls player-filter-controls">
                     <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
                     <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
                     <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
@@ -131,12 +131,13 @@
         <div id="allTimeContent" class="all-time-content" style="display: none;">
             <div class="section">
                 <div class="section-title">역대 선수 기록</div>
-                <div class="filter-controls">
+                <div class="filter-controls player-filter-controls">
                     <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
                     <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
                     <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
                     <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
                 </div>
+                <div id="allTimeHighlights" class="all-time-highlights"></div>
                 <div class="table-container">
                     <table class="players-table">
                         <thead>
@@ -161,7 +162,7 @@
 
             <div class="regional-records-section">
                 <div class="section-title">🗺️ 지역별 경기 기록</div>
-                <div class="filter-controls">
+                <div class="filter-controls regional-filter-controls">
                     <button class="filter-btn" data-filter="matches" onclick="filterRegional('matches')">경기수 순</button>
                     <button class="filter-btn active" data-filter="winrate" onclick="filterRegional('winrate')">승률 순</button>
                     <button class="filter-btn" data-filter="wins" onclick="filterRegional('wins')">승수 순</button>
