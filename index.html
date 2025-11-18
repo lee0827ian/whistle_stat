@@ -1,236 +1,239 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>휘슬 STAT 관리</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>휘슬 STAT 관리</title>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- 스타일시트 로드 - GitHub Pages 경로 수정 -->
+    <link rel="stylesheet" href="styles.css">
 </head>
-    
+    
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="team-name">WHISTLE</div>
-            <div class="season-selector">
-                <select id="seasonSelect" onchange="changeSeason()" onclick="onSeasonSelectClick()">
-                    <option value="2025">2025 시즌</option>
-                    <option value="2024">2024 시즌</option>
-                    <option value="2023">2023 시즌</option>
-                    <option value="2022">2022 시즌</option>
-                    <option value="2021">2021 시즌</option>
-                    <option value="2020">2020 시즌</option>
-                    <option value="2019">2019 시즌</option>
-                    <option value="2018">2018 시즌</option>
-                    <option value="2017">2017 시즌</option>
-                    <option value="2016">2016 시즌</option>
-                    <option value="2015">2015 시즌</option>
-                    <option value="2014">2014 시즌</option>
-                    <option value="2013">2013 시즌</option>
-                    <option value="2012">2012 시즌</option>
-                    <option value="2011">2011 시즌</option>
-                    <option value="2010">2010 시즌</option>
-                    <option value="2009">2009 시즌</option>
-                    <option value="2008">2008 시즌</option>
-                    <option value="2007">2007 시즌</option>
-                    <option value="2006">2006 시즌</option>
-                    <option value="2005">2005 시즌</option>
-                    <option value="2004">2004 시즌</option>
-                    <option value="2003">2003 시즌</option>
-                    <option value="2002">2002 시즌</option>
-                    <option value="2001">2001 시즌</option>
-                    <option value="2000">2000 시즌</option>
-                </select>
-                <button id="allTimeButton" class="all-time-button" onclick="toggleAllTimeView()">
-                    📊 역대 기록
-                </button>
-            </div>
-            <div id="statusMessage" class="status-message"></div>
-            <div id="loadingProgress" class="loading-progress">
-                <div id="loadingProgressBar" class="loading-progress-bar"></div>
-            </div>
-            <div id="loadingStats" class="loading-stats"></div>
-        </div>
+    <div class="container">
+        <div class="header">
+            <div class="team-name">WHISTLE</div>
+            <div class="season-selector">
+                <select id="seasonSelect" onchange="changeSeason()" onclick="onSeasonSelectClick()">
+                    <option value="2025">2025 시즌</option>
+                    <option value="2024">2024 시즌</option>
+                    <option value="2023">2023 시즌</option>
+                    <option value="2022">2022 시즌</option>
+                    <option value="2021">2021 시즌</option>
+                    <option value="2020">2020 시즌</option>
+                    <option value="2019">2019 시즌</option>
+                    <option value="2018">2018 시즌</option>
+                    <option value="2017">2017 시즌</option>
+                    <option value="2016">2016 시즌</option>
+                    <option value="2015">2015 시즌</option>
+                    <option value="2014">2014 시즌</option>
+                    <option value="2013">2013 시즌</option>
+                    <option value="2012">2012 시즌</option>
+                    <option value="2011">2011 시즌</option>
+                    <option value="2010">2010 시즌</option>
+                    <option value="2009">2009 시즌</option>
+                    <option value="2008">2008 시즌</option>
+                    <option value="2007">2007 시즌</option>
+                    <option value="2006">2006 시즌</option>
+                    <option value="2005">2005 시즌</option>
+                    <option value="2004">2004 시즌</option>
+                    <option value="2003">2003 시즌</option>
+                    <option value="2002">2002 시즌</option>
+                    <option value="2001">2001 시즌</option>
+                    <option value="2000">2000 시즌</option>
+                </select>
+                <button id="allTimeButton" class="all-time-button" onclick="toggleAllTimeView()">
+                    📊 역대 기록
+                </button>
+            </div>
+            <div id="statusMessage" class="status-message"></div>
+            <div id="loadingProgress" class="loading-progress">
+                <div id="loadingProgressBar" class="loading-progress-bar"></div>
+            </div>
+            <div id="loadingStats" class="loading-stats"></div>
+        </div>
 
-        <div class="stats-overview">
-            <div class="stat-card">
-                <div class="stat-title">경기 수</div>
-                <div class="stat-value" id="totalMatches">0</div>
-                <div class="stat-subtitle">총 경기</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">승률</div>
-                <div class="stat-value" id="winRate">0%</div>
-                <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">득점</div>
-                <div class="stat-value" id="totalGoals">0</div>
-                <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title" id="mvpCardTitle">시즌 MVP</div>
-                <div class="stat-value" id="seasonMvp">-</div>
-                <div class="stat-subtitle" id="mvpStats">MVP 0회</div>
-            </div>
-        </div>
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-title">경기 수</div>
+                <div class="stat-value" id="totalMatches">0</div>
+                <div class="stat-subtitle">총 경기</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">승률</div>
+                <div class="stat-value" id="winRate">0%</div>
+                <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">득점</div>
+                <div class="stat-value" id="totalGoals">0</div>
+                <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title" id="mvpCardTitle">시즌 MVP</div>
+                <div class="stat-value" id="seasonMvp">-</div>
+                <div class="stat-subtitle" id="mvpStats">MVP 0회</div>
+            </div>
+        </div>
 
-        <div id="mainContent" class="main-content">
-            <div class="section" id="matchesSection">
-                <div class="section-title">최근 경기 결과</div>
-                <div class="table-container">
-                    <table class="matches-table">
-                        <thead>
-                            <tr>
-                                <th>날짜</th>
-                                <th>상대</th>
-                                <th>결과</th>
-                                <th>스코어</th>
-                                <th>MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matchesTableBody">
-                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="mainContent" class="main-content">
+            <div class="section" id="matchesSection">
+                <div class="section-title">최근 경기 결과</div>
+                <div class="table-container">
+                    <table class="matches-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>상대</th>
+                                <th>결과</th>
+                                <th>스코어</th>
+                                <th>MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody">
+                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            <div class="section">
-                <div class="section-title">선수별 통계</div>
-                <div class="filter-controls">
-                    <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
-                    <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
-                    <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
-                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
-                </div>
-                <div class="table-container">
-                    <table class="players-table">
-                        <thead>
-                            <tr id="playersTableHeader">
-                                <th>이름</th>
-                                <th>출전</th>
-                                <th>참석률</th>
-                                <th>골</th>
-                                <th>MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="playersTableBody">
-                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <div class="section">
+                <div class="section-title">선수별 통계</div>
+                <div class="filter-controls">
+                    <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
+                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                </div>
+                <div class="table-container">
+                    <table class="players-table">
+                        <thead>
+                            <tr id="playersTableHeader">
+                                <th>이름</th>
+                                <th>출전</th>
+                                <th>참석률</th>
+                                <th>골</th>
+                                <th>MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody">
+                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        <div id="allTimeContent" class="all-time-content" style="display: none;">
-            <div class="section">
-                <div class="section-title">역대 선수 기록</div>
-                <div class="filter-controls">
-                    <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
-                    <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
-                    <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
-                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
-                </div>
-                <div class="table-container">
-                    <table class="players-table">
-                        <thead>
-                            <tr id="allTimePlayersTableHeader">
-                                <th>이름</th>
-                                <th>총 출장</th>
-                                <th>총 득점</th>
-                                <th>총 MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="allTimePlayersTableBody">
-                            <tr><td colspan="4" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="allTimeContent" class="all-time-content" style="display: none;">
+            <div class="section">
+                <div class="section-title">역대 선수 기록</div>
+                <div class="filter-controls">
+                    <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
+                    <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
+                    <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
+                    <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
+                </div>
+                <div class="table-container">
+                    <table class="players-table">
+                        <thead>
+                            <tr id="allTimePlayersTableHeader">
+                                <th>이름</th>
+                                <th>총 출장</th>
+                                <th>총 득점</th>
+                                <th>총 MVP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allTimePlayersTableBody">
+                            <tr><td colspan="4" class="no-data">데이터를 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            <div class="team-records-section">
-                <div class="section-title">역대 팀 기록</div>
-                <div id="teamRecordsContainer">
-                    </div>
-            </div>
+            <div class="team-records-section">
+                <div class="section-title">역대 팀 기록</div>
+                <div id="teamRecordsContainer"></div>
+            </div>
 
-            <div class="regional-records-section">
-                <div class="section-title">🗺️ 지역별 경기 기록</div>
-                <div class="filter-controls">
-                    <button class="filter-btn" data-filter="matches" onclick="filterRegional('matches')">경기수 순</button>
-                    <button class="filter-btn active" data-filter="winrate" onclick="filterRegional('winrate')">승률 순</button>
-                    <button class="filter-btn" data-filter="wins" onclick="filterRegional('wins')">승수 순</button>
-                    <button class="filter-btn" data-filter="name" onclick="filterRegional('name')">지역명 순</button>
-                </div>
-                <div class="table-container">
-                    <table class="regional-table">
-                        <thead>
-                            <tr>
-                                <th onclick="filterRegional('name')">지역 <span class="sort-indicator" id="regionNameSort"></span></th>
-                                <th onclick="filterRegional('matches')">경기수 <span class="sort-indicator" id="regionMatchesSort"></span></th>
-                                <th onclick="filterRegional('wins')">승 <span class="sort-indicator" id="regionWinsSort"></span></th>
-                                <th onclick="filterRegional('draws')">무 <span class="sort-indicator" id="regionDrawsSort"></span></th>
-                                <th onclick="filterRegional('losses')">패 <span class="sort-indicator" id="regionLossesSort"></span></th>
-                                <th onclick="filterRegional('winrate')">승률 <span class="sort-indicator" id="regionWinrateSort">↓</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="regionalTableBody">
-                            <tr><td colspan="6" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <div class="regional-records-section">
+                <div class="section-title">🗺️ 지역별 경기 기록</div>
+                <div class="filter-controls">
+                    <button class="filter-btn" data-filter="matches" onclick="filterRegional('matches')">경기수 순</button>
+                    <button class="filter-btn active" data-filter="winrate" onclick="filterRegional('winrate')">승률 순</button>
+                    <button class="filter-btn" data-filter="wins" onclick="filterRegional('wins')">승수 순</button>
+                    <button class="filter-btn" data-filter="name" onclick="filterRegional('name')">지역명 순</button>
+                </div>
+                <div class="table-container">
+                    <table class="regional-table">
+                        <thead>
+                            <tr>
+                                <th onclick="filterRegional('name')">지역 <span class="sort-indicator" id="regionNameSort"></span></th>
+                                <th onclick="filterRegional('matches')">경기수 <span class="sort-indicator" id="regionMatchesSort"></span></th>
+                                <th onclick="filterRegional('wins')">승 <span class="sort-indicator" id="regionWinsSort"></span></th>
+                                <th onclick="filterRegional('draws')">무 <span class="sort-indicator" id="regionDrawsSort"></span></th>
+                                <th onclick="filterRegional('losses')">패 <span class="sort-indicator" id="regionLossesSort"></span></th>
+                                <th onclick="filterRegional('winrate')">승률 <span class="sort-indicator" id="regionWinrateSort">↓</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="regionalTableBody">
+                            <tr><td colspan="6" class="no-data">데이터를 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        <div class="charts-section" style="margin:40px 0; padding:30px; background:white; border-radius:15px; display: none;"> <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
-            
-            <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
-                <h3 style="color:#1e40af; margin-bottom:20px;">📈 시즌별 승률 트렌드</h3>
-                <div style="width:100%; max-width:800px; margin:0 auto; position:relative; min-height:300px; margin-bottom:30px;">
-                    <canvas id="winRateTrendChart" style="width:100% !important; height:100% !important;"></canvas>
-                </div>
-            </div>
+        <div class="charts-section" style="margin:40px 0; padding:30px; background:white; border-radius:15px; display: none;">
+            <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
+            
+            <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
+                <h3 style="color:#1e40af; margin-bottom:20px;">📈 시즌별 승률 트렌드</h3>
+                <div style="width:100%; max-width:800px; margin:0 auto; position:relative; min-height:300px; margin-bottom:30px;">
+                    <canvas id="winRateTrendChart" style="width:100% !important; height:100% !important;"></canvas>
+                </div>
+            </div>
 
-            <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
-                <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률 히트맵</h3>
-                <div id="mapContainer" style="width:100%; max-width:900px; margin:0 auto; text-align:center;">
-                    <svg id="seoulMap" viewBox="0 0 400 500" style="width:100%; height:auto; max-width:100%; border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        </svg>
-                </div>
-                <div id="mapLegend" style="margin-top:20px; font-size:14px;">
-                    <div style="display:flex; justify-content:center; gap:30px;">
-                        <div><span style="display:inline-block; width:20px; height:20px; background:#10b981; border-radius:4px; margin-right:8px;"></span>60% 이상</div>
-                        <div><span style="display:inline-block; width:20px; height:20px; background:#f59e0b; border-radius:4px; margin-right:8px;"></span>40-60%</div>
-                        <div><span style="display:inline-block; width:20px; height:20px; background:#ef4444; border-radius:4px; margin-right:8px;"></span>40% 미만</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
+                <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률 히트맵</h3>
+                <div id="mapContainer" style="width:100%; max-width:900px; margin:0 auto; text-align:center;">
+                    <svg id="seoulMap" viewBox="0 0 400 500" style="width:100%; height:auto; max-width:100%; border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></svg>
+                </div>
+                <div id="mapLegend" style="margin-top:20px; font-size:14px;">
+                    <div style="display:flex; justify-content:center; gap:30px;">
+                        <div><span style="display:inline-block; width:20px; height:20px; background:#10b981; border-radius:4px; margin-right:8px;"></span>60% 이상</div>
+                        <div><span style="display:inline-block; width:20px; height:20px; background:#f59e0b; border-radius:4px; margin-right:8px;"></span>40-60%</div>
+                        <div><span style="display:inline-block; width:20px; height:20px; background:#ef4444; border-radius:4px; margin-right:8px;"></span>40% 미만</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div class="schedule-venue-section next-matches-section">
-            <div class="section-title">다음 경기 일정 및 구장 위치</div>
-            <div class="schedule-and-map">
-                <div class="schedule-container">
-                    <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
-                    </div>
-                <div class="map-container">
-                    <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
-                    <div id="map-placeholder" class="map-placeholder">
-                        🗺️<br>성불빌라<br>
-                        <small>지도 로딩 중...</small>
-                    </div>
-                    <div class="venue-info">
-                        <div class="venue-name">성불빌라</div>
-                        <div class="venue-address">📍 서울 노원구 동일로231가길 7</div>
-                        <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-  <script src="script.js" defer></script>
+        <div class="schedule-venue-section next-matches-section">
+            <div class="section-title">다음 경기 일정 및 구장 위치</div>
+            <div class="schedule-and-map">
+                <div class="schedule-container">
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>
+                </div>
+                <div class="map-container">
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">구장위치</h3>
+                    <div id="map-placeholder" class="map-placeholder">
+                        🗺️<br>성불빌라<br>
+                        <small>지도 로딩 중...</small>
+                    </div>
+                    <div class="venue-info">
+                        <div class="venue-name">성불빌라</div>
+                        <div class="venue-address">📍 서울 노원구 동일로231가길 7</div>
+                        <div class="venue-phone">📞 전화번호: 031-790-2022, 주차 편함</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript 파일 로드 -->
+    <script src="script.js"></script>
 </body>
 </html>
