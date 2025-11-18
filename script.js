@@ -289,12 +289,14 @@ async function loadData() {
                 data = await loadFromGoogleSheets(AppState.data.currentSeason);
             } catch (gsError) {
                 logInfo('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
-                const response = await fetch(`${AppState.data.currentSeason}_data.json`);
+                // ✅ 경로 수정: 현재 디렉토리 명시
+                const response = await fetch(`./${AppState.data.currentSeason}_data.json`); 
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 data = await response.json();
             }
         } else {
-            const response = await fetch(`${AppState.data.currentSeason}_data.json`);
+            // ✅ 경로 수정: 현재 디렉토리 명시
+            const response = await fetch(`./${AppState.data.currentSeason}_data.json`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             data = await response.json();
         }
@@ -361,6 +363,7 @@ function updatePlayersTable() {
         .map(([name, stats]) => ({ name, ...stats }))
         .filter(player => player.appearances > 0);
 
+    // 필터가 'all'로 초기화되어 있으므로, 이름순으로 정렬
     playersArray.sort((a, b) => koreanCollator.compare(a.name, b.name));
 
     const totalMatches = AppState.data.matches.length;
@@ -403,6 +406,7 @@ function updateSchedule(schedules) {
             </div>
         `;
         
+        // 지도 업데이트를 위한 전역 CONFIG 값 변경
         if (nextMatch.address) {
             CONFIG.VENUE.name = nextMatch.venue || '구장';
             CONFIG.VENUE.address = nextMatch.address;
@@ -419,6 +423,7 @@ function loadKakaoMap() {
     }
 
     const script = document.createElement('script');
+    // 실제 API 키가 유효해야 지도가 로드됩니다.
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CONFIG.KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
     
     script.onload = function () {
@@ -495,6 +500,7 @@ function filterPlayers(filter) {
         btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
     });
     
+    // 이 함수에 정렬 로직이 포함되어야 합니다. (현재는 이름순)
     updatePlayersTable();
 }
 
