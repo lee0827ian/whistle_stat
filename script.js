@@ -3,7 +3,8 @@ const AppState = {
     map: {
         scriptLoaded: false,
         initialized: false,
-        lastAddress: null
+        lastAddress: null,
+        isLoading: false
     },
     network: {
         currentAbortController: null
@@ -555,9 +556,10 @@ function updateSchedule(schedules = []) {
     const venueInfo = document.querySelector('.venue-info');
     if (!scheduleContainer || !venueInfo) return;
 
+    const hasSchedules = Array.isArray(schedules) && schedules.length > 0;
     scheduleContainer.innerHTML = '<h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>';
 
-    if (!Array.isArray(schedules) || schedules.length === 0) {
+    if (!hasSchedules) {
         scheduleContainer.innerHTML += '<div class="no-data">등록된 다음 경기 일정이 없습니다.</div>';
     } else {
         const list = document.createElement('ul');
@@ -573,12 +575,31 @@ function updateSchedule(schedules = []) {
         scheduleContainer.appendChild(list);
     }
 
-    const nextVenue = schedules.find(schedule => schedule.address) || CONFIG.VENUE;
-    CONFIG.VENUE = {
-        name: sanitizeTableData(nextVenue.name || CONFIG.VENUE.name),
-        address: sanitizeTableData(nextVenue.address || CONFIG.VENUE.address),
-        info: sanitizeTableData(nextVenue.info || nextVenue.note || CONFIG.VENUE.info)
+    const fallbackVenue = {
+        name: (CONFIG.VENUE && CONFIG.VENUE.name) || '성불빌라',
+        address: (CONFIG.VENUE && CONFIG.VENUE.address) || '서울 노원구 동일로231가길 75',
+        info: (CONFIG.VENUE && CONFIG.VENUE.info) || '전화번호: 031-790-2022, 주차 편함'
     };
+
+    const nextVenue = hasSchedules
+        ? (schedules.find(schedule => schedule.address) || schedules[0])
+        : null;
+
+    const updatedVenue = {
+        name: sanitizeTableData((nextVenue && (nextVenue.venue || nextVenue.name)) || fallbackVenue.name),
+        address: sanitizeTableData((nextVenue && nextVenue.address) || fallbackVenue.address),
+        info: sanitizeTableData((nextVenue && (nextVenue.note || nextVenue.info)) || fallbackVenue.info)
+    };
+
+    CONFIG.VENUE = {
+        name: updatedVenue.name || fallbackVenue.name,
+        address: updatedVenue.address || fallbackVenue.address,
+        info: updatedVenue.info || fallbackVenue.info
+    };
+
+    if (CONFIG.VENUE.address && CONFIG.VENUE.address !== AppState.map.lastAddress) {
+        AppState.map.initialized = false;
+    }
 
     venueInfo.innerHTML = `
         <div class="venue-name">${CONFIG.VENUE.name}</div>
@@ -593,17 +614,106 @@ function loadKakaoMap() {
     const mapPlaceholder = document.getElementById('map-placeholder');
     if (!mapPlaceholder) return;
 
-    mapPlaceholder.innerHTML = `
-        <div class="map-placeholder" style="background:white; border-radius:12px; padding:15px;">
-            <div style="font-size:2em;">🗺️</div>
-            <div style="font-weight:bold; margin-top:8px;">${CONFIG.VENUE.name}</div>
-            <div style="font-size:0.9em; color:#4b5563;">${CONFIG.VENUE.address}</div>
-        </div>
-    `;
+    if (!CONFIG.VENUE.address) {
+        mapPlaceholder.innerHTML = '<div class="map-placeholder">주소 정보가 없어 지도를 표시할 수 없습니다.</div>';
+        return;
+    }
+
+    if (AppState.map.scriptLoaded) {
+        initializeMap();
+        return;
+    }
+
+    if (AppState.map.isLoading) {
+        return;
+    }
+
+    AppState.map.isLoading = true;
+
+    const script = document.createElement('script');
+    script.id = 'kakao-maps-sdk';
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CONFIG.KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
+    script.onload = function () {
+        AppState.map.scriptLoaded = true;
+        AppState.map.isLoading = false;
+        kakao.maps.load(initializeMap);
+    };
+    script.onerror = function () {
+        AppState.map.isLoading = false;
+        logError('카카오맵 API 로드 실패');
+        mapPlaceholder.innerHTML = `
+            <div class="map-placeholder">
+                🗺️<br>
+                ${CONFIG.VENUE.name}<br>
+                <small>지도를 불러올 수 없습니다.</small>
+            </div>
+        `;
+    };
+
+    document.head.appendChild(script);
 }
 
 function initializeMap() {
-    loadKakaoMap();
+    const mapPlaceholder = document.getElementById('map-placeholder');
+    if (!mapPlaceholder) return;
+
+    const searchAddress = CONFIG.VENUE.address;
+    if (!searchAddress) {
+        mapPlaceholder.innerHTML = '<div class="map-placeholder">주소 정보가 없어 지도를 표시할 수 없습니다.</div>';
+        return;
+    }
+
+    if (AppState.map.initialized && AppState.map.lastAddress === searchAddress) {
+        return;
+    }
+
+    if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.services) {
+        logError('카카오맵 SDK가 초기화되지 않았습니다.');
+        mapPlaceholder.innerHTML = '<div class="map-placeholder">지도를 불러올 수 없습니다.</div>';
+        return;
+    }
+
+    mapPlaceholder.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    const defaultCenter = new kakao.maps.LatLng(37.4656, 127.0347);
+    const map = new kakao.maps.Map(mapContainer, {
+        center: defaultCenter,
+        level: 3
+    });
+
+    const geocoder = new kakao.maps.services.Geocoder();
+    geocoder.addressSearch(searchAddress, function (result, status) {
+        if (status === kakao.maps.services.Status.OK && result.length > 0) {
+            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+            map.setCenter(coords);
+
+            const marker = new kakao.maps.Marker({
+                map,
+                position: coords
+            });
+
+            const infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
+            });
+            infowindow.open(map, marker);
+        } else {
+            logInfo(`주소 검색 실패: ${searchAddress}. 기본 위치로 설정.`);
+            const marker = new kakao.maps.Marker({
+                map,
+                position: defaultCenter
+            });
+
+            const infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
+            });
+            infowindow.open(map, marker);
+        }
+
+        AppState.map.initialized = true;
+        AppState.map.lastAddress = searchAddress;
+    });
 }
 
 // --- [ 데이터 로드 함수 ] ---
@@ -1126,15 +1236,26 @@ function updateButtonStates() {
     }
 }
 
+function updateViewVisibility() {
+    const mainContent = document.getElementById('mainContent');
+    const allTimeContent = document.getElementById('allTimeContent');
+    const scheduleSection = document.getElementById('scheduleSection');
+
+    if (AppState.data.isAllTimeView) {
+        if (mainContent) mainContent.style.display = 'none';
+        if (allTimeContent) allTimeContent.style.display = 'grid';
+        if (scheduleSection) scheduleSection.style.display = 'none';
+    } else {
+        if (mainContent) mainContent.style.display = 'grid';
+        if (allTimeContent) allTimeContent.style.display = 'none';
+        if (scheduleSection) scheduleSection.style.display = 'block';
+    }
+}
+
 function onSeasonSelectClick() {
     if (AppState.data.isAllTimeView) {
         AppState.data.isAllTimeView = false;
-        const mainContent = document.getElementById('mainContent');
-        const allTimeContent = document.getElementById('allTimeContent');
-        if (mainContent && allTimeContent) {
-            mainContent.style.display = 'grid';
-            allTimeContent.style.display = 'none';
-        }
+        updateViewVisibility();
         updateButtonStates();
     }
 }
@@ -1151,12 +1272,7 @@ function changeSeason() {
     AppState.data.currentSeason = selectedSeason;
     AppState.data.isAllTimeView = false;
 
-    const mainContent = document.getElementById('mainContent');
-    const allTimeContent = document.getElementById('allTimeContent');
-    if (mainContent && allTimeContent) {
-        mainContent.style.display = 'grid';
-        allTimeContent.style.display = 'none';
-    }
+    updateViewVisibility();
 
     updateButtonStates();
     loadData();
@@ -1164,15 +1280,9 @@ function changeSeason() {
 
 async function toggleAllTimeView() {
     AppState.data.isAllTimeView = !AppState.data.isAllTimeView;
-
-    const mainContent = document.getElementById('mainContent');
-    const allTimeContent = document.getElementById('allTimeContent');
+    updateViewVisibility();
 
     if (AppState.data.isAllTimeView) {
-        if (mainContent && allTimeContent) {
-            mainContent.style.display = 'none';
-            allTimeContent.style.display = 'grid';
-        }
 
         if (!AppState.allTime.loaded) {
             const allTimeTableBody = document.getElementById('allTimePlayersTableBody');
@@ -1203,11 +1313,6 @@ async function toggleAllTimeView() {
             updateRegionalTable(AppState.allTime.regional, AppState.ui.currentRegionalFilter);
             createRegionalHeatmap(AppState.allTime.regional);
         }
-    } else {
-        if (mainContent && allTimeContent) {
-            mainContent.style.display = 'grid';
-            allTimeContent.style.display = 'none';
-        }
     }
 
     updateButtonStates();
@@ -1223,7 +1328,8 @@ function initializeApp() {
     renderSeasonStatCards();
 
     updateButtonStates();
-    
+    updateViewVisibility();
+
     // 초기 데이터 로드
     loadData().catch(error => {
         logError('초기 데이터 로드 실패:', error);
