@@ -131,13 +131,13 @@
         <div id="allTimeContent" class="all-time-content" style="display: none;">
             <div class="section">
                 <div class="section-title">역대 선수 기록</div>
+                <div id="allTimeHighlights" class="all-time-highlights"></div>
                 <div class="filter-controls player-filter-controls">
                     <button class="filter-btn active" data-filter="all" onclick="filterPlayers('all')">전체</button>
                     <button class="filter-btn" data-filter="goals" onclick="filterPlayers('goals')">골 순</button>
                     <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
                     <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
                 </div>
-                <div id="allTimeHighlights" class="all-time-highlights"></div>
                 <div class="table-container">
                     <table class="players-table">
                         <thead>
@@ -185,29 +185,15 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <div class="charts-section" style="margin:40px 0; padding:30px; background:white; border-radius:15px; display: none;">
-            <h2 style="text-align:center; color:#1e40af;">📊 통계 시각화</h2>
-            
-            <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
-                <h3 style="color:#1e40af; margin-bottom:20px;">📈 시즌별 승률 트렌드</h3>
-                <div style="width:100%; max-width:800px; margin:0 auto; position:relative; min-height:300px; margin-bottom:30px;">
-                    <canvas id="winRateTrendChart" style="width:100% !important; height:100% !important;"></canvas>
-                </div>
-            </div>
-
-            <div style="margin:30px 0; padding:25px; background:#f8fafc; border-radius:10px;">
-                <h3 style="color:#1e40af; margin-bottom:20px;">🗺️ 지역별 승률 히트맵</h3>
-                <div id="mapContainer" style="width:100%; max-width:900px; margin:0 auto; text-align:center;">
-                    <svg id="seoulMap" viewBox="0 0 400 500" style="width:100%; height:auto; max-width:100%; border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></svg>
-                </div>
-                <div id="mapLegend" style="margin-top:20px; font-size:14px;">
-                    <div style="display:flex; justify-content:center; gap:30px;">
-                        <div><span style="display:inline-block; width:20px; height:20px; background:#10b981; border-radius:4px; margin-right:8px;"></span>60% 이상</div>
-                        <div><span style="display:inline-block; width:20px; height:20px; background:#f59e0b; border-radius:4px; margin-right:8px;"></span>40-60%</div>
-                        <div><span style="display:inline-block; width:20px; height:20px; background:#ef4444; border-radius:4px; margin-right:8px;"></span>40% 미만</div>
+                <div class="heatmap-card">
+                    <div class="section-subtitle">🗺️ 지역별 승률 히트맵</div>
+                    <div id="mapContainer">
+                        <svg id="seoulMap" viewBox="0 0 400 500"></svg>
+                    </div>
+                    <div id="mapLegend" class="map-legend">
+                        <div><span class="legend-color high"></span>60% 이상</div>
+                        <div><span class="legend-color mid"></span>40-60%</div>
+                        <div><span class="legend-color low"></span>40% 미만</div>
                     </div>
                 </div>
             </div>
