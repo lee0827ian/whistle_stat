@@ -11,7 +11,8 @@ const AppState = {
     },
     ui: {
         currentFilter: 'all',
-        currentRegionalFilter: 'winrate'
+        currentRegionalFilter: 'winrate',
+        currentTeamSort: 'season'
     },
     data: {
         currentSeason: '2025',
@@ -1043,6 +1044,15 @@ function filterRegional(filter) {
         : AppState.data.regionalStats;
 
     updateRegionalTable(dataSource, filter);
+    createRegionalHeatmap(dataSource);
+}
+
+function filterTeamRecords(sortBy) {
+    AppState.ui.currentTeamSort = sortBy;
+
+    if (AppState.data.isAllTimeView && AppState.allTime.loaded) {
+        updateTeamRecords(AppState.allTime.records, sortBy);
+    }
 }
 
 function updateRegionalTable(regionalData = AppState.data.regionalStats, sortBy = AppState.ui.currentRegionalFilter) {
@@ -1219,7 +1229,7 @@ function updateAllTimeRankings(allTimeStats) {
     `).join('');
 }
 
-function updateTeamRecords(teamRecords) {
+function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
     const container = document.getElementById('teamRecordsContainer');
     if (!container) return;
 
@@ -1230,7 +1240,26 @@ function updateTeamRecords(teamRecords) {
 
     const { overall, perSeason, biggestWin, toughestLoss } = teamRecords;
 
-    const seasonRows = perSeason.length > 0 ? perSeason.map(stats => `
+    const sortedPerSeason = [...perSeason];
+    sortedPerSeason.sort((a, b) => {
+        switch (sortBy) {
+            case 'matches':
+                return b.matches - a.matches || b.winRate - a.winRate;
+            case 'wins':
+                return b.wins - a.wins || b.winRate - a.winRate;
+            case 'winrate':
+                return b.winRate - a.winRate || b.matches - a.matches;
+            case 'losses':
+                return b.losses - a.losses || b.matches - a.matches;
+            case 'draws':
+                return b.draws - a.draws || b.matches - a.matches;
+            case 'season':
+            default:
+                return b.season.localeCompare(a.season);
+        }
+    });
+
+    const seasonRows = sortedPerSeason.length > 0 ? sortedPerSeason.map(stats => `
         <tr>
             <td>${stats.season}</td>
             <td>${stats.matches}</td>
@@ -1256,6 +1285,12 @@ function updateTeamRecords(teamRecords) {
                 <span>최대 패배</span>
                 <strong>${toughestLoss ? `${toughestLoss.season} ${toughestLoss.score} vs ${toughestLoss.opponent}` : '-'}</strong>
             </div>
+        </div>
+        <div class="filter-controls team-sort-controls">
+            <button class="filter-btn ${sortBy === 'season' ? 'active' : ''}" onclick="filterTeamRecords('season')">시즌 순</button>
+            <button class="filter-btn ${sortBy === 'winrate' ? 'active' : ''}" onclick="filterTeamRecords('winrate')">승률 순</button>
+            <button class="filter-btn ${sortBy === 'wins' ? 'active' : ''}" onclick="filterTeamRecords('wins')">승수 순</button>
+            <button class="filter-btn ${sortBy === 'matches' ? 'active' : ''}" onclick="filterTeamRecords('matches')">경기수 순</button>
         </div>
         <div class="table-container">
             <table class="players-table">
@@ -1402,7 +1437,7 @@ async function toggleAllTimeView() {
         if (AppState.allTime.loaded) {
             updateAllTimeRankings(AppState.allTime.stats);
             updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentFilter);
-            updateTeamRecords(AppState.allTime.records);
+            updateTeamRecords(AppState.allTime.records, AppState.ui.currentTeamSort);
             updateRegionalTable(AppState.allTime.regional, AppState.ui.currentRegionalFilter);
             createRegionalHeatmap(AppState.allTime.regional);
         }
@@ -1440,3 +1475,4 @@ window.toggleAllTimeView = toggleAllTimeView;
 window.onSeasonSelectClick = onSeasonSelectClick;
 window.filterPlayers = filterPlayers;
 window.filterRegional = filterRegional;
+window.filterTeamRecords = filterTeamRecords;

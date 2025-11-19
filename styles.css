@@ -550,37 +550,41 @@ body {
 
 .all-time-highlights {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
 }
 
 .all-time-highlights .highlight-card {
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 12px 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 16px 18px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .all-time-highlights .highlight-title {
-    font-size: 0.85em;
+    font-size: 0.95em;
     color: #64748b;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 
 .all-time-highlights .highlight-value {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #1e40af;
+    font-size: 1.5em;
+    font-weight: 800;
+    color: #1e3a8a;
 }
 
 .team-overview,
 .team-highlights {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 15px;
+    gap: 14px;
+    margin-bottom: 18px;
 }
 
 .team-overview div,
@@ -588,8 +592,8 @@ body {
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 10px 12px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 14px 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
 }
 
 .team-overview span,
@@ -602,9 +606,66 @@ body {
 
 .team-overview strong,
 .team-highlights strong {
-    font-size: 1.1em;
-    color: #1e3a8a;
+    font-size: 1.2em;
+    color: #0f172a;
 }
+
+.team-sort-controls {
+    margin-top: 6px;
+    margin-bottom: 12px;
+}
+
+.heatmap-card {
+    margin-top: 18px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.section-subtitle {
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 12px;
+}
+
+#mapContainer {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#seoulMap {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: #f8fafc;
+}
+
+.map-legend {
+    margin-top: 14px;
+    font-size: 14px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.legend-color.high { background: #10b981; }
+.legend-color.mid { background: #f59e0b; }
+.legend-color.low { background: #ef4444; }
 
 .schedule-list {
     list-style: none;
