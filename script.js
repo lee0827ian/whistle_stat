@@ -216,7 +216,12 @@ function calculateSeasonMvp(playerStats) {
     }
 
     const playersArray = Object.entries(playerStats)
-        .map(([name, stats]) => ({ name, ...stats }))
+        .map(([name, stats]) => ({
+            name,
+            appearances: stats.totalAppearances ?? stats.appearances ?? 0,
+            goals: stats.totalGoals ?? stats.goals ?? 0,
+            mvp: stats.totalMvp ?? stats.mvp ?? 0
+        }))
         .filter(player => player.appearances > 0);
 
     if (playersArray.length === 0) {
@@ -401,17 +406,17 @@ function renderSeasonStatCards() {
 
     statsOverview.innerHTML = `
         <div class="stat-card">
-            <div class="stat-title">경기 수</div>
+            <div class="stat-title" id="matchesCardTitle">경기 수</div>
             <div class="stat-value" id="totalMatches">0</div>
             <div class="stat-subtitle">총 경기</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">승률</div>
+            <div class="stat-title" id="winRateCardTitle">승률</div>
             <div class="stat-value" id="winRate">0%</div>
             <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">득점</div>
+            <div class="stat-title" id="goalsCardTitle">득점</div>
             <div class="stat-value" id="totalGoals">0</div>
             <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
         </div>
@@ -426,6 +431,43 @@ function renderSeasonStatCards() {
 
 // 메인 통계 값 (숫자)을 업데이트하는 함수 (loadData가 호출하므로 정의 순서 올림)
 function updateStats() {
+    const matchesCardTitle = document.getElementById('matchesCardTitle');
+    const winRateCardTitle = document.getElementById('winRateCardTitle');
+    const goalsCardTitle = document.getElementById('goalsCardTitle');
+    const mvpCardTitle = document.getElementById('mvpCardTitle');
+
+    const isAllTimeView = AppState.data.isAllTimeView && AppState.allTime.loaded && AppState.allTime.records?.overall;
+
+    if (matchesCardTitle) matchesCardTitle.textContent = isAllTimeView ? '역대 경기 수' : '경기 수';
+    if (winRateCardTitle) winRateCardTitle.textContent = isAllTimeView ? '역대 승률' : '승률';
+    if (goalsCardTitle) goalsCardTitle.textContent = isAllTimeView ? '역대 득점' : '득점';
+    if (mvpCardTitle) mvpCardTitle.textContent = isAllTimeView ? '역대 MVP' : '시즌 MVP';
+
+    if (isAllTimeView) {
+        const overall = AppState.allTime.records.overall;
+        const totalMatches = overall.matches || 0;
+        const wins = overall.wins || 0;
+        const draws = overall.draws || 0;
+        const losses = overall.losses || 0;
+        const totalGoalsFor = overall.goalsFor || 0;
+        const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : '0.0';
+        const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : '0.0';
+
+        const mvpPlayer = calculateSeasonMvp(AppState.allTime.stats);
+        const mvpName = mvpPlayer ? mvpPlayer.name : '-';
+        const mvpCount = mvpPlayer ? mvpPlayer.mvp : 0;
+        const mvpAppearances = mvpPlayer ? mvpPlayer.appearances : 0;
+
+        document.getElementById('totalMatches').textContent = totalMatches.toString();
+        document.getElementById('winRate').textContent = `${winRate}%`;
+        document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
+        document.getElementById('totalGoals').textContent = totalGoalsFor.toString();
+        document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
+        document.getElementById('seasonMvp').textContent = mvpName;
+        document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
+        return;
+    }
+
     if (AppState.data.matches.length === 0) {
         document.getElementById('totalMatches').textContent = '0';
         document.getElementById('winRate').textContent = '0%';
@@ -877,7 +919,7 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
 async function loadAllTimeSeasonsParallel() {
     const allTimeStats = {};
     const allMatches = [];
-    const allRegionalStats = [];
+    const allRegionalStats = new Map();
     const seasonData = {};
     let successCount = 0;
     let totalSeasons = CONFIG.AVAILABLE_SEASONS.length;
@@ -914,9 +956,25 @@ async function loadAllTimeSeasonsParallel() {
                         allTimeStats[name].totalMvp += stats.mvp;
                     });
 
-                    // 지역별 데이터 수집 (2025년만)
-                    if (season === '2025' && data.regional) {
-                        allRegionalStats.push(...data.regional);
+                    // 지역별 데이터 누적 (모든 시즌)
+                    if (data.regional && data.regional.length > 0) {
+                        data.regional.forEach(region => {
+                            const key = region.region;
+                            const existing = allRegionalStats.get(key) || {
+                                region: key,
+                                matches: 0,
+                                wins: 0,
+                                draws: 0,
+                                losses: 0
+                            };
+
+                            existing.matches += Number(region.matches) || 0;
+                            existing.wins += Number(region.wins) || 0;
+                            existing.draws += Number(region.draws) || 0;
+                            existing.losses += Number(region.losses) || 0;
+
+                            allRegionalStats.set(key, existing);
+                        });
                     }
                 }
 
@@ -945,12 +1003,13 @@ async function loadAllTimeSeasonsParallel() {
     }
 
     const teamRecords = calculateTeamRecords(allMatches);
-    
-    return { 
-        stats: allTimeStats, 
-        matches: allMatches, 
+    const aggregatedRegional = Array.from(allRegionalStats.values());
+
+    return {
+        stats: allTimeStats,
+        matches: allMatches,
         records: teamRecords,
-        regional: allRegionalStats
+        regional: aggregatedRegional
     };
 }
 
@@ -1073,17 +1132,51 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
         return;
     }
 
-    const topRegion = [...regionalData]
-        .map(region => ({
-            ...region,
-            winRate: region.matches ? (region.wins / region.matches) * 100 : 0
-        }))
-        .sort((a, b) => b.winRate - a.winRate)[0];
+    const enriched = regionalData.map(region => ({
+        ...region,
+        matches: Number(region.matches) || 0,
+        wins: Number(region.wins) || 0,
+        winRate: region.matches ? (region.wins / region.matches) * 100 : 0
+    }));
+
+    const getColorByWinRate = (winRate) => {
+        if (winRate >= 60) return '#10b981';
+        if (winRate >= 40) return '#f59e0b';
+        return '#ef4444';
+    };
+
+    const columns = Math.min(4, enriched.length);
+    const cellWidth = 90;
+    const cellHeight = 70;
+    const gap = 12;
+    const padding = 20;
+    const rows = Math.ceil(enriched.length / columns);
+    const width = columns * cellWidth + (columns - 1) * gap + padding * 2;
+    const height = rows * cellHeight + (rows - 1) * gap + padding * 2;
+
+    mapElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    const cells = enriched.map((region, index) => {
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        const x = padding + col * (cellWidth + gap);
+        const y = padding + row * (cellHeight + gap);
+
+        const fillColor = getColorByWinRate(region.winRate);
+
+        return `
+            <g transform="translate(${x}, ${y})">
+                <rect width="${cellWidth}" height="${cellHeight}" rx="10" fill="${fillColor}" opacity="0.9"></rect>
+                <text x="10" y="22" fill="#0f172a" font-size="13" font-weight="bold">${region.region}</text>
+                <text x="10" y="42" fill="#0f172a" font-size="12">승률 ${region.winRate.toFixed(1)}%</text>
+                <text x="10" y="60" fill="#111827" font-size="11">${region.matches}경기 · ${region.wins}승</text>
+            </g>
+        `;
+    }).join('');
 
     mapElement.innerHTML = `
-        <text x="20" y="40" fill="#1e40af" font-size="18" font-weight="bold">${topRegion.region}</text>
-        <text x="20" y="70" fill="#0f172a" font-size="14">승률 ${topRegion.winRate.toFixed(1)}%</text>
-        <text x="20" y="95" fill="#475569" font-size="12">총 ${topRegion.matches}경기</text>
+        <rect x="0" y="0" width="${width}" height="${height}" fill="#f8fafc" rx="12"></rect>
+        ${cells}
     `;
 }
 
@@ -1315,6 +1408,7 @@ async function toggleAllTimeView() {
         }
     }
 
+    updateStats();
     updateButtonStates();
     filterPlayers(AppState.ui.currentFilter);
     filterRegional(AppState.ui.currentRegionalFilter);
