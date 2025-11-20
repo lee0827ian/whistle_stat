@@ -189,31 +189,32 @@ body {
     margin-bottom: 40px;
 }
 
+
 .section {
     background: #f8f9fa;
     padding: 25px;
     border-radius: 15px;
-    height: 450px;
     display: flex;
     flex-direction: column;
+    gap: 14px;
 }
 
 .all-time-view .section {
-    height: 550px;
+    height: auto;
 }
 
 .team-records-section {
     background: #f8f9fa;
     padding: 25px;
     border-radius: 15px;
-    height: 450px;
     display: flex;
     flex-direction: column;
+    gap: 14px;
     overflow-y: auto;
 }
 
 .all-time-view .team-records-section {
-    height: 550px;
+    height: auto;
 }
 
 .section-title {
@@ -330,7 +331,7 @@ body {
     overflow-y: auto;
     border-radius: 8px;
     border: 1px solid #ddd;
-    max-height: 300px;
+    max-height: 420px;
 }
 
 .team-record-card {
@@ -401,13 +402,15 @@ body {
     border-radius: 15px;
     margin-top: 30px;
     grid-column: 1 / -1;
-    height: 450px;
     display: flex;
     flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    max-height: 720px;
 }
 
 .all-time-view .regional-records-section {
-    height: 550px;
+    height: auto;
 }
 
 .winrate-cell {
