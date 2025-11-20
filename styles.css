@@ -187,6 +187,8 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     margin-bottom: 40px;
+    align-items: stretch;
+    grid-auto-rows: minmax(0, auto);
 }
 
 .section {
@@ -404,6 +406,7 @@ body {
     height: 450px;
     display: flex;
     flex-direction: column;
+    gap: 14px;
 }
 
 .all-time-view .regional-records-section {
@@ -616,12 +619,23 @@ body {
 }
 
 .heatmap-card {
-    margin-top: 18px;
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 16px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    width: 100%;
+}
+
+.all-time-content .section,
+.all-time-content .team-records-section,
+.all-time-content .regional-records-section {
+    height: 520px;
+}
+
+.all-time-content .table-container {
+    max-height: none;
+    min-height: 260px;
 }
 
 .section-subtitle {
