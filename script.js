@@ -1239,6 +1239,7 @@ function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
     }
 
     const { overall, perSeason, biggestWin, toughestLoss } = teamRecords;
+    const overallRecordText = `${overall.matches}경기 (${overall.wins}승 ${overall.draws}무 ${overall.losses}패)`;
 
     const sortedPerSeason = [...perSeason];
     sortedPerSeason.sort((a, b) => {
@@ -1272,7 +1273,7 @@ function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
 
     container.innerHTML = `
         <div class="team-overview">
-            <div><span>총 경기</span><strong>${overall.matches}경기</strong></div>
+            <div><span>총 경기</span><strong>${overallRecordText}</strong></div>
             <div><span>통산 승률</span><strong>${overall.winRate}%</strong></div>
             <div><span>득점 / 실점</span><strong>${overall.goalsFor} / ${overall.goalsAgainst}</strong></div>
         </div>
