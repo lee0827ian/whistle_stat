@@ -18,9 +18,9 @@
         {
             "date": "2007-12-16",
             "opponent": "FC Die",
-            "result": "loss",
-            "score": "0:3",
-            "mvp": ""
+            "result": "win", 
+            "score": "3:0", 
+            "mvp": "",
         },
         {
             "date": "2007-12-09",
@@ -797,4 +797,5 @@
             "mvp": 1
         }
     }
+
 }
