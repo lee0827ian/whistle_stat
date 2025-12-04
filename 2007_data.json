@@ -6,448 +6,512 @@
             "opponent": "F.C. Mars",
             "result": "win",
             "score": "2:1",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "강남구"
         },
         {
             "date": "2007-12-22",
             "opponent": "대치 Breath",
             "result": "loss",
             "score": "1:2",
-            "mvp": "박지성"
+            "mvp": "박지성",
+            "region": "강남구"
         },
         {
             "date": "2007-12-16",
             "opponent": "FC Die",
-            "result": "win", 
-            "score": "3:0", 
+            "result": "win",
+            "score": "3:0",
             "mvp": "",
+            "region": "하남시"
         },
         {
             "date": "2007-12-09",
             "opponent": "MP Utd",
             "result": "win",
             "score": "13:4",
-            "mvp": "이진희"
+            "mvp": "이진희",
+            "region": "마포구"
         },
         {
             "date": "2007-12-02",
             "opponent": "영서",
             "result": "win",
             "score": "3:0",
-            "mvp": "안대훈"
+            "mvp": "안대훈",
+            "region": "구로구"
         },
         {
             "date": "2007-12-02",
             "opponent": "도우리",
             "result": "win",
             "score": "5:1",
-            "mvp": "김광열"
+            "mvp": "김광열",
+            "region": "구로구"
         },
         {
             "date": "2007-11-25",
             "opponent": "K-ONE",
             "result": "loss",
             "score": "1:3",
-            "mvp": "김진호"
+            "mvp": "김진호",
+            "region": "관악구"
         },
         {
             "date": "2007-11-18",
             "opponent": "Replers",
             "result": "win",
             "score": "1:0",
-            "mvp": "김병태"
+            "mvp": "김병태",
+            "region": "용산구"
         },
         {
             "date": "2007-11-18",
             "opponent": "신촌 Utd",
             "result": "win",
             "score": "3:0",
-            "mvp": "하승우"
+            "mvp": "하승우",
+            "region": "서대문구"
         },
         {
             "date": "2007-11-11",
             "opponent": "Echo+",
             "result": "loss",
             "score": "2:4",
-            "mvp": "하승협"
+            "mvp": "하승협",
+            "region": "관악구"
         },
         {
             "date": "2007-11-04",
             "opponent": "F.C BOREAS",
             "result": "win",
             "score": "3:0",
-            "mvp": "김준형"
+            "mvp": "김준형",
+            "region": "강북구"
         },
         {
             "date": "2007-11-04",
             "opponent": "미아리드",
             "result": "win",
             "score": "1:0",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "강북구"
         },
         {
             "date": "2007-10-28",
             "opponent": "돌진군단",
             "result": "draw",
             "score": "1:1",
-            "mvp": "김영주"
+            "mvp": "김영주",
+            "region": "도봉구"
         },
         {
             "date": "2007-10-28",
             "opponent": "노해 주니어",
             "result": "draw",
             "score": "1:1",
-            "mvp": "안태수"
+            "mvp": "안태수",
+            "region": "도봉구"
         },
         {
             "date": "2007-10-21",
             "opponent": "전농 아우토반",
             "result": "win",
             "score": "5:2",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "동대문구"
         },
         {
             "date": "2007-10-14",
             "opponent": "드림 F.C",
             "result": "win",
             "score": "3:2",
-            "mvp": "이광수"
+            "mvp": "이광수",
+            "region": "강동구"
         },
         {
             "date": "2007-10-07",
             "opponent": "프렌즈UTD",
             "result": "win",
             "score": "13:1",
-            "mvp": "김진호"
+            "mvp": "김진호",
+            "region": "부천시"
         },
         {
             "date": "2007-09-30",
             "opponent": "그린BC",
             "result": "win",
             "score": "4:1",
-            "mvp": "오태균"
+            "mvp": "오태균",
+            "region": "부천시"
         },
         {
             "date": "2007-09-16",
             "opponent": "미소",
             "result": "draw",
             "score": "5:5",
-            "mvp": "김장훈"
+            "mvp": "김장훈",
+            "region": "노원구"
         },
         {
             "date": "2007-09-09",
             "opponent": "F.C. 그린",
             "result": "win",
             "score": "3:1",
-            "mvp": "김광열"
+            "mvp": "김광열",
+            "region": "강서구"
         },
         {
             "date": "2007-09-09",
             "opponent": "프레드",
             "result": "win",
             "score": "2:0",
-            "mvp": "오태균"
+            "mvp": "오태균",
+            "region": "강서구"
         },
         {
             "date": "2007-09-02",
             "opponent": "FC Hustle",
             "result": "win",
             "score": "4:2",
-            "mvp": "권창호"
+            "mvp": "권창호",
+            "region": "노원구"
         },
         {
             "date": "2007-09-02",
             "opponent": "SKD FC",
             "result": "draw",
             "score": "0:0",
-            "mvp": "홍세철"
+            "mvp": "홍세철",
+            "region": "도봉구"
         },
         {
             "date": "2007-08-26",
             "opponent": "GF Utd",
             "result": "draw",
             "score": "2:2",
-            "mvp": "권창호"
+            "mvp": "권창호",
+            "region": "중랑구"
         },
         {
             "date": "2007-08-19",
             "opponent": "히어로",
             "result": "loss",
             "score": "1:3",
-            "mvp": "박지성"
+            "mvp": "박지성",
+            "region": "노원구"
         },
         {
             "date": "2007-08-05",
             "opponent": "싸니타스",
             "result": "win",
             "score": "3:2",
-            "mvp": "하승우"
+            "mvp": "하승우",
+            "region": "송파구"
         },
         {
             "date": "2007-07-29",
             "opponent": "지대",
             "result": "win",
             "score": "8:2",
-            "mvp": "하승협"
+            "mvp": "하승협",
+            "region": "광진구"
         },
         {
             "date": "2007-07-22",
             "opponent": "아르마다",
             "result": "loss",
             "score": "1:2",
-            "mvp": "홍세철"
+            "mvp": "홍세철",
+            "region": "서초구"
         },
         {
             "date": "2007-07-22",
             "opponent": "사하라",
             "result": "win",
             "score": "2:1",
-            "mvp": "오태균"
+            "mvp": "오태균",
+            "region": "서초구"
         },
         {
             "date": "2007-07-08",
             "opponent": "FC 서울",
             "result": "win",
             "score": "3:0",
-            "mvp": "김진호"
+            "mvp": "김진호",
+            "region": "종로구"
         },
         {
             "date": "2007-06-24",
             "opponent": "노해 주니어",
             "result": "loss",
             "score": "4:6",
-            "mvp": "전충원"
+            "mvp": "전충원",
+            "region": "도봉구"
         },
         {
             "date": "2007-06-17",
             "opponent": "F.C. 보라매",
             "result": "win",
             "score": "3:1",
-            "mvp": "안태수"
+            "mvp": "안태수",
+            "region": "동작구"
         },
         {
             "date": "2007-06-10",
             "opponent": "초광 일레븐",
             "result": "win",
             "score": "2:1",
-            "mvp": "이광수"
+            "mvp": "이광수",
+            "region": "강동구"
         },
         {
             "date": "2007-06-10",
             "opponent": "Sunday Soccer",
             "result": "win",
             "score": "3:2",
-            "mvp": "조상현"
+            "mvp": "조상현",
+            "region": "강서구"
         },
         {
             "date": "2007-06-03",
             "opponent": "FC 세륜",
             "result": "draw",
             "score": "1:1",
-            "mvp": "박지성"
+            "mvp": "박지성",
+            "region": "송파구"
         },
         {
             "date": "2007-05-27",
             "opponent": "성동 썬더스",
             "result": "loss",
             "score": "6:7",
-            "mvp": "전윤길"
+            "mvp": "전윤길",
+            "region": "성동구"
         },
         {
             "date": "2007-05-20",
             "opponent": "스쿠데토",
             "result": "loss",
             "score": "2:3",
-            "mvp": "이항규"
+            "mvp": "이항규",
+            "region": "노원구"
         },
         {
             "date": "2007-05-20",
             "opponent": "포세2돈",
             "result": "win",
             "score": "4:3",
-            "mvp": "김경배"
+            "mvp": "김경배",
+            "region": "성북구"
         },
         {
             "date": "2007-05-13",
             "opponent": "그루터기",
             "result": "win",
             "score": "3:1",
-            "mvp": "김경배"
+            "mvp": "김경배",
+            "region": "성동구"
         },
         {
             "date": "2007-05-06",
             "opponent": "지대",
             "result": "win",
             "score": "8:2",
-            "mvp": "고태경"
+            "mvp": "고태경",
+            "region": "광진구"
         },
         {
             "date": "2007-04-29",
             "opponent": "AC 노원",
             "result": "win",
             "score": "2:0",
-            "mvp": "나규병"
+            "mvp": "나규병",
+            "region": "노원구"
         },
         {
             "date": "2007-04-29",
             "opponent": "F.C 아비스",
             "result": "win",
             "score": "4:2",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "중랑구"
         },
         {
             "date": "2007-04-22",
             "opponent": "강남UTD",
             "result": "win",
             "score": "3:2",
-            "mvp": "김준형"
+            "mvp": "김준형",
+            "region": "강남구"
         },
         {
             "date": "2007-04-15",
             "opponent": "잠실 06",
             "result": "loss",
             "score": "2:3",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "송파구"
         },
         {
             "date": "2007-04-08",
             "opponent": "씨밀레",
             "result": "loss",
             "score": "0:4",
-            "mvp": ""
+            "mvp": "",
+            "region": "강남구"
         },
         {
             "date": "2007-04-08",
             "opponent": "F.C. 강남",
             "result": "win",
             "score": "4:0",
-            "mvp": ""
+            "mvp": "",
+            "region": "강남구"
         },
         {
             "date": "2007-04-01",
             "opponent": "New autobahn",
             "result": "win",
             "score": "7:5",
-            "mvp": "안태수"
+            "mvp": "안태수",
+            "region": "동대문구"
         },
         {
             "date": "2007-03-25",
             "opponent": "SSOM",
             "result": "draw",
             "score": "0:0",
-            "mvp": "김우철"
+            "mvp": "김우철",
+            "region": "송파구"
         },
         {
             "date": "2007-03-25",
             "opponent": "FC 세륜",
             "result": "loss",
             "score": "0:1",
-            "mvp": "윤정광"
+            "mvp": "윤정광",
+            "region": "송파구"
         },
         {
             "date": "2007-03-18",
             "opponent": "영서",
             "result": "win",
             "score": "3:2",
-            "mvp": "전충원"
+            "mvp": "전충원",
+            "region": "구로구"
         },
         {
             "date": "2007-03-18",
             "opponent": "도우리",
             "result": "loss",
             "score": "1:3",
-            "mvp": "김덕희"
+            "mvp": "김덕희",
+            "region": "구로구"
         },
         {
             "date": "2007-03-04",
             "opponent": "자양",
             "result": "draw",
             "score": "1:1",
-            "mvp": "유승우"
+            "mvp": "유승우",
+            "region": "광진구"
         },
         {
             "date": "2007-03-04",
             "opponent": "광진 Utd",
             "result": "loss",
             "score": "1:2",
-            "mvp": "윤정광"
+            "mvp": "윤정광",
+            "region": "광진구"
         },
         {
             "date": "2007-02-25",
             "opponent": "Revers",
             "result": "loss",
             "score": "2:3",
-            "mvp": "안태수"
+            "mvp": "안태수",
+            "region": "강동구"
         },
         {
             "date": "2007-02-11",
             "opponent": "Fever Soccer",
             "result": "loss",
             "score": "0:7",
-            "mvp": "전충원"
+            "mvp": "전충원",
+            "region": "동대문구"
         },
         {
             "date": "2007-02-04",
             "opponent": "FC No.2",
             "result": "loss",
             "score": "2:5",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "영등포구"
         },
         {
             "date": "2007-02-04",
             "opponent": "FC Beast",
             "result": "loss",
             "score": "2:6",
-            "mvp": "홍세철"
+            "mvp": "홍세철",
+            "region": "영등포구"
         },
         {
             "date": "2007-01-28",
             "opponent": "FC 화원",
             "result": "draw",
             "score": "1:1",
-            "mvp": "손의창"
+            "mvp": "손의창",
+            "region": "강서구"
         },
         {
             "date": "2007-01-28",
             "opponent": "DFC",
             "result": "win",
             "score": "3:0",
-            "mvp": "홍세철"
+            "mvp": "홍세철",
+            "region": "동작구"
         },
         {
             "date": "2007-01-21",
             "opponent": "FC 히어로",
             "result": "loss",
             "score": "3:5",
-            "mvp": "안태수"
+            "mvp": "안태수",
+            "region": "은평구"
         },
         {
             "date": "2007-01-14",
             "opponent": "FC 프리마",
             "result": "draw",
             "score": "2:2",
-            "mvp": "김세원"
+            "mvp": "김세원",
+            "region": "서초구"
         },
         {
             "date": "2007-01-14",
             "opponent": "FC.COOL",
             "result": "draw",
             "score": "3:3",
-            "mvp": "김준형"
+            "mvp": "김준형",
+            "region": "송파구"
         },
         {
             "date": "2007-01-07",
             "opponent": "요리야루",
             "result": "win",
             "score": "3:2",
-            "mvp": "김진호"
+            "mvp": "김진호",
+            "region": "송파구"
         },
         {
             "date": "2007-01-07",
             "opponent": "F.C. 방이",
             "result": "win",
             "score": "3:1",
-            "mvp": "김재원"
+            "mvp": "김재원",
+            "region": "송파구"
         }
     ],
     "players": {
@@ -683,119 +747,4 @@
         },
         "김세원": {
             "appearances": 2,
-            "goals": 1,
-            "mvp": 1
-        },
-        "유승우": {
-            "appearances": 4,
-            "goals": 0,
-            "mvp": 1
-        },
-        "김우철": {
-            "appearances": 6,
-            "goals": 0,
-            "mvp": 1
-        },
-        "이동엽": {
-            "appearances": 3,
-            "goals": 2,
-            "mvp": 0
-        },
-        "최진오": {
-            "appearances": 4,
-            "goals": 0,
-            "mvp": 0
-        },
-        "최진우": {
-            "appearances": 4,
-            "goals": 0,
-            "mvp": 0
-        },
-        "황 현": {
-            "appearances": 1,
-            "goals": 1,
-            "mvp": 0
-        },
-        "박제성": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "박지성": {
-            "appearances": 12,
-            "goals": 1,
-            "mvp": 2
-        },
-        "정경운": {
-            "appearances": 2,
-            "goals": 0,
-            "mvp": 0
-        },
-        "김요한": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "홍동현": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "김승태": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "김도현": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "정다운": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "송봉현": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "우민수": {
-            "appearances": 4,
-            "goals": 0,
-            "mvp": 0
-        },
-        "강목은": {
-            "appearances": 2,
-            "goals": 0,
-            "mvp": 0
-        },
-        "홍순욱": {
-            "appearances": 2,
-            "goals": 0,
-            "mvp": 0
-        },
-        "이재용": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 0
-        },
-        "안대훈": {
-            "appearances": 2,
-            "goals": 0,
-            "mvp": 1
-        },
-        "안영학": {
-            "appearances": 2,
-            "goals": 0,
-            "mvp": 0
-        },
-        "김재원": {
-            "appearances": 1,
-            "goals": 0,
-            "mvp": 1
-        }
-    }
-
-}
+            "goals":
