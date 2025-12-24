@@ -50,6 +50,24 @@ const CONFIG = {
     }
 };
 
+const SEASON_DISPLAY_OVERRIDES = {
+    '2025': {
+        summary: {
+            matches: 46,
+            wins: 23,
+            draws: 3,
+            losses: 20,
+            goalsFor: 216
+        },
+        mvp: {
+            name: '신규환',
+            count: 7,
+            value: 7,
+            appearances: 36
+        }
+    }
+};
+
 // 구글 시트 설정
 const GOOGLE_SHEETS_CONFIG = {
     SHEET_ID: '13UOlG3FdqufeoW2uV3x7L4KFMOo9YrwrjkrExXSVGIg',
@@ -436,6 +454,7 @@ function updateStats() {
     const winRateCardTitle = document.getElementById('winRateCardTitle');
     const goalsCardTitle = document.getElementById('goalsCardTitle');
     const mvpCardTitle = document.getElementById('mvpCardTitle');
+    const mvpHint = document.getElementById('mvpRevealHint');
 
     const isAllTimeView = AppState.data.isAllTimeView && AppState.allTime.loaded && AppState.allTime.records?.overall;
 
@@ -443,6 +462,8 @@ function updateStats() {
     if (winRateCardTitle) winRateCardTitle.textContent = isAllTimeView ? '역대 승률' : '승률';
     if (goalsCardTitle) goalsCardTitle.textContent = isAllTimeView ? '역대 득점' : '득점';
     if (mvpCardTitle) mvpCardTitle.textContent = isAllTimeView ? '역대 MVP' : '시즌 MVP';
+
+    if (mvpHint) mvpHint.style.display = 'none';
 
     if (isAllTimeView) {
         const overall = AppState.allTime.records.overall;
@@ -470,6 +491,8 @@ function updateStats() {
     }
 
     if (AppState.data.matches.length === 0) {
+        if (mvpHint) mvpHint.style.display = 'none';
+
         document.getElementById('totalMatches').textContent = '0';
         document.getElementById('winRate').textContent = '0%';
         document.getElementById('winRateSubtitle').textContent = '0승 0무 0패';
@@ -480,25 +503,31 @@ function updateStats() {
         return;
     }
 
-    const totalMatches = AppState.data.matches.length;
-    const wins = AppState.data.matches.filter(match => match.result === 'win').length;
-    const draws = AppState.data.matches.filter(match => match.result === 'draw').length;
-    const losses = AppState.data.matches.filter(match => match.result === 'loss').length;
+    const override = SEASON_DISPLAY_OVERRIDES[AppState.data.currentSeason];
+
+    const totalMatches = override?.summary?.matches ?? AppState.data.matches.length;
+    const wins = override?.summary?.wins ?? AppState.data.matches.filter(match => match.result === 'win').length;
+    const draws = override?.summary?.draws ?? AppState.data.matches.filter(match => match.result === 'draw').length;
+    const losses = override?.summary?.losses ?? AppState.data.matches.filter(match => match.result === 'loss').length;
 
     let totalGoalsFor = 0;
-    AppState.data.matches.forEach(match => {
-        const [goalsFor] = match.score.split(':').map(Number);
-        if (!isNaN(goalsFor)) {
-            totalGoalsFor += goalsFor;
-        }
-    });
+    if (override?.summary?.goalsFor !== undefined) {
+        totalGoalsFor = override.summary.goalsFor;
+    } else {
+        AppState.data.matches.forEach(match => {
+            const [goalsFor] = match.score.split(':').map(Number);
+            if (!isNaN(goalsFor)) {
+                totalGoalsFor += goalsFor;
+            }
+        });
+    }
 
     const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
     const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
 
-    const seasonMvpPlayer = calculateSeasonMvp(AppState.data.playerStats);
+    const seasonMvpPlayer = override?.mvp ?? calculateSeasonMvp(AppState.data.playerStats);
     const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
-    const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.mvp : 0;
+    const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.count ?? seasonMvpPlayer.mvp : 0;
     const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
 
 
@@ -532,7 +561,10 @@ function updateYearEndAwards() {
         ? { players: AppState.data.playerStats }
         : seasonDataCache.get(seasonKey);
 
-    if (!seasonData || !seasonData.players || Object.keys(seasonData.players).length === 0) {
+    const hasOverride = Boolean(SEASON_DISPLAY_OVERRIDES[seasonKey]);
+    const hasPlayerData = seasonData?.players && Object.keys(seasonData.players).length > 0;
+
+    if (!hasPlayerData && !hasOverride) {
         section.style.display = 'none';
         if (mvpStatCard) {
             mvpStatCard.classList.remove('season-mvp-faded');
@@ -549,15 +581,17 @@ function updateYearEndAwards() {
         }
     }
 
-    const mvp = getAwardLeader(seasonData.players, 'mvp');
-    const attendance = getAwardLeader(seasonData.players, 'appearances');
-    const scorer = getAwardLeader(seasonData.players, 'goals');
+    const mvpOverride = SEASON_DISPLAY_OVERRIDES[seasonKey]?.mvp;
+    const playerPool = hasPlayerData ? seasonData.players : {};
+    const mvp = mvpOverride ?? getAwardLeader(playerPool, 'mvp');
+    const attendance = getAwardLeader(playerPool, 'appearances');
+    const scorer = getAwardLeader(playerPool, 'goals');
 
     const mvpName = mvp ? mvp.name : '-';
     const attendanceName = attendance ? attendance.name : '-';
     const scorerName = scorer ? scorer.name : '-';
 
-    const mvpDetail = mvp ? `MVP ${mvp.value}회` : '데이터 없음';
+    const mvpDetail = mvp ? `MVP ${mvp.value ?? mvp.count}회${mvp.appearances ? ` (출전 ${mvp.appearances}회)` : ''}` : '데이터 없음';
     const attendanceDetail = attendance ? `${attendance.value}경기 출전` : '데이터 없음';
     const scorerDetail = scorer ? `${scorer.value}골 기록` : '데이터 없음';
 
