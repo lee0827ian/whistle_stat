@@ -511,6 +511,64 @@ function updateStats() {
     document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
 }
 
+function getAwardLeader(players, key) {
+    return Object.entries(players || {}).reduce((best, [name, stats]) => {
+        const value = Number(stats?.[key]) || 0;
+        if (!best || value > best.value) {
+            return { name, value };
+        }
+        return best;
+    }, null);
+}
+
+function updateYearEndAwards() {
+    const section = document.getElementById('yearEndSection');
+    const awardsContainer = document.getElementById('yearEndAwards');
+    const mvpStatCard = document.getElementById('seasonMvpCard');
+    if (!section || !awardsContainer) return;
+
+    const seasonKey = '2025';
+    const seasonData = AppState.data.currentSeason === seasonKey
+        ? { players: AppState.data.playerStats }
+        : seasonDataCache.get(seasonKey);
+
+    if (!seasonData || !seasonData.players || Object.keys(seasonData.players).length === 0) {
+        section.style.display = 'none';
+        if (mvpStatCard) {
+            mvpStatCard.classList.remove('season-mvp-faded');
+        }
+        return;
+    }
+
+    section.style.display = 'block';
+    if (mvpStatCard) {
+        if (AppState.data.currentSeason === seasonKey) {
+            mvpStatCard.classList.add('season-mvp-faded');
+        } else {
+            mvpStatCard.classList.remove('season-mvp-faded');
+        }
+    }
+
+    const mvp = getAwardLeader(seasonData.players, 'mvp');
+    const attendance = getAwardLeader(seasonData.players, 'appearances');
+    const scorer = getAwardLeader(seasonData.players, 'goals');
+
+    const mvpName = mvp ? mvp.name : '-';
+    const attendanceName = attendance ? attendance.name : '-';
+    const scorerName = scorer ? scorer.name : '-';
+
+    const mvpDetail = mvp ? `MVP ${mvp.value}회` : '데이터 없음';
+    const attendanceDetail = attendance ? `${attendance.value}경기 출전` : '데이터 없음';
+    const scorerDetail = scorer ? `${scorer.value}골 기록` : '데이터 없음';
+
+    document.getElementById('awardMvp').textContent = mvpName;
+    document.getElementById('awardMvpDetail').textContent = mvpDetail;
+    document.getElementById('awardAttendance').textContent = attendanceName;
+    document.getElementById('awardAttendanceDetail').textContent = attendanceDetail;
+    document.getElementById('awardScorer').textContent = scorerName;
+    document.getElementById('awardScorerDetail').textContent = scorerDetail;
+}
+
 // 테이블 업데이트 (부분 생략)
 function updateMatchesTable(matches = AppState.data.matches) {
     const tbody = document.getElementById('matchesTableBody');
@@ -854,6 +912,7 @@ async function loadData() {
         updateSchedule(data.schedules || []);
         updateRegionalTable(AppState.data.regionalStats, AppState.ui.currentRegionalFilter);
         createRegionalHeatmap(AppState.data.regionalStats);
+        updateYearEndAwards();
 
         if (data.schedules && data.schedules.length > 0) {
              loadKakaoMap();
