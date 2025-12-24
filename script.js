@@ -487,10 +487,8 @@ function updateStats() {
 
     let totalGoalsFor = 0;
     AppState.data.matches.forEach(match => {
-        const [goalsFor] = match.score.split(':').map(Number);
-        if (!isNaN(goalsFor)) {
-            totalGoalsFor += goalsFor;
-        }
+        const { goalsFor } = parseScore(match.score);
+        totalGoalsFor += goalsFor;
     });
 
     const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
