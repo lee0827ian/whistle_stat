@@ -580,15 +580,15 @@ function updateYearEndAwards() {
     const mvpStatCard = document.getElementById('seasonMvpCard');
     const mvpHint = document.getElementById('mvpRevealHint');
     if (!section || !awardsContainer) return;
-
+    
     const seasonKey = '2025';
     const seasonData = AppState.data.currentSeason === seasonKey
         ? { players: AppState.data.playerStats }
         : seasonDataCache.get(seasonKey);
-
+    
     const hasOverride = Boolean(SEASON_DISPLAY_OVERRIDES[seasonKey]);
     const hasPlayerData = seasonData?.players && Object.keys(seasonData.players).length > 0;
-
+    
     if (!hasPlayerData && !hasOverride) {
         section.style.display = 'none';
         if (mvpStatCard) {
@@ -597,9 +597,12 @@ function updateYearEndAwards() {
         if (mvpHint) mvpHint.style.display = 'none';
         return;
     }
-
+    
     section.style.display = 'block';
-    const shouldBlurMvpCard = AppState.data.currentSeason === seasonKey;
+    
+    // 🔥 이 줄을 수정! 역대기록 뷰가 아닐 때만 블러 처리
+    const shouldBlurMvpCard = AppState.data.currentSeason === seasonKey && !AppState.data.isAllTimeView;
+    
     if (mvpStatCard) {
         if (shouldBlurMvpCard) {
             mvpStatCard.classList.add('season-mvp-faded');
@@ -608,7 +611,6 @@ function updateYearEndAwards() {
         }
     }
     if (mvpHint) mvpHint.style.display = shouldBlurMvpCard ? 'block' : 'none';
-
     const mvpOverride = SEASON_DISPLAY_OVERRIDES[seasonKey]?.mvp;
     const playerPool = hasPlayerData ? seasonData.players : {};
     const mvp = mvpOverride ?? getAwardLeader(playerPool, 'mvp');
