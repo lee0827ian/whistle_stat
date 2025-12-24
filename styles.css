@@ -189,6 +189,7 @@ body::before {
     transition: all 0.3s ease;
     pointer-events: none;
     user-select: none;
+    isolation: isolate;
 }
 
 /* 내부 콘텐츠 블러 */
@@ -197,6 +198,8 @@ body::before {
 .season-mvp-faded .stat-subtitle {
     filter: blur(20px);
     opacity: 0.6;
+    position: relative;
+    z-index: 1;
 }
 
 /* 물음표 오버레이 */
@@ -222,13 +225,16 @@ body::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-image:
-        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 1px, transparent 1px),
-        radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
-        radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
-        linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
-    background-size: 100% 100%, 100% 100%, 100% 100%, 20px 20px;
-    opacity: 0.8;
+    background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.55), rgba(99, 102, 241, 0.5)),
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+        radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.25) 1px, transparent 1px),
+        radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+        linear-gradient(45deg, rgba(255, 255, 255, 0.12) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.12) 75%, transparent 75%, transparent);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 20px 20px;
+    opacity: 0.9;
+    backdrop-filter: blur(8px);
+    z-index: 5;
     animation: shimmer 3s linear infinite;
 }
 
