@@ -524,6 +524,7 @@ function getAwardLeader(players, key) {
 function updateYearEndAwards() {
     const section = document.getElementById('yearEndSection');
     const awardsContainer = document.getElementById('yearEndAwards');
+    const mvpStatCard = document.getElementById('seasonMvpCard');
     if (!section || !awardsContainer) return;
 
     const seasonKey = '2025';
@@ -533,10 +534,20 @@ function updateYearEndAwards() {
 
     if (!seasonData || !seasonData.players || Object.keys(seasonData.players).length === 0) {
         section.style.display = 'none';
+        if (mvpStatCard) {
+            mvpStatCard.classList.remove('season-mvp-faded');
+        }
         return;
     }
 
     section.style.display = 'block';
+    if (mvpStatCard) {
+        if (AppState.data.currentSeason === seasonKey) {
+            mvpStatCard.classList.add('season-mvp-faded');
+        } else {
+            mvpStatCard.classList.remove('season-mvp-faded');
+        }
+    }
 
     const mvp = getAwardLeader(seasonData.players, 'mvp');
     const attendance = getAwardLeader(seasonData.players, 'appearances');
