@@ -43,8 +43,8 @@ const CONFIG = {
     DATA_PATH: (season) => `${CONFIG.BASE_PATH}${season}_data.json`,
     VENUE: {
         name: '성불빌라',
-        address: '서울 노원구 동일로231가길 75',
-        info: '전화번호: 031-790-2022, 주차 편함'
+        address: '서울 노원구 동일로231가길 7',
+        info: '전화번호: 031-790-2022, 주차 아무데나'
     },
     PARALLEL_LOADING: {
         BATCH_SIZE: 5,
