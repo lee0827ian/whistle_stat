@@ -504,28 +504,40 @@ function updateStats() {
     }
 
     const override = SEASON_DISPLAY_OVERRIDES[AppState.data.currentSeason];
+    const hasMatchData = AppState.data.matches.length > 0;
+    const hasPlayerData = Object.keys(AppState.data.playerStats || {}).length > 0;
 
-    const totalMatches = override?.summary?.matches ?? AppState.data.matches.length;
-    const wins = override?.summary?.wins ?? AppState.data.matches.filter(match => match.result === 'win').length;
-    const draws = override?.summary?.draws ?? AppState.data.matches.filter(match => match.result === 'draw').length;
-    const losses = override?.summary?.losses ?? AppState.data.matches.filter(match => match.result === 'loss').length;
+    const totalMatches = hasMatchData
+        ? AppState.data.matches.length
+        : override?.summary?.matches ?? 0;
+    const wins = hasMatchData
+        ? AppState.data.matches.filter(match => match.result === 'win').length
+        : override?.summary?.wins ?? 0;
+    const draws = hasMatchData
+        ? AppState.data.matches.filter(match => match.result === 'draw').length
+        : override?.summary?.draws ?? 0;
+    const losses = hasMatchData
+        ? AppState.data.matches.filter(match => match.result === 'loss').length
+        : override?.summary?.losses ?? 0;
 
     let totalGoalsFor = 0;
-    if (override?.summary?.goalsFor !== undefined) {
-        totalGoalsFor = override.summary.goalsFor;
-    } else {
+    if (hasMatchData) {
         AppState.data.matches.forEach(match => {
             const [goalsFor] = match.score.split(':').map(Number);
             if (!isNaN(goalsFor)) {
                 totalGoalsFor += goalsFor;
             }
         });
+    } else if (override?.summary?.goalsFor !== undefined) {
+        totalGoalsFor = override.summary.goalsFor;
     }
 
     const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
     const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
 
-    const seasonMvpPlayer = override?.mvp ?? calculateSeasonMvp(AppState.data.playerStats);
+    const seasonMvpPlayer = hasPlayerData
+        ? calculateSeasonMvp(AppState.data.playerStats)
+        : override?.mvp;
     const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
     const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.count ?? seasonMvpPlayer.mvp : 0;
     const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
