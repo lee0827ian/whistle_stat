@@ -184,10 +184,25 @@ body::before {
 }
 
 .season-mvp-faded {
-    opacity: 0.4;
-    filter: blur(6px);
+    position: relative;
+    overflow: hidden;
     transition: opacity 0.35s ease, filter 0.35s ease;
     pointer-events: none;
+}
+
+.season-mvp-faded * {
+    filter: blur(14px);
+}
+
+.season-mvp-faded::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
+    background-size: 16px 16px;
+    opacity: 0.9;
 }
 
 .mvp-hint {
