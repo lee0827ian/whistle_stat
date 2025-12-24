@@ -39,6 +39,8 @@ const CONFIG = {
     AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025'],
     DEFAULT_SEASON: '2025',
     KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
+    BASE_PATH: './',
+    DATA_PATH: (season) => `${CONFIG.BASE_PATH}${season}_data.json`,
     VENUE: {
         name: '성불빌라',
         address: '서울 노원구 동일로231가길 75',
@@ -176,6 +178,35 @@ function parseScore(scoreText = '0:0') {
         goalsFor: Number.isFinite(forStr) ? forStr : 0,
         goalsAgainst: Number.isFinite(againstStr) ? againstStr : 0
     };
+}
+
+function extractMatchStats(match) {
+    const { goalsFor, goalsAgainst } = parseScore(match?.score);
+    return {
+        goalsFor,
+        goalsAgainst,
+        goalDiff: goalsFor - goalsAgainst
+    };
+}
+
+function calculateMatchStats(matches = []) {
+    return matches.reduce((acc, match) => {
+        const { goalsFor, goalsAgainst } = extractMatchStats(match);
+
+        acc.total += 1;
+        acc.goalsFor += goalsFor;
+        acc.goalsAgainst += goalsAgainst;
+
+        if (match.result === 'win') {
+            acc.win += 1;
+        } else if (match.result === 'draw') {
+            acc.draw += 1;
+        } else {
+            acc.loss += 1;
+        }
+
+        return acc;
+    }, { total: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0 });
 }
 
 function validateSeasonData(rawData) {
@@ -355,7 +386,7 @@ function calculateTeamRecords(allMatches = []) {
         const seasonKey = match.season || AppState.data.currentSeason;
         const seasonStats = perSeason[seasonKey] || { matches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 };
 
-        const { goalsFor, goalsAgainst } = parseScore(match.score);
+        const { goalsFor, goalsAgainst, goalDiff } = extractMatchStats(match);
 
         seasonStats.matches += 1;
         overall.matches += 1;
@@ -377,7 +408,6 @@ function calculateTeamRecords(allMatches = []) {
 
         perSeason[seasonKey] = seasonStats;
 
-        const goalDiff = goalsFor - goalsAgainst;
         if (!biggestWin || goalDiff > biggestWin.diff) {
             biggestWin = {
                 diff: goalDiff,
@@ -506,31 +536,13 @@ function updateStats() {
     const override = SEASON_DISPLAY_OVERRIDES[AppState.data.currentSeason];
     const hasMatchData = AppState.data.matches.length > 0;
     const hasPlayerData = Object.keys(AppState.data.playerStats || {}).length > 0;
+    const matchStats = hasMatchData ? calculateMatchStats(AppState.data.matches) : null;
 
-    const totalMatches = hasMatchData
-        ? AppState.data.matches.length
-        : override?.summary?.matches ?? 0;
-    const wins = hasMatchData
-        ? AppState.data.matches.filter(match => match.result === 'win').length
-        : override?.summary?.wins ?? 0;
-    const draws = hasMatchData
-        ? AppState.data.matches.filter(match => match.result === 'draw').length
-        : override?.summary?.draws ?? 0;
-    const losses = hasMatchData
-        ? AppState.data.matches.filter(match => match.result === 'loss').length
-        : override?.summary?.losses ?? 0;
-
-    let totalGoalsFor = 0;
-    if (hasMatchData) {
-        AppState.data.matches.forEach(match => {
-            const [goalsFor] = match.score.split(':').map(Number);
-            if (!isNaN(goalsFor)) {
-                totalGoalsFor += goalsFor;
-            }
-        });
-    } else if (override?.summary?.goalsFor !== undefined) {
-        totalGoalsFor = override.summary.goalsFor;
-    }
+    const totalMatches = matchStats?.total ?? override?.summary?.matches ?? 0;
+    const wins = matchStats?.win ?? override?.summary?.wins ?? 0;
+    const draws = matchStats?.draw ?? override?.summary?.draws ?? 0;
+    const losses = matchStats?.loss ?? override?.summary?.losses ?? 0;
+    const totalGoalsFor = matchStats?.goalsFor ?? override?.summary?.goalsFor ?? 0;
 
     const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
     const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
@@ -770,6 +782,32 @@ function loadKakaoMap() {
         return;
     }
 
+    const existingScript = document.getElementById('kakao-maps-sdk');
+    if (existingScript) {
+        if (AppState.map.scriptLoaded) {
+            initializeMap();
+        } else if (!AppState.map.isLoading) {
+            AppState.map.isLoading = true;
+            existingScript.addEventListener('load', () => {
+                AppState.map.scriptLoaded = true;
+                AppState.map.isLoading = false;
+                kakao.maps.load(initializeMap);
+            }, { once: true });
+            existingScript.addEventListener('error', () => {
+                AppState.map.isLoading = false;
+                logError('카카오맵 API 로드 실패');
+                mapPlaceholder.innerHTML = `
+                    <div class="map-placeholder">
+                        🗺️<br>
+                        ${CONFIG.VENUE.name}<br>
+                        <small>지도를 불러올 수 없습니다.</small>
+                    </div>
+                `;
+            }, { once: true });
+        }
+        return;
+    }
+
     if (AppState.map.scriptLoaded) {
         initializeMap();
         return;
@@ -929,7 +967,7 @@ async function loadData() {
                 } catch (gsError) {
                     logInfo('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
                     // ✅ 경로 수정: 현재 디렉토리 명시
-                    const response = await fetch(`./${AppState.data.currentSeason}_data.json`, { 
+                    const response = await fetch(CONFIG.DATA_PATH(AppState.data.currentSeason), {
                         signal: AppState.network.currentAbortController.signal, 
                         headers: { 'Cache-Control': 'no-cache' } 
                     });
@@ -940,7 +978,7 @@ async function loadData() {
                 }
             } else {
                 // ✅ 경로 수정: 현재 디렉토리 명시
-                const response = await fetch(`./${AppState.data.currentSeason}_data.json`, { 
+                const response = await fetch(CONFIG.DATA_PATH(AppState.data.currentSeason), {
                     signal: AppState.network.currentAbortController.signal, 
                     headers: { 'Cache-Control': 'no-cache' } 
                 });
@@ -1005,7 +1043,7 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
                 return { success: true, season: seasonKey, data: seasonDataCache.get(seasonKey) };
             }
 
-            const response = await fetch(`./${seasonKey}_data.json`, { headers: { 'Cache-Control': 'no-cache' } });
+            const response = await fetch(CONFIG.DATA_PATH(seasonKey), { headers: { 'Cache-Control': 'no-cache' } });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -1471,6 +1509,8 @@ function updateButtonStates() {
     if (allTimeButton) {
         allTimeButton.classList.toggle('active', AppState.data.isAllTimeView);
         allTimeButton.innerHTML = AppState.data.isAllTimeView ? '🔙 시즌 보기' : '📊 역대 기록';
+        allTimeButton.setAttribute('aria-pressed', AppState.data.isAllTimeView.toString());
+        allTimeButton.setAttribute('aria-label', AppState.data.isAllTimeView ? '시즌 보기로 전환' : '역대 기록 보기');
     }
 }
 
