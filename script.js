@@ -52,6 +52,9 @@ const CONFIG = {
     }
 };
 
+// MVP 카드 잠금 설정 (완전히 숨기기)
+const MVP_LOCK_SEASON = '2025';
+
 const SEASON_DISPLAY_OVERRIDES = {
     '2025': {
         summary: {
@@ -581,7 +584,7 @@ function updateYearEndAwards() {
     const mvpHint = document.getElementById('mvpRevealHint');
     if (!section || !awardsContainer) return;
     
-    const seasonKey = '2025';
+    const seasonKey = MVP_LOCK_SEASON;
     const seasonData = AppState.data.currentSeason === seasonKey
         ? { players: AppState.data.playerStats }
         : seasonDataCache.get(seasonKey);
@@ -601,16 +604,17 @@ function updateYearEndAwards() {
     section.style.display = 'block';
     
     // 🔥 이 줄을 수정! 역대기록 뷰가 아닐 때만 블러 처리
-    const shouldBlurMvpCard = AppState.data.currentSeason === seasonKey && !AppState.data.isAllTimeView;
+    const shouldHideMvpCard = AppState.data.currentSeason === seasonKey;
     
     if (mvpStatCard) {
-        if (shouldBlurMvpCard) {
-            mvpStatCard.classList.add('season-mvp-faded');
-        } else {
+        mvpStatCard.classList.toggle('season-mvp-hidden', shouldHideMvpCard);
+        if (!shouldHideMvpCard) {
             mvpStatCard.classList.remove('season-mvp-faded');
         }
     }
-    if (mvpHint) mvpHint.style.display = shouldBlurMvpCard ? 'block' : 'none';
+    if (mvpHint) {
+        mvpHint.style.display = shouldHideMvpCard ? 'none' : 'block';
+    }
     const mvpOverride = SEASON_DISPLAY_OVERRIDES[seasonKey]?.mvp;
     const playerPool = hasPlayerData ? seasonData.players : {};
     const mvp = mvpOverride ?? getAwardLeader(playerPool, 'mvp');

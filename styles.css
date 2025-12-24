@@ -192,6 +192,10 @@ body::before {
     isolation: isolate;
 }
 
+.season-mvp-hidden {
+    display: none;
+}
+
 /* 내부 콘텐츠 블러 */
 .season-mvp-faded .stat-title,
 .season-mvp-faded .stat-value,
