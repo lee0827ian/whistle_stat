@@ -184,9 +184,10 @@ body::before {
 }
 
 .season-mvp-faded {
-    opacity: 0.6;
-    filter: blur(1px);
+    opacity: 0.35;
+    filter: blur(2.5px);
     transition: opacity 0.35s ease, filter 0.35s ease;
+    pointer-events: none;
 }
 
 .stat-title {
