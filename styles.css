@@ -184,8 +184,8 @@ body::before {
 }
 
 .season-mvp-faded {
-    opacity: 0.08;
-    filter: blur(10px);
+    opacity: 0.4;
+    filter: blur(6px);
     transition: opacity 0.35s ease, filter 0.35s ease;
     pointer-events: none;
 }

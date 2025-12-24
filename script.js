@@ -554,6 +554,7 @@ function updateYearEndAwards() {
     const section = document.getElementById('yearEndSection');
     const awardsContainer = document.getElementById('yearEndAwards');
     const mvpStatCard = document.getElementById('seasonMvpCard');
+    const mvpHint = document.getElementById('mvpRevealHint');
     if (!section || !awardsContainer) return;
 
     const seasonKey = '2025';
@@ -569,17 +570,20 @@ function updateYearEndAwards() {
         if (mvpStatCard) {
             mvpStatCard.classList.remove('season-mvp-faded');
         }
+        if (mvpHint) mvpHint.style.display = 'none';
         return;
     }
 
     section.style.display = 'block';
+    const shouldBlurMvpCard = AppState.data.currentSeason === seasonKey;
     if (mvpStatCard) {
-        if (AppState.data.currentSeason === seasonKey) {
+        if (shouldBlurMvpCard) {
             mvpStatCard.classList.add('season-mvp-faded');
         } else {
             mvpStatCard.classList.remove('season-mvp-faded');
         }
     }
+    if (mvpHint) mvpHint.style.display = shouldBlurMvpCard ? 'block' : 'none';
 
     const mvpOverride = SEASON_DISPLAY_OVERRIDES[seasonKey]?.mvp;
     const playerPool = hasPlayerData ? seasonData.players : {};
