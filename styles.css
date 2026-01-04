@@ -6,13 +6,13 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: radial-gradient(circle at 18% 22%, rgba(255, 233, 181, 0.35), transparent 36%),
-                radial-gradient(circle at 82% 12%, rgba(255, 188, 188, 0.32), transparent 32%),
-                radial-gradient(circle at 40% 78%, rgba(148, 239, 188, 0.22), transparent 34%),
-                linear-gradient(135deg, #b91c1c 0%, #c2410c 32%, #0f766e 100%);
+    background: radial-gradient(circle at 18% 22%, rgba(255, 224, 138, 0.35), transparent 36%),
+                radial-gradient(circle at 82% 12%, rgba(255, 165, 165, 0.32), transparent 32%),
+                radial-gradient(circle at 40% 78%, rgba(255, 214, 102, 0.25), transparent 34%),
+                linear-gradient(135deg, #fef08a 0%, #f59e0b 40%, #ef4444 100%);
     min-height: 100vh;
     padding: 20px;
-    color: #fefefe;
+    color: #7f1d1d;
     position: relative;
     overflow-x: hidden;
 }
@@ -41,7 +41,7 @@ body::before {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 15px 35px rgba(185, 28, 28, 0.08), 0 20px 50px rgba(15, 118, 110, 0.08);
+    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.12), 0 20px 50px rgba(245, 158, 11, 0.12);
     color: #0f172a;
 }
 
@@ -176,7 +176,7 @@ body::before {
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #b91c1c, #0f766e);
+    background: linear-gradient(135deg, #facc15, #ea580c, #b91c1c);
     padding: 25px;
     border-radius: 15px;
     color: white;
@@ -256,24 +256,6 @@ body::before {
 @keyframes shimmer {
     0% { background-position: 0 0, 0 0, 0 0, 0 0; }
     100% { background-position: 0 0, 0 0, 0 0, 20px 20px; }
-}
-
-.mvp-hint {
-    margin: -6px 0 26px;
-    color: #b91c1c;
-    font-weight: 700;
-    text-align: center;
-    background: linear-gradient(135deg, rgba(255, 228, 230, 0.8), rgba(254, 243, 199, 0.8));
-    border: 2px solid #fca5a5;
-    padding: 12px 16px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.15);
-    animation: attention 2s ease-in-out infinite;
-}
-
-@keyframes attention {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
 }
 
 .stat-title {
@@ -664,111 +646,6 @@ body::before {
 .venue-phone {
     color: #666;
     font-size: 0.9em;
-}
-
-.year-end-section {
-    margin-top: 50px;
-    padding: 35px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, rgba(255, 245, 235, 0.95), rgba(255, 228, 230, 0.92));
-    border: 1px solid rgba(185, 28, 28, 0.12);
-    box-shadow: 0 20px 40px rgba(185, 28, 28, 0.08), 0 18px 36px rgba(15, 118, 110, 0.08);
-    position: relative;
-    overflow: hidden;
-}
-
-.year-end-section::after {
-    content: '';
-    position: absolute;
-    inset: -60px auto auto -60px;
-    width: 180px;
-    height: 180px;
-    background: radial-gradient(circle, rgba(248, 180, 0, 0.3), transparent 60%);
-    filter: blur(10px);
-    pointer-events: none;
-}
-
-.year-end-section::before {
-    content: '';
-    position: absolute;
-    inset: auto -50px -50px auto;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(34, 197, 94, 0.25), transparent 60%);
-    filter: blur(12px);
-    pointer-events: none;
-}
-
-.year-end-description {
-    text-align: center;
-    color: #9a3412;
-    margin-top: -6px;
-    margin-bottom: 18px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-}
-
-.year-end-awards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-    position: relative;
-    z-index: 1;
-}
-
-.award-card {
-    position: relative;
-    padding: 24px 20px;
-    border-radius: 16px;
-    color: #0f172a;
-    background: linear-gradient(145deg, #fff6e6, #fff1f2);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-.award-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.55), transparent 40%);
-    pointer-events: none;
-}
-
-.award-ribbon {
-    display: inline-block;
-    padding: 8px 14px;
-    border-radius: 999px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    color: #0f172a;
-    background: linear-gradient(135deg, #f59e0b, #16a34a);
-    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.3);
-}
-
-.award-winner {
-    margin-top: 16px;
-    font-size: 1.6em;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.award-detail {
-    margin-top: 8px;
-    color: #475569;
-    font-weight: 600;
-}
-
-.award-mvp {
-    background: linear-gradient(140deg, #fff6e3, #ffe4e6);
-}
-
-.award-attendance {
-    background: linear-gradient(140deg, #e0f7ec, #e0f2fe);
-}
-
-.award-scorer {
-    background: linear-gradient(140deg, #fef3c7, #ffe4e6);
 }
 
 .filter-controls {
