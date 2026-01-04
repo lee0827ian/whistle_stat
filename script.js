@@ -15,7 +15,7 @@ const AppState = {
         currentTeamSort: 'season'
     },
     data: {
-        currentSeason: '2025',
+        currentSeason: '2026',
         isAllTimeView: false,
         matches: [],
         playerStats: {},
@@ -36,8 +36,8 @@ const AppState = {
 
 // 설정
 const CONFIG = {
-    AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025'],
-    DEFAULT_SEASON: '2025',
+    AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
+    DEFAULT_SEASON: '2026',
     KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
     BASE_PATH: './',
     DATA_PATH: (season) => `${CONFIG.BASE_PATH}${season}_data.json`,
@@ -51,9 +51,6 @@ const CONFIG = {
         MAX_CONCURRENT: 3
     }
 };
-
-// MVP 카드 잠금 설정 (완전히 숨기기)
-const MVP_LOCK_SEASON = '2025';
 
 const SEASON_DISPLAY_OVERRIDES = {
     '2025': {
@@ -77,7 +74,7 @@ const SEASON_DISPLAY_OVERRIDES = {
 const GOOGLE_SHEETS_CONFIG = {
     SHEET_ID: '13UOlG3FdqufeoW2uV3x7L4KFMOo9YrwrjkrExXSVGIg',
     SEASONS: {
-        '2025': {
+        '2026': {
             matches: '1013896035',
             players: '882762798',
             schedule: '1750685299',
@@ -85,6 +82,8 @@ const GOOGLE_SHEETS_CONFIG = {
         }
     }
 };
+
+const isGoogleSheetSeason = (season) => Boolean(GOOGLE_SHEETS_CONFIG.SEASONS[season]);
 
 // 유틸리티
 const koreanCollator = new Intl.Collator('ko', { numeric: true });
@@ -487,7 +486,6 @@ function updateStats() {
     const winRateCardTitle = document.getElementById('winRateCardTitle');
     const goalsCardTitle = document.getElementById('goalsCardTitle');
     const mvpCardTitle = document.getElementById('mvpCardTitle');
-    const mvpHint = document.getElementById('mvpRevealHint');
 
     const isAllTimeView = AppState.data.isAllTimeView && AppState.allTime.loaded && AppState.allTime.records?.overall;
 
@@ -495,8 +493,6 @@ function updateStats() {
     if (winRateCardTitle) winRateCardTitle.textContent = isAllTimeView ? '역대 승률' : '승률';
     if (goalsCardTitle) goalsCardTitle.textContent = isAllTimeView ? '역대 득점' : '득점';
     if (mvpCardTitle) mvpCardTitle.textContent = isAllTimeView ? '역대 MVP' : '시즌 MVP';
-
-    if (mvpHint) mvpHint.style.display = 'none';
 
     if (isAllTimeView) {
         const overall = AppState.allTime.records.overall;
@@ -565,76 +561,6 @@ function updateStats() {
     document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
     document.getElementById('seasonMvp').textContent = mvpName;
     document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
-}
-
-function getAwardLeader(players, key) {
-    return Object.entries(players || {}).reduce((best, [name, stats]) => {
-        const value = Number(stats?.[key]) || 0;
-        if (!best || value > best.value) {
-            return { name, value };
-        }
-        return best;
-    }, null);
-}
-
-function updateYearEndAwards() {
-    const section = document.getElementById('yearEndSection');
-    const awardsContainer = document.getElementById('yearEndAwards');
-    const mvpStatCard = document.getElementById('seasonMvpCard');
-    const mvpHint = document.getElementById('mvpRevealHint');
-    if (!section || !awardsContainer) return;
-    
-    const seasonKey = MVP_LOCK_SEASON;
-    const seasonData = AppState.data.currentSeason === seasonKey
-        ? { players: AppState.data.playerStats }
-        : seasonDataCache.get(seasonKey);
-    
-    const hasOverride = Boolean(SEASON_DISPLAY_OVERRIDES[seasonKey]);
-    const hasPlayerData = seasonData?.players && Object.keys(seasonData.players).length > 0;
-    
-    if (!hasPlayerData && !hasOverride) {
-        section.style.display = 'none';
-        if (mvpStatCard) {
-            mvpStatCard.classList.remove('season-mvp-faded');
-        }
-        if (mvpHint) mvpHint.style.display = 'none';
-        return;
-    }
-    
-    section.style.display = 'block';
-    
-    // 🔥 이 줄을 수정! 역대기록 뷰가 아닐 때만 블러 처리
-    const shouldHideMvpCard = AppState.data.currentSeason === seasonKey;
-    
-    if (mvpStatCard) {
-        mvpStatCard.classList.toggle('season-mvp-hidden', shouldHideMvpCard);
-        if (!shouldHideMvpCard) {
-            mvpStatCard.classList.remove('season-mvp-faded');
-        }
-    }
-    if (mvpHint) {
-        mvpHint.style.display = shouldHideMvpCard ? 'none' : 'block';
-    }
-    const mvpOverride = SEASON_DISPLAY_OVERRIDES[seasonKey]?.mvp;
-    const playerPool = hasPlayerData ? seasonData.players : {};
-    const mvp = mvpOverride ?? getAwardLeader(playerPool, 'mvp');
-    const attendance = getAwardLeader(playerPool, 'appearances');
-    const scorer = getAwardLeader(playerPool, 'goals');
-
-    const mvpName = mvp ? mvp.name : '-';
-    const attendanceName = attendance ? attendance.name : '-';
-    const scorerName = scorer ? scorer.name : '-';
-
-    const mvpDetail = mvp ? `MVP ${mvp.value ?? mvp.count}회${mvp.appearances ? ` (출전 ${mvp.appearances}회)` : ''}` : '데이터 없음';
-    const attendanceDetail = attendance ? `${attendance.value}경기 출전` : '데이터 없음';
-    const scorerDetail = scorer ? `${scorer.value}골 기록` : '데이터 없음';
-
-    document.getElementById('awardMvp').textContent = mvpName;
-    document.getElementById('awardMvpDetail').textContent = mvpDetail;
-    document.getElementById('awardAttendance').textContent = attendanceName;
-    document.getElementById('awardAttendanceDetail').textContent = attendanceDetail;
-    document.getElementById('awardScorer').textContent = scorerName;
-    document.getElementById('awardScorerDetail').textContent = scorerDetail;
 }
 
 // 테이블 업데이트 (부분 생략)
@@ -962,37 +888,36 @@ async function loadData() {
         AppState.network.currentAbortController = new AbortController();
 
         let data, dataSource = 'JSON 파일';
-        if (seasonDataCache.has(AppState.data.currentSeason)) {
-            data = seasonDataCache.get(AppState.data.currentSeason);
+        const currentSeasonKey = AppState.data.currentSeason;
+
+        if (seasonDataCache.has(currentSeasonKey)) {
+            data = seasonDataCache.get(currentSeasonKey);
             dataSource = '캐시';
         } else {
-            if (AppState.data.currentSeason === '2025') {
-                try {
-                    data = await loadFromGoogleSheets(AppState.data.currentSeason);
-                    dataSource = '구글 시트';
-                } catch (gsError) {
-                    logInfo('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
-                    // ✅ 경로 수정: 현재 디렉토리 명시
-                    const response = await fetch(CONFIG.DATA_PATH(AppState.data.currentSeason), {
-                        signal: AppState.network.currentAbortController.signal, 
-                        headers: { 'Cache-Control': 'no-cache' } 
-                    });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
-                    const rawData = await response.json();
-                    data = validateSeasonData(rawData);
-                    dataSource = 'JSON 파일 (대체)';
-                }
-            } else {
-                // ✅ 경로 수정: 현재 디렉토리 명시
-                const response = await fetch(CONFIG.DATA_PATH(AppState.data.currentSeason), {
-                    signal: AppState.network.currentAbortController.signal, 
-                    headers: { 'Cache-Control': 'no-cache' } 
+            const fetchJsonSeason = async () => {
+                const response = await fetch(CONFIG.DATA_PATH(currentSeasonKey), {
+                    signal: AppState.network.currentAbortController.signal,
+                    headers: { 'Cache-Control': 'no-cache' }
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
                 const rawData = await response.json();
-                data = validateSeasonData(rawData);
+                return validateSeasonData(rawData);
+            };
+
+            if (isGoogleSheetSeason(currentSeasonKey)) {
+                try {
+                    data = await loadFromGoogleSheets(currentSeasonKey);
+                    dataSource = '구글 시트';
+                } catch (gsError) {
+                    logInfo('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
+                    data = await fetchJsonSeason();
+                    dataSource = 'JSON 파일 (대체)';
+                }
+            } else {
+                data = await fetchJsonSeason();
             }
-            seasonDataCache.set(AppState.data.currentSeason, data);
+
+            seasonDataCache.set(currentSeasonKey, data);
         }
 
         // 데이터 할당 후 즉시 통계 카드 업데이트
@@ -1006,7 +931,6 @@ async function loadData() {
         updateSchedule(data.schedules || []);
         updateRegionalTable(AppState.data.regionalStats, AppState.ui.currentRegionalFilter);
         createRegionalHeatmap(AppState.data.regionalStats);
-        updateYearEndAwards();
 
         if (data.schedules && data.schedules.length > 0) {
              loadKakaoMap();
@@ -1049,12 +973,27 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
                 return { success: true, season: seasonKey, data: seasonDataCache.get(seasonKey) };
             }
 
-            const response = await fetch(CONFIG.DATA_PATH(seasonKey), { headers: { 'Cache-Control': 'no-cache' } });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+            const fetchJsonSeason = async () => {
+                const response = await fetch(CONFIG.DATA_PATH(seasonKey), { headers: { 'Cache-Control': 'no-cache' } });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const rawData = await response.json();
+                return validateSeasonData(rawData);
+            };
+
+            let data;
+            if (isGoogleSheetSeason(seasonKey)) {
+                try {
+                    data = await loadFromGoogleSheets(seasonKey);
+                } catch (gsError) {
+                    logError(`시즌 ${seasonKey} 구글 시트 로드 실패, JSON으로 대체`, gsError);
+                    data = await fetchJsonSeason();
+                }
+            } else {
+                data = await fetchJsonSeason();
             }
-            const rawData = await response.json();
-            const data = validateSeasonData(rawData);
+
             seasonDataCache.set(seasonKey, data);
             return { success: true, season: seasonKey, data };
         } catch (error) {
