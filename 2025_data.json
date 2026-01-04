@@ -2,129 +2,94 @@
   "season": "2025",
   "matches": [
     {
-      "date": "2025-08-31",
-      "opponent": "차나마나 FC",
+      "date": "2025-01-11",
+      "opponent": "renafc",
       "result": "win",
-      "score": "5:2",
+      "score": "8:4",
+      "mvp": "권창호"
+    },
+    {
+      "date": "2025-01-19",
+      "opponent": "양동fc",
+      "result": "win",
+      "score": "11:0",
+      "mvp": "김기호, 이상보"
+    },
+    {
+      "date": "2025-01-26",
+      "opponent": "중앙fc",
+      "result": "win",
+      "score": "3:2",
       "mvp": "김기호"
     },
     {
-      "date": "2025-08-17",
-      "opponent": "싸이코스 FC",
+      "date": "2025-02-02",
+      "opponent": "fc차나마나",
       "result": "loss",
-      "score": "1:8",
+      "score": "3:4",
+      "mvp": "이상보"
+    },
+    {
+      "date": "2025-02-09",
+      "opponent": "투리스",
+      "result": "loss",
+      "score": "4:12",
+      "mvp": "이상보"
+    },
+    {
+      "date": "2025-02-23",
+      "opponent": "덴탈fc",
+      "result": "win",
+      "score": "5:4",
       "mvp": "신규환"
     },
     {
-      "date": "2025-08-10",
-      "opponent": "AGAIN FC",
-      "result": "loss",
-      "score": "5:12",
-      "mvp": "권창호"
-    },
-    {
-      "date": "2025-08-03",
-      "opponent": "하나 FC",
-      "result": "win",
-      "score": "6:4",
-      "mvp": "박지성"
-    },
-    {
-      "date": "2025-07-27",
-      "opponent": "Dream FC",
-      "result": "win",
-      "score": "6:2",
-      "mvp": "이정호"
-    },
-    {
-      "date": "2025-07-20",
-      "opponent": "서리풀 FC",
-      "result": "win",
-      "score": "5:0",
-      "mvp": "권창호"
-    },
-    {
-      "date": "2025-07-13",
-      "opponent": "용원 FC",
-      "result": "win",
-      "score": "9:3",
-      "mvp": "반기훈"
-    },
-    {
-      "date": "2025-07-06",
-      "opponent": "JROCK FC",
-      "result": "win",
-      "score": "8:4",
-      "mvp": "안창영"
-    },
-    {
-      "date": "2025-06-29",
-      "opponent": "차나마나FC",
-      "result": "win",
-      "score": "4:1",
-      "mvp": "유지현"
-    },
-    {
-      "date": "2025-06-22",
-      "opponent": "블루스카이",
-      "result": "win",
-      "score": "9:8",
-      "mvp": "신규환"
-    },
-    {
-      "date": "2025-06-15",
-      "opponent": "FC집으로",
-      "result": "loss",
-      "score": "4:7",
+      "date": "2025-03-02",
+      "opponent": "fc EXIT",
+      "result": "draw",
+      "score": "5:5",
       "mvp": "서원덕"
     },
     {
-      "date": "2025-06-08",
-      "opponent": "미소 FC",
+      "date": "2025-03-09",
+      "opponent": "fc 인터블루",
       "result": "loss",
-      "score": "2:4",
-      "mvp": "반기훈"
+      "score": "1:13",
+      "mvp": "서원덕"
     },
     {
-      "date": "2025-06-01",
-      "opponent": "가양2동조기축구회",
+      "date": "2025-03-16",
+      "opponent": "발모아 fc",
+      "result": "win",
+      "score": "7:1",
+      "mvp": "조인혁"
+    },
+    {
+      "date": "2025-03-23",
+      "opponent": "UMD",
+      "result": "win",
+      "score": "4:3",
+      "mvp": "안창영"
+    },
+    {
+      "date": "2025-03-30",
+      "opponent": "라인fc",
       "result": "loss",
-      "score": "2:8",
-      "mvp": "박지성"
-    },
-    {
-      "date": "2025-05-25",
-      "opponent": "SCFC",
-      "result": "win",
-      "score": "10:7",
-      "mvp": "오진석"
-    },
-    {
-      "date": "2025-05-18",
-      "opponent": "명륜 FC",
-      "result": "win",
-      "score": "6:2",
+      "score": "2:7",
       "mvp": "신규환"
     },
     {
-      "date": "2025-05-10",
-      "opponent": "MNN FC",
-      "result": "loss",
-      "score": "1:5",
-      "mvp": "안태수"
-    },
-    {
-      "date": "2025-05-03",
-      "opponent": "지축몬",
+      "date": "2025-04-06",
+      "opponent": "R.S",
       "result": "win",
-      "score": "4:3",
-      "mvp": "권창호"
+      "score": "3:2",
+      "mvp": "신규환"
     },
     {
-      "date": "2025-04-27",
-      "opponent": "쥬블리fc",
+      "date": "2025-04-13",
+      "opponent": "humble fc",
       "result": "loss",
-      "score": "1:7",
+      "score": "0:11",
       "mvp": "박지성"
     },
     {
@@ -135,95 +100,242 @@
       "mvp": "강재웅"
     },
     {
-      "date": "2025-04-13",
-      "opponent": "humble fc",
+      "date": "2025-04-27",
+      "opponent": "쥬블리fc",
       "result": "loss",
-      "score": "0:11",
+      "score": "1:7",
       "mvp": "박지성"
     },
     {
-      "date": "2025-04-06",
-      "opponent": "R.S",
-      "result": "win",
-      "score": "3:2",
-      "mvp": "신규환"
-    },
-    {
-      "date": "2025-03-30",
-      "opponent": "라인fc",
-      "result": "loss",
-      "score": "2:7",
-      "mvp": "신규환"
-    },
-    {
-      "date": "2025-03-23",
-      "opponent": "UMD",
+      "date": "2025-05-03",
+      "opponent": "지축몬",
       "result": "win",
       "score": "4:3",
+      "mvp": "권창호"
+    },
+    {
+      "date": "2025-05-10",
+      "opponent": "MNN FC",
+      "result": "loss",
+      "score": "1:5",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2025-05-18",
+      "opponent": "명륜 FC",
+      "result": "win",
+      "score": "6:2",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2025-05-25",
+      "opponent": "SCFC",
+      "result": "win",
+      "score": "10:7",
+      "mvp": "오진석"
+    },
+    {
+      "date": "2025-06-01",
+      "opponent": "가양2동조기축구회",
+      "result": "loss",
+      "score": "2:8",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2025-06-08",
+      "opponent": "미소 FC",
+      "result": "loss",
+      "score": "2:4",
+      "mvp": "반기훈"
+    },
+    {
+      "date": "2025-06-15",
+      "opponent": "FC집으로",
+      "result": "loss",
+      "score": "4:7",
+      "mvp": "이상보, 서원덕"
+    },
+    {
+      "date": "2025-06-22",
+      "opponent": "블루스카이",
+      "result": "win",
+      "score": "9:8",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2025-06-29",
+      "opponent": "차나마나FC",
+      "result": "win",
+      "score": "4:1",
+      "mvp": "유지현"
+    },
+    {
+      "date": "2025-07-06",
+      "opponent": "JROCK FC",
+      "result": "win",
+      "score": "8:4",
       "mvp": "안창영"
     },
     {
-      "date": "2025-03-16",
-      "opponent": "발모아 fc",
+      "date": "2025-07-13",
+      "opponent": "용원 FC",
       "result": "win",
-      "score": "7:1",
-      "mvp": "조인혁"
+      "score": "9:3",
+      "mvp": "반기훈"
     },
     {
-      "date": "2025-03-09",
-      "opponent": "fc 인터블루",
+      "date": "2025-07-20",
+      "opponent": "서리풀 FC",
+      "result": "win",
+      "score": "5:0",
+      "mvp": "권창호"
+    },
+    {
+      "date": "2025-07-27",
+      "opponent": "Dream FC",
+      "result": "win",
+      "score": "6:2",
+      "mvp": "이정호"
+    },
+    {
+      "date": "2025-08-03",
+      "opponent": "하나 FC",
+      "result": "win",
+      "score": "6:4",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2025-08-10",
+      "opponent": "AGAIN FC",
       "result": "loss",
-      "score": "1:13",
-      "mvp": "서원덕"
+      "score": "5:12",
+      "mvp": "권창호"
     },
     {
-      "date": "2025-03-02",
-      "opponent": "fc EXIT",
-      "result": "draw",
-      "score": "5:5",
-      "mvp": "서원덕"
-    },
-    {
-      "date": "2025-02-23",
-      "opponent": "덴탈fc",
-      "result": "win",
-      "score": "5:4",
+      "date": "2025-08-17",
+      "opponent": "싸이코스 FC",
+      "result": "loss",
+      "score": "1:8",
       "mvp": "신규환"
     },
     {
-      "date": "2025-02-09",
-      "opponent": "투리스",
-      "result": "loss",
-      "score": "4:12",
-      "mvp": "이상보"
-    },
-    {
-      "date": "2025-02-02",
-      "opponent": "fc차나마나",
-      "result": "loss",
-      "score": "3:4",
-      "mvp": "이상보"
-    },
-    {
-      "date": "2025-01-26",
-      "opponent": "중앙fc",
+      "date": "2025-08-31",
+      "opponent": "차나마나 FC",
       "result": "win",
-      "score": "3:2",
+      "score": "5:2",
       "mvp": "김기호"
     },
     {
-      "date": "2025-01-19",
-      "opponent": "양동fc",
-      "result": "win",
-      "score": "11:0",
+      "date": "2025-09-07",
+      "opponent": "FC 포텐",
+      "result": "loss",
+      "score": "0:7",
       "mvp": "이상보"
     },
     {
-      "date": "2025-01-11",
-      "opponent": "renafc",
+      "date": "2025-09-14",
+      "opponent": "FC 양천 드래곤즈",
+      "result": "loss",
+      "score": "2:4",
+      "mvp": "유지현"
+    },
+    {
+      "date": "2025-09-21",
+      "opponent": "FC 신사에이스",
       "result": "win",
-      "score": "8:4",
-      "mvp": "권창호"
+      "score": "7:2",
+      "mvp": "서원덕"
+    },
+    {
+      "date": "2025-09-28",
+      "opponent": "양서 FC",
+      "result": "win",
+      "score": "6:0",
+      "mvp": "김경배"
+    },
+    {
+      "date": "2025-10-12",
+      "opponent": "성남블루스카이",
+      "result": "draw",
+      "score": "2:2",
+      "mvp": "안태수"
+    },
+    {
+      "date": "2025-10-17",
+      "opponent": "FC 언남",
+      "result": "loss",
+      "score": "3:5",
+      "mvp": "유지현"
+    },
+    {
+      "date": "2025-10-26",
+      "opponent": "FC 공차",
+      "result": "loss",
+      "score": "2:3",
+      "mvp": "이광수"
+    },
+    {
+      "date": "2025-11-02",
+      "opponent": "Fc벗",
+      "result": "loss",
+      "score": "5:8",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2025-11-08",
+      "opponent": "삼락교회축구동호회",
+      "result": "win",
+      "score": "9:5",
+      "mvp": "김영주"
+    },
+    {
+      "date": "2025-11-16",
+      "opponent": "FC퀀타",
+      "result": "loss",
+      "score": "0:7",
+      "mvp": "김영주"
+    },
+    {
+      "date": "2025-11-23",
+      "opponent": "FC템페스트",
+      "result": "loss",
+      "score": "2:6",
+      "mvp": "오진석"
+    },
+    {
+      "date": "2025-11-30",
+      "opponent": "FC위런",
+      "result": "loss",
+      "score": "3:8",
+      "mvp": "조상현"
+    },
+    {
+      "date": "2025-12-07",
+      "opponent": "FC swingz",
+      "result": "win",
+      "score": "7:3",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2025-12-14",
+      "opponent": "유토피아FC",
+      "result": "draw",
+      "score": "5:5",
+      "mvp": "조인혁"
+    },
+    {
+      "date": "2025-12-21",
+      "opponent": "JFC",
+      "result": "loss",
+      "score": "1:7",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2025-12-27",
+      "opponent": "FC서강",
+      "result": "win",
+      "score": "6:5",
+      "mvp": "곽웅"
     }
   ],
   "players": {
@@ -233,14 +345,14 @@
       "mvp": 0
     },
     "박지성": {
-      "appearances": 29,
-      "goals": 1,
-      "mvp": 4
+      "appearances": 43,
+      "goals": 3,
+      "mvp": 5
     },
     "유지현": {
-      "appearances": 19,
+      "appearances": 23,
       "goals": 0,
-      "mvp": 1
+      "mvp": 3
     },
     "이치석": {
       "appearances": 0,
@@ -248,12 +360,12 @@
       "mvp": 0
     },
     "김기호": {
-      "appearances": 20,
-      "goals": 13,
-      "mvp": 1
+      "appearances": 26,
+      "goals": 17,
+      "mvp": 4
     },
     "김진호": {
-      "appearances": 3,
+      "appearances": 5,
       "goals": 0,
       "mvp": 0
     },
@@ -268,49 +380,49 @@
       "mvp": 0
     },
     "강용기": {
-      "appearances": 24,
+      "appearances": 34,
       "goals": 0,
       "mvp": 0
     },
     "김경배": {
-      "appearances": 18,
-      "goals": 2,
-      "mvp": 0
+      "appearances": 24,
+      "goals": 3,
+      "mvp": 1
     },
     "권창호": {
-      "appearances": 15,
-      "goals": 15,
+      "appearances": 17,
+      "goals": 17,
       "mvp": 4
     },
     "안태수": {
-      "appearances": 22,
-      "goals": 5,
-      "mvp": 1
+      "appearances": 31,
+      "goals": 8,
+      "mvp": 2
     },
     "오진석": {
-      "appearances": 27,
-      "goals": 34,
-      "mvp": 1
+      "appearances": 38,
+      "goals": 42,
+      "mvp": 2
     },
     "반기훈": {
-      "appearances": 8,
-      "goals": 5,
+      "appearances": 14,
+      "goals": 9,
       "mvp": 2
     },
     "이정호": {
-      "appearances": 6,
-      "goals": 4,
+      "appearances": 8,
+      "goals": 5,
       "mvp": 1
     },
     "서원덕": {
-      "appearances": 22,
-      "goals": 2,
-      "mvp": 3
+      "appearances": 32,
+      "goals": 3,
+      "mvp": 4
     },
     "이상보": {
-      "appearances": 19,
+      "appearances": 22,
       "goals": 1,
-      "mvp": 3
+      "mvp": 5
     },
     "김병태": {
       "appearances": 4,
@@ -318,18 +430,18 @@
       "mvp": 0
     },
     "윤종진": {
-      "appearances": 5,
-      "goals": 2,
+      "appearances": 7,
+      "goals": 3,
       "mvp": 0
     },
     "안창영": {
-      "appearances": 16,
+      "appearances": 22,
       "goals": 4,
       "mvp": 2
     },
     "강재웅": {
-      "appearances": 7,
-      "goals": 3,
+      "appearances": 12,
+      "goals": 4,
       "mvp": 1
     },
     "손의창": {
@@ -358,27 +470,27 @@
       "mvp": 0
     },
     "조상현": {
-      "appearances": 1,
-      "goals": 0,
-      "mvp": 0
+      "appearances": 2,
+      "goals": 1,
+      "mvp": 1
     },
     "곽웅": {
-      "appearances": 1,
-      "goals": 0,
-      "mvp": 0
+      "appearances": 4,
+      "goals": 6,
+      "mvp": 1
     },
     "김영주": {
-      "appearances": 17,
+      "appearances": 32,
       "goals": 0,
-      "mvp": 0
+      "mvp": 2
     },
     "신규환": {
-      "appearances": 25,
-      "goals": 13,
-      "mvp": 4
+      "appearances": 38,
+      "goals": 17,
+      "mvp": 7
     },
     "김동규": {
-      "appearances": 0,
+      "appearances": 1,
       "goals": 0,
       "mvp": 0
     },
@@ -388,9 +500,9 @@
       "mvp": 0
     },
     "조인혁": {
-      "appearances": 11,
-      "goals": 12,
-      "mvp": 1
+      "appearances": 16,
+      "goals": 17,
+      "mvp": 2
     },
     "안수영": {
       "appearances": 0,
@@ -398,17 +510,17 @@
       "mvp": 0
     },
     "이경윤": {
-      "appearances": 5,
+      "appearances": 8,
       "goals": 0,
       "mvp": 0
     },
     "이광수": {
-      "appearances": 11,
-      "goals": 1,
-      "mvp": 0
+      "appearances": 19,
+      "goals": 3,
+      "mvp": 1
     },
     "윤준배": {
-      "appearances": 8,
+      "appearances": 9,
       "goals": 1,
       "mvp": 0
     },
