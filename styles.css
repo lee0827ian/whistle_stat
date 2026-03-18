@@ -5,14 +5,13 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
-    background: radial-gradient(circle at 18% 22%, rgba(255, 224, 138, 0.35), transparent 36%),
-                radial-gradient(circle at 82% 12%, rgba(255, 165, 165, 0.32), transparent 32%),
-                radial-gradient(circle at 40% 78%, rgba(255, 214, 102, 0.25), transparent 34%),
-                linear-gradient(135deg, #fef08a 0%, #f59e0b 40%, #ef4444 100%);
+    font-family: 'Inter', 'Pretendard', 'Noto Sans KR', sans-serif;
+    background: radial-gradient(circle at 12% 10%, rgba(37, 99, 235, 0.18), transparent 30%),
+                radial-gradient(circle at 86% 15%, rgba(56, 189, 248, 0.16), transparent 30%),
+                linear-gradient(160deg, #020617 0%, #0f172a 50%, #111827 100%);
     min-height: 100vh;
     padding: 20px;
-    color: #7f1d1d;
+    color: #e2e8f0;
     position: relative;
     overflow-x: hidden;
 }
@@ -25,9 +24,9 @@ body::before {
                       radial-gradient(1.5px 1.5px at 80% 40%, rgba(255, 255, 255, 0.85), transparent),
                       radial-gradient(1px 1px at 50% 70%, rgba(255, 248, 225, 0.8), transparent),
                       radial-gradient(90px 90px at 60% 15%, rgba(255, 247, 210, 0.2), transparent 45%);
-    opacity: 0.55;
+    opacity: 0.2;
     pointer-events: none;
-    animation: snowfall 18s linear infinite;
+    animation: snowfall 30s linear infinite;
 }
 
 @keyframes snowfall {
@@ -38,23 +37,24 @@ body::before {
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.12), 0 20px 50px rgba(245, 158, 11, 0.12);
-    color: #0f172a;
+    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+    color: #e2e8f0;
 }
 
 .header {
     text-align: center;
     margin-bottom: 40px;
     padding-bottom: 20px;
-    border-bottom: 3px solid #b91c1c;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
 }
 
 .team-name {
     font-size: 2.5em;
-    color: #b91c1c;
+    color: #f8fafc;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -176,7 +176,8 @@ body::before {
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #facc15, #ea580c, #b91c1c);
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid rgba(59, 130, 246, 0.3);
     padding: 25px;
     border-radius: 15px;
     color: white;
@@ -292,35 +293,37 @@ body::before {
 }
 
 .section {
-    background: #f8f9fa;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     padding: 25px;
     border-radius: 15px;
-    height: 450px;
+    min-height: 450px;
     display: flex;
     flex-direction: column;
 }
 
 .all-time-view .section {
-    height: 550px;
+    min-height: 520px;
 }
 
 .team-records-section {
-    background: #f8f9fa;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     padding: 25px;
     border-radius: 15px;
-    height: 450px;
+    min-height: 450px;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
 }
 
 .all-time-view .team-records-section {
-    height: 550px;
+    min-height: 520px;
 }
 
 .section-title {
     font-size: 1.5em;
-    color: #0f766e;
+    color: #f8fafc;
     margin-bottom: 20px;
     font-weight: bold;
     text-align: center;
@@ -337,13 +340,13 @@ body::before {
 .regional-table th, .regional-table td {
     padding: 10px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
     font-size: 0.9em;
 }
 
 .players-table th, .matches-table th, .regional-table th {
-    background: #1e40af;
-    color: white;
+    background: #1e293b;
+    color: #f8fafc;
     font-weight: bold;
     position: sticky;
     top: 0;
@@ -352,11 +355,11 @@ body::before {
 }
 
 .players-table th:hover, .matches-table th:hover, .regional-table th:hover {
-    background: #1d4ed8;
+    background: #334155;
 }
 
 .players-table tr:hover, .matches-table tr:hover, .regional-table tr:hover {
-    background: #f5f5f5;
+    background: rgba(30, 41, 59, 0.75);
 }
 
 .attendance-rate {
@@ -418,8 +421,8 @@ body::before {
 }
 
 .result-draw {
-    background: #fbbf24;
-    color: #333;
+    background: #f59e0b;
+    color: #fff;
 }
 
 .result-loss {
@@ -431,8 +434,8 @@ body::before {
     min-height: 0;
     overflow-y: auto;
     border-radius: 8px;
-    border: 1px solid #ddd;
-    max-height: 300px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    max-height: 360px;
 }
 
 .team-record-card {
@@ -498,23 +501,24 @@ body::before {
 }
 
 .regional-records-section {
-    background: #f8f9fa;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     padding: 25px;
     border-radius: 15px;
     margin-top: 30px;
     grid-column: 1 / -1;
-    height: 620px;
+    min-height: 560px;
     display: flex;
     flex-direction: column;
     gap: 14px;
 }
 
 .regional-records-section .table-container {
-    max-height: 380px;
+    max-height: 340px;
 }
 
 .all-time-view .regional-records-section {
-    height: 620px;
+    min-height: 560px;
 }
 
 .winrate-cell {
@@ -563,15 +567,16 @@ body::before {
 }
 
 .schedule-container {
-    background: white;
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .schedule-item {
-    background: linear-gradient(135deg, #1e40af, #60a5fa);
-    color: white;
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #f8fafc;
     border-radius: 12px;
     padding: 20px;
     margin: 10px 0;
@@ -597,7 +602,8 @@ body::before {
 }
 
 .map-container {
-    background: white;
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -632,19 +638,19 @@ body::before {
 
 .venue-name {
     font-weight: bold;
-    color: #1e40af;
+    color: #60a5fa;
     font-size: 1.2em;
     margin-bottom: 5px;
 }
 
 .venue-address {
-    color: #666;
+    color: #cbd5e1;
     font-size: 0.9em;
     margin-bottom: 5px;
 }
 
 .venue-phone {
-    color: #666;
+    color: #cbd5e1;
     font-size: 0.9em;
 }
 
@@ -804,9 +810,9 @@ body::before {
 
 .filter-btn {
     padding: 8px 15px;
-    border: 2px solid #1e40af;
-    background: white;
-    color: #1e40af;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #cbd5e1;
     border-radius: 20px;
     cursor: pointer;
     font-size: 0.9em;
@@ -814,13 +820,14 @@ body::before {
 }
 
 .filter-btn.active {
-    background: #1e40af;
-    color: white;
+    background: #2563eb;
+    color: #eff6ff;
+    border-color: #2563eb;
 }
 
 .no-data {
     text-align: center;
-    color: #666;
+    color: #94a3b8;
     font-style: italic;
     padding: 20px;
 }
@@ -960,6 +967,41 @@ body::before {
 
     .matches-table th:nth-child(5), .matches-table td:nth-child(5) {
         width: 30%;
+    }
+
+    .matches-table thead {
+        display: none;
+    }
+
+    .matches-table tbody tr {
+        display: block;
+        border: 1px solid #dbeafe;
+        border-radius: 10px;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+        background: #ffffff;
+    }
+
+    .matches-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100% !important;
+        border-bottom: 1px dashed #e5e7eb;
+        padding: 6px 4px !important;
+        font-size: 0.85em !important;
+    }
+
+    .matches-table tbody td::before {
+        content: attr(data-label);
+        color: #475569;
+        font-weight: 700;
+        margin-right: 10px;
+        min-width: 48px;
+    }
+
+    .matches-table tbody td:last-child {
+        border-bottom: none;
     }
 
     .regional-table th:nth-child(1), .regional-table td:nth-child(1) {

@@ -578,13 +578,13 @@ function updateMatchesTable(matches = AppState.data.matches) {
     matches.forEach(match => {
         const row = tbody.insertRow();
         row.innerHTML = `
-            <td>${match.date}</td>
-            <td><strong>${match.opponent}</strong></td>
-            <td><span class="result-badge result-${match.result}">
+            <td data-label="날짜">${match.date}</td>
+            <td data-label="상대"><strong>${match.opponent}</strong></td>
+            <td data-label="결과"><span class="result-badge result-${match.result}">
                 ${match.result === 'win' ? '승' : match.result === 'draw' ? '무' : '패'}
             </span></td>
-            <td><strong>${match.score}</strong></td>
-            <td>${match.mvp ? `<span class="mvp-badge">${match.mvp}</span>` : '-'}</td>
+            <td data-label="스코어"><strong>${match.score}</strong></td>
+            <td data-label="MVP">${match.mvp ? `<span class="mvp-badge">${match.mvp}</span>` : '-'}</td>
         `;
     });
 }
