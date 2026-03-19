@@ -95,21 +95,8 @@
         <div id="mainContent" class="main-content">
             <div class="section" id="matchesSection">
                 <div class="section-title">최근 경기 결과</div>
-                <div class="table-container">
-                    <table class="matches-table">
-                        <thead>
-                            <tr>
-                                <th>날짜</th>
-                                <th>상대</th>
-                                <th>결과</th>
-                                <th>스코어</th>
-                                <th>MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matchesTableBody">
-                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="match-archive-list" id="matchesList">
+                    <div class="no-data">데이터를 불러오는 중...</div>
                 </div>
             </div>
 
@@ -121,21 +108,8 @@
                     <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
                     <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
                 </div>
-                <div class="table-container">
-                    <table class="players-table">
-                        <thead>
-                            <tr id="playersTableHeader">
-                                <th>이름</th>
-                                <th>출전</th>
-                                <th>참석률</th>
-                                <th>골</th>
-                                <th>MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="playersTableBody">
-                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="player-ranking-list" id="playersRankList">
+                    <div class="no-data">데이터를 불러오는 중...</div>
                 </div>
             </div>
         </div>
