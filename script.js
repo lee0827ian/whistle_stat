@@ -1498,6 +1498,18 @@ function updateViewVisibility() {
     document.querySelectorAll('.bottom-tab').forEach(button => {
         button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
     });
+
+    const compactSectionTitle = document.getElementById('compactSectionTitle');
+    if (compactSectionTitle) {
+        const sectionTitleMap = {
+            home: 'Home',
+            seasons: 'Seasons',
+            matches: 'Matches',
+            players: 'Players',
+            records: 'Records'
+        };
+        compactSectionTitle.textContent = sectionTitleMap[AppState.ui.currentMainTab] || 'Home';
+    }
 }
 
 function onSeasonSelectClick() {
