@@ -52,6 +52,34 @@ body::before {
     border-bottom: 1px solid rgba(148, 163, 184, 0.25);
 }
 
+.hero-panel {
+    background: linear-gradient(160deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.hero-kicker {
+    color: #93c5fd;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.hero-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 6px;
+}
+
+.hero-subtitle {
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
 .team-name {
     font-size: 2.5em;
     color: #f8fafc;
@@ -135,6 +163,10 @@ body::before {
 
 .all-time-button.active:hover {
     background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.all-time-button {
+    display: none;
 }
 
 .status-message {
@@ -864,6 +896,96 @@ body::before {
     margin-top: 5px;
 }
 
+.bottom-tabbar {
+    position: sticky;
+    bottom: 10px;
+    z-index: 30;
+    margin-top: 24px;
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 16px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.bottom-tab {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: #94a3b8;
+    padding: 10px 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.bottom-tab.active {
+    background: #2563eb;
+    color: #eff6ff;
+    border-color: #3b82f6;
+}
+
+body.page-mode-home #mainContent,
+body.page-mode-home #allTimeContent {
+    display: none !important;
+}
+
+body.page-mode-seasons #mainContent {
+    display: grid !important;
+}
+
+body.page-mode-seasons #allTimeContent {
+    display: none !important;
+}
+
+body.page-mode-matches #statsOverview,
+body.page-mode-matches #scheduleSection {
+    display: none !important;
+}
+
+body.page-mode-matches #mainContent {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+}
+
+body.page-mode-matches #mainContent .section:not(#matchesSection) {
+    display: none !important;
+}
+
+body.page-mode-matches #allTimeContent {
+    display: none !important;
+}
+
+body.page-mode-players #statsOverview,
+body.page-mode-players #scheduleSection {
+    display: none !important;
+}
+
+body.page-mode-players #mainContent {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+}
+
+body.page-mode-players #matchesSection {
+    display: none !important;
+}
+
+body.page-mode-players #allTimeContent {
+    display: none !important;
+}
+
+body.page-mode-records #statsOverview,
+body.page-mode-records #scheduleSection,
+body.page-mode-records #mainContent {
+    display: none !important;
+}
+
+body.page-mode-records #allTimeContent {
+    display: grid !important;
+}
+
 .sort-indicator {
     display: inline-block;
     margin-left: 5px;
@@ -878,6 +1000,14 @@ body::before {
     .season-selector {
         flex-direction: column;
         gap: 10px;
+    }
+
+    .hero-panel {
+        padding: 16px;
+    }
+
+    .hero-title {
+        font-size: 1.2rem;
     }
 
     .season-selector select, .all-time-button {
@@ -1068,6 +1198,16 @@ body::before {
 
     #map, .map-placeholder {
         height: 250px;
+    }
+
+    .bottom-tabbar {
+        gap: 4px;
+        padding: 6px;
+    }
+
+    .bottom-tab {
+        font-size: 0.72rem;
+        padding: 8px 4px;
     }
 }
 

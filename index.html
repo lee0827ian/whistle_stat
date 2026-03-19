@@ -63,7 +63,13 @@
             <div id="loadingStats" class="loading-stats"></div>
         </div>
 
-        <div class="stats-overview">
+        <div class="hero-panel">
+            <div class="hero-kicker">WHISTLE ARCHIVE</div>
+            <div class="hero-title">팀 중심 기록 대시보드</div>
+            <div class="hero-subtitle">시즌 · 경기 · 선수 · 역대 기록을 한눈에 확인하세요</div>
+        </div>
+
+        <div class="stats-overview" id="statsOverview">
             <div class="stat-card">
                 <div class="stat-title" id="matchesCardTitle">경기 수</div>
                 <div class="stat-value" id="totalMatches">0</div>
@@ -226,6 +232,13 @@
             </div>
         </div>
 
+        <nav class="bottom-tabbar" aria-label="메인 탐색">
+            <button class="bottom-tab active" data-tab="home" onclick="switchMainTab('home')">Home</button>
+            <button class="bottom-tab" data-tab="seasons" onclick="switchMainTab('seasons')">Seasons</button>
+            <button class="bottom-tab" data-tab="matches" onclick="switchMainTab('matches')">Matches</button>
+            <button class="bottom-tab" data-tab="players" onclick="switchMainTab('players')">Players</button>
+            <button class="bottom-tab" data-tab="records" onclick="switchMainTab('records')">Records</button>
+        </nav>
     </div>
     
     <script src="./script.js" defer></script>

@@ -12,7 +12,8 @@ const AppState = {
     ui: {
         currentFilter: 'all',
         currentRegionalFilter: 'winrate',
-        currentTeamSort: 'season'
+        currentTeamSort: 'season',
+        currentMainTab: 'home'
     },
     data: {
         currentSeason: '2026',
@@ -1460,19 +1461,18 @@ function updateButtonStates() {
 }
 
 function updateViewVisibility() {
-    const mainContent = document.getElementById('mainContent');
-    const allTimeContent = document.getElementById('allTimeContent');
-    const scheduleSection = document.getElementById('scheduleSection');
+    document.body.classList.remove(
+        'page-mode-home',
+        'page-mode-seasons',
+        'page-mode-matches',
+        'page-mode-players',
+        'page-mode-records'
+    );
+    document.body.classList.add(`page-mode-${AppState.ui.currentMainTab}`);
 
-    if (AppState.data.isAllTimeView) {
-        if (mainContent) mainContent.style.display = 'none';
-        if (allTimeContent) allTimeContent.style.display = 'grid';
-        if (scheduleSection) scheduleSection.style.display = 'none';
-    } else {
-        if (mainContent) mainContent.style.display = 'grid';
-        if (allTimeContent) allTimeContent.style.display = 'none';
-        if (scheduleSection) scheduleSection.style.display = 'block';
-    }
+    document.querySelectorAll('.bottom-tab').forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
+    });
 }
 
 function onSeasonSelectClick() {
@@ -1544,9 +1544,26 @@ async function toggleAllTimeView() {
     filterRegional(AppState.ui.currentRegionalFilter);
 }
 
+async function switchMainTab(tab) {
+    AppState.ui.currentMainTab = tab;
+
+    if (tab === 'records') {
+        if (!AppState.data.isAllTimeView) {
+            await toggleAllTimeView();
+            return;
+        }
+    } else if (AppState.data.isAllTimeView) {
+        await toggleAllTimeView();
+        return;
+    }
+
+    updateViewVisibility();
+}
+
 // 초기화/진입점 함수
 function initializeApp() {
     AppState.data.currentSeason = CONFIG.DEFAULT_SEASON;
+    AppState.ui.currentMainTab = 'home';
     
     // 초기 로드 시 시즌 통계 카드 구조를 먼저 그림
     renderSeasonStatCards();
@@ -1571,3 +1588,4 @@ window.onSeasonSelectClick = onSeasonSelectClick;
 window.filterPlayers = filterPlayers;
 window.filterRegional = filterRegional;
 window.filterTeamRecords = filterTeamRecords;
+window.switchMainTab = switchMainTab;
