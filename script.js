@@ -584,12 +584,17 @@ function updateMatchesTable(matches = AppState.data.matches) {
                 <span class="match-date">${match.date}</span>
                 <span class="match-competition">WHISTLE LEAGUE</span>
             </div>
-            <div class="match-archive-main">
-                <div class="match-opponent-wrap">
+            <div class="match-archive-main match-archive-grid">
+                <div class="match-opponent-wrap match-zone-left">
                     <div class="match-opponent">${match.opponent}</div>
                     <div class="match-context">HOME · WHISTLE</div>
                 </div>
-                <div class="match-score-wrap">
+                <div class="match-mid-meta match-zone-center">
+                    <div class="match-meta-line">라운드 ${index + 1}</div>
+                    <div class="match-meta-line">시즌 ${AppState.data.currentSeason}</div>
+                    <div class="match-meta-line">아카이브 경기</div>
+                </div>
+                <div class="match-score-wrap match-zone-right">
                     <div class="match-score">${match.score}</div>
                     <span class="result-badge result-${match.result}">
                         ${match.result === 'win' ? '승' : match.result === 'draw' ? '무' : '패'}
@@ -641,9 +646,10 @@ function updatePlayersTable(playerStats = AppState.data.playerStats, sortBy = Ap
 
         const card = document.createElement('article');
         card.className = 'player-rank-item';
+        const participationLevel = attendanceRate >= 70 ? '핵심' : attendanceRate >= 40 ? '로테이션' : '서브';
         card.innerHTML = `
             <div class="player-rank-order">${index + 1}</div>
-            <div class="player-rank-main">
+            <div class="player-rank-main player-zone-left">
                 <div class="player-name">${player.name}</div>
                 <div class="player-support">
                     <span class="player-chip">출전 ${player.appearances}</span>
@@ -651,7 +657,11 @@ function updatePlayersTable(playerStats = AppState.data.playerStats, sortBy = Ap
                     <span class="player-chip">MVP ${player.mvp}</span>
                 </div>
             </div>
-            <div class="player-rank-stats">
+            <div class="player-rank-meta player-zone-center">
+                <span class="player-chip">포지션 미등록</span>
+                <span class="player-chip">${participationLevel}</span>
+            </div>
+            <div class="player-rank-stats player-zone-right">
                 <span class="attendance-rate ${
                 attendanceRate >= 70 ? 'rate-high' :
                 attendanceRate >= 40 ? 'rate-medium' : 'rate-low'
@@ -1495,21 +1505,9 @@ function updateViewVisibility() {
     );
     document.body.classList.add(`page-mode-${AppState.ui.currentMainTab}`);
 
-    document.querySelectorAll('.bottom-tab').forEach(button => {
+    document.querySelectorAll('.top-tab').forEach(button => {
         button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
     });
-
-    const compactSectionTitle = document.getElementById('compactSectionTitle');
-    if (compactSectionTitle) {
-        const sectionTitleMap = {
-            home: 'Home',
-            seasons: 'Seasons',
-            matches: 'Matches',
-            players: 'Players',
-            records: 'Records'
-        };
-        compactSectionTitle.textContent = sectionTitleMap[AppState.ui.currentMainTab] || 'Home';
-    }
 }
 
 function onSeasonSelectClick() {

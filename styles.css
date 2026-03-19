@@ -46,9 +46,9 @@ body::before {
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 40px;
-    padding-bottom: 20px;
+    text-align: left;
+    margin-bottom: 26px;
+    padding-bottom: 16px;
     border-bottom: 1px solid rgba(148, 163, 184, 0.25);
 }
 
@@ -80,41 +80,17 @@ body::before {
     font-size: 0.95rem;
 }
 
-.compact-topbar {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-top: 10px;
-}
-
-.compact-brand {
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #f8fafc;
-}
-
-.compact-section-title {
-    color: #93c5fd;
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
 .team-name {
-    font-size: 2.5em;
+    font-size: 2.1em;
     color: #f8fafc;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-weight: bold;
 }
 
 .season-selector {
-    margin-bottom: 0;
+    margin-bottom: 12px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 15px;
 }
@@ -437,6 +413,24 @@ body::before {
     gap: 12px;
 }
 
+.match-archive-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.2fr) minmax(160px, 0.9fr) auto;
+    align-items: center;
+    gap: 16px;
+}
+
+.match-mid-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    border-left: 1px solid rgba(148, 163, 184, 0.22);
+    border-right: 1px solid rgba(148, 163, 184, 0.22);
+    padding: 4px 12px;
+}
+
 .match-opponent {
     font-size: 1.05rem;
     font-weight: 700;
@@ -476,7 +470,7 @@ body::before {
     border-radius: 14px;
     padding: 12px 14px;
     display: grid;
-    grid-template-columns: 42px 1fr auto;
+    grid-template-columns: 42px minmax(180px, 1fr) minmax(140px, 0.9fr) auto;
     align-items: center;
     gap: 12px;
     transition: border-color 0.2s ease, transform 0.2s ease;
@@ -518,6 +512,13 @@ body::before {
     flex-direction: column;
     align-items: flex-end;
     gap: 6px;
+}
+
+.player-rank-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
 }
 
 .players-table, .matches-table, .regional-table {
@@ -1055,11 +1056,11 @@ body::before {
     margin-top: 5px;
 }
 
-.bottom-tabbar {
+.top-tabbar {
     position: sticky;
-    bottom: 10px;
-    z-index: 30;
-    margin-top: 24px;
+    top: 8px;
+    z-index: 40;
+    margin-top: 8px;
     background: rgba(15, 23, 42, 0.96);
     border: 1px solid rgba(148, 163, 184, 0.25);
     border-radius: 16px;
@@ -1069,7 +1070,7 @@ body::before {
     gap: 8px;
 }
 
-.bottom-tab {
+.top-tab {
     border: 1px solid transparent;
     border-radius: 12px;
     background: transparent;
@@ -1080,7 +1081,7 @@ body::before {
     cursor: pointer;
 }
 
-.bottom-tab.active {
+.top-tab.active {
     background: #2563eb;
     color: #eff6ff;
     border-color: #3b82f6;
@@ -1093,23 +1094,6 @@ body.page-mode-home #allTimeContent {
 
 body:not(.page-mode-home) .hero-panel {
     display: none;
-}
-
-body:not(.page-mode-home) .team-name {
-    display: none;
-}
-
-body:not(.page-mode-home) .compact-topbar {
-    display: flex;
-}
-
-body:not(.page-mode-home) .header {
-    margin-bottom: 18px;
-    padding-bottom: 12px;
-}
-
-body:not(.page-mode-home) .season-selector {
-    justify-content: space-between;
 }
 
 body.page-mode-seasons #mainContent {
@@ -1178,8 +1162,8 @@ body.page-mode-records #allTimeContent {
     }
 
     .season-selector {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: row;
+        gap: 8px;
     }
 
     .hero-panel {
@@ -1190,15 +1174,10 @@ body.page-mode-records #allTimeContent {
         font-size: 1.2rem;
     }
 
-    .compact-topbar {
-        margin-top: 6px;
-        padding: 8px 12px;
-    }
-
     .season-selector select, .all-time-button {
-        min-width: 140px;
-        font-size: 1em;
-        padding: 10px 15px;
+        min-width: 132px;
+        font-size: 0.92em;
+        padding: 8px 12px;
     }
 
     .main-content, .all-time-content {
@@ -1215,6 +1194,7 @@ body.page-mode-records #allTimeContent {
 
     .stat-card {
         padding: 14px;
+        min-height: 148px;
     }
 
     .stat-value {
@@ -1252,6 +1232,18 @@ body.page-mode-records #allTimeContent {
         margin-bottom: 12px;
     }
 
+    .top-tabbar {
+        top: 4px;
+        margin-top: 4px;
+        gap: 4px;
+        padding: 6px;
+    }
+
+    .top-tab {
+        font-size: 0.73rem;
+        padding: 8px 4px;
+    }
+
     .team-name {
         font-size: 2em;
     }
@@ -1273,6 +1265,19 @@ body.page-mode-records #allTimeContent {
         align-items: flex-start;
     }
 
+    .match-archive-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .match-mid-meta {
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        padding: 8px 0;
+    }
+
     .match-score {
         font-size: 1.2rem;
     }
@@ -1280,6 +1285,10 @@ body.page-mode-records #allTimeContent {
     .player-rank-item {
         grid-template-columns: 34px 1fr;
         gap: 10px;
+    }
+
+    .player-rank-meta {
+        grid-column: 1 / -1;
     }
 
     .player-rank-stats {
@@ -1448,12 +1457,12 @@ body.page-mode-records #allTimeContent {
         height: 250px;
     }
 
-    .bottom-tabbar {
+    .top-tabbar {
         gap: 4px;
         padding: 6px;
     }
 
-    .bottom-tab {
+    .top-tab {
         font-size: 0.72rem;
         padding: 8px 4px;
     }
@@ -1461,12 +1470,13 @@ body.page-mode-records #allTimeContent {
 
 @media (max-width: 480px) {
     .stats-overview {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
     }
 
     .stat-card {
-        padding: 20px;
+        padding: 12px;
+        min-height: 132px;
     }
 
     .schedule-item {

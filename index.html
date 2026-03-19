@@ -56,10 +56,13 @@
                     📊 역대 기록
                 </button>
             </div>
-            <div id="compactTopBar" class="compact-topbar">
-                <div class="compact-brand">WHISTLE</div>
-                <div id="compactSectionTitle" class="compact-section-title">Home</div>
-            </div>
+            <nav class="top-tabbar" aria-label="메인 탐색">
+                <button class="top-tab active" data-tab="home" onclick="switchMainTab('home')">Home</button>
+                <button class="top-tab" data-tab="seasons" onclick="switchMainTab('seasons')">Seasons</button>
+                <button class="top-tab" data-tab="matches" onclick="switchMainTab('matches')">Matches</button>
+                <button class="top-tab" data-tab="players" onclick="switchMainTab('players')">Players</button>
+                <button class="top-tab" data-tab="records" onclick="switchMainTab('records')">Records</button>
+            </nav>
             <div id="statusMessage" class="status-message"></div>
             <div id="loadingProgress" class="loading-progress">
                 <div id="loadingProgressBar" class="loading-progress-bar"></div>
@@ -210,13 +213,6 @@
             </div>
         </div>
 
-        <nav class="bottom-tabbar" aria-label="메인 탐색">
-            <button class="bottom-tab active" data-tab="home" onclick="switchMainTab('home')">Home</button>
-            <button class="bottom-tab" data-tab="seasons" onclick="switchMainTab('seasons')">Seasons</button>
-            <button class="bottom-tab" data-tab="matches" onclick="switchMainTab('matches')">Matches</button>
-            <button class="bottom-tab" data-tab="players" onclick="switchMainTab('players')">Players</button>
-            <button class="bottom-tab" data-tab="records" onclick="switchMainTab('records')">Records</button>
-        </nav>
     </div>
     
     <script src="./script.js" defer></script>
