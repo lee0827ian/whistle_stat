@@ -1544,6 +1544,9 @@ function updateViewVisibility() {
     document.querySelectorAll('.top-tab').forEach(button => {
         button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
     });
+    document.querySelectorAll('.bottom-tab').forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
+    });
 }
 
 function onSeasonSelectClick() {
