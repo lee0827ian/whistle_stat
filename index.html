@@ -102,6 +102,10 @@
         <div id="mainContent" class="main-content">
             <div class="section" id="matchesSection">
                 <div class="section-title">최근 경기 결과</div>
+                <div class="filter-controls match-sort-controls">
+                    <button class="filter-btn active" data-match-sort="desc" onclick="setMatchSort('desc')">날짜 내림차순</button>
+                    <button class="filter-btn" data-match-sort="asc" onclick="setMatchSort('asc')">날짜 오름차순</button>
+                </div>
                 <div class="match-archive-list" id="matchesList">
                     <div class="no-data">데이터를 불러오는 중...</div>
                 </div>

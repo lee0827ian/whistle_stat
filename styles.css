@@ -740,11 +740,12 @@ body::before {
 }
 
 .next-matches-section {
-    background: #f8f9fa;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     padding: 25px;
     border-radius: 15px;
     margin-top: 60px;
-    border-top: 2px solid #e9ecef;
+    border-top: 1px solid rgba(148, 163, 184, 0.22);
 }
 
 .all-time-view .next-matches-section {
@@ -993,11 +994,11 @@ body::before {
 }
 
 .schedule-list li {
-    background: white;
+    background: rgba(15, 23, 42, 0.85);
     border-radius: 10px;
     padding: 10px 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .filter-btn {
@@ -1213,6 +1214,9 @@ body.page-mode-records #allTimeContent {
     body.page-mode-home #scheduleSection {
         order: 2;
         margin-top: 14px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        padding-bottom: 16px;
     }
 
     body.page-mode-home #statsOverview {

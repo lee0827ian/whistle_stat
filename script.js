@@ -13,7 +13,8 @@ const AppState = {
         currentFilter: 'all',
         currentRegionalFilter: 'winrate',
         currentTeamSort: 'season',
-        currentMainTab: 'home'
+        currentMainTab: 'home',
+        currentMatchSort: 'desc'
     },
     data: {
         currentSeason: '2026',
@@ -576,7 +577,38 @@ function updateMatchesTable(matches = AppState.data.matches) {
         return;
     }
 
-    matches.forEach((match, index) => {
+    const withMeta = matches.map((match, index) => ({
+        ...match,
+        originalIndex: index,
+        timestamp: new Date(match.date).getTime()
+    }));
+
+    const chronological = [...withMeta].sort((a, b) => {
+        const timeA = Number.isFinite(a.timestamp) ? a.timestamp : 0;
+        const timeB = Number.isFinite(b.timestamp) ? b.timestamp : 0;
+        return timeA - timeB || a.originalIndex - b.originalIndex;
+    });
+
+    const roundKeyMap = new Map();
+    chronological.forEach((match, index) => {
+        const key = `${match.date}|${match.opponent}|${match.score}|${match.mvp}|${match.originalIndex}`;
+        roundKeyMap.set(key, index + 1);
+    });
+
+    const isAsc = AppState.ui.currentMatchSort === 'asc';
+    const displayMatches = [...withMeta].sort((a, b) => {
+        const timeA = Number.isFinite(a.timestamp) ? a.timestamp : 0;
+        const timeB = Number.isFinite(b.timestamp) ? b.timestamp : 0;
+        return isAsc ? (timeA - timeB || a.originalIndex - b.originalIndex) : (timeB - timeA || b.originalIndex - a.originalIndex);
+    });
+
+    document.querySelectorAll('.match-sort-controls .filter-btn').forEach(button => {
+        button.classList.toggle('active', button.dataset.matchSort === AppState.ui.currentMatchSort);
+    });
+
+    displayMatches.forEach(match => {
+        const roundKey = `${match.date}|${match.opponent}|${match.score}|${match.mvp}|${match.originalIndex}`;
+        const round = roundKeyMap.get(roundKey) || 1;
         const card = document.createElement('article');
         card.className = 'match-archive-item';
         card.innerHTML = `
@@ -590,7 +622,7 @@ function updateMatchesTable(matches = AppState.data.matches) {
                     <div class="match-context">HOME · WHISTLE</div>
                 </div>
                 <div class="match-mid-meta match-zone-center">
-                    <div class="match-meta-line">라운드 ${index + 1}</div>
+                    <div class="match-meta-line">${round}라운드</div>
                     <div class="match-meta-line">시즌 ${AppState.data.currentSeason}</div>
                     <div class="match-meta-line">아카이브 경기</div>
                 </div>
@@ -602,7 +634,7 @@ function updateMatchesTable(matches = AppState.data.matches) {
                 </div>
             </div>
             <div class="match-archive-meta">
-                <span class="match-meta-chip">${index + 1}번째 기록</span>
+                <span class="match-meta-chip">${round}번째 기록</span>
                 <span class="match-meta-chip">MVP ${match.mvp ? match.mvp : '-'}</span>
             </div>
         `;
@@ -646,7 +678,6 @@ function updatePlayersTable(playerStats = AppState.data.playerStats, sortBy = Ap
 
         const card = document.createElement('article');
         card.className = 'player-rank-item';
-        const participationLevel = attendanceRate >= 70 ? '핵심' : attendanceRate >= 40 ? '로테이션' : '서브';
         card.innerHTML = `
             <div class="player-rank-order">${index + 1}</div>
             <div class="player-rank-main player-zone-left">
@@ -654,23 +685,28 @@ function updatePlayersTable(playerStats = AppState.data.playerStats, sortBy = Ap
                 <div class="player-support">
                     <span class="player-chip">출전 ${player.appearances}</span>
                     <span class="player-chip">골 ${player.goals}</span>
-                    <span class="player-chip">MVP ${player.mvp}</span>
+                    <span class="player-chip">MVP ${player.mvp}회</span>
                 </div>
             </div>
             <div class="player-rank-meta player-zone-center">
                 <span class="player-chip">포지션 미등록</span>
-                <span class="player-chip">${participationLevel}</span>
+                <span class="player-chip">경기 ${AppState.data.matches.length || 0}</span>
             </div>
             <div class="player-rank-stats player-zone-right">
                 <span class="attendance-rate ${
                 attendanceRate >= 70 ? 'rate-high' :
                 attendanceRate >= 40 ? 'rate-medium' : 'rate-low'
-            }">${attendanceRate}%</span>
-                ${player.mvp > 0 ? `<span class="mvp-badge">${player.mvp}회</span>` : '<span class="player-chip">MVP 0</span>'}
+            }">참석률 ${attendanceRate}%</span>
+                <span class="mvp-badge">MVP ${player.mvp}회</span>
             </div>
         `;
         listContainer.appendChild(card);
     });
+}
+
+function setMatchSort(sortOrder) {
+    AppState.ui.currentMatchSort = sortOrder;
+    updateMatchesTable(AppState.data.matches);
 }
 
 function updateTable(data, matches, tableBodyId, type) {
@@ -1624,3 +1660,4 @@ window.filterPlayers = filterPlayers;
 window.filterRegional = filterRegional;
 window.filterTeamRecords = filterTeamRecords;
 window.switchMainTab = switchMainTab;
+window.setMatchSort = setMatchSort;
