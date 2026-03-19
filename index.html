@@ -56,6 +56,13 @@
                     📊 역대 기록
                 </button>
             </div>
+            <nav class="top-tabbar" aria-label="메인 탐색">
+                <button class="top-tab active" data-tab="home" onclick="switchMainTab('home')">Home</button>
+                <button class="top-tab" data-tab="seasons" onclick="switchMainTab('seasons')">Seasons</button>
+                <button class="top-tab" data-tab="matches" onclick="switchMainTab('matches')">Matches</button>
+                <button class="top-tab" data-tab="players" onclick="switchMainTab('players')">Players</button>
+                <button class="top-tab" data-tab="records" onclick="switchMainTab('records')">Records</button>
+            </nav>
             <div id="statusMessage" class="status-message"></div>
             <div id="loadingProgress" class="loading-progress">
                 <div id="loadingProgressBar" class="loading-progress-bar"></div>
@@ -63,7 +70,13 @@
             <div id="loadingStats" class="loading-stats"></div>
         </div>
 
-        <div class="stats-overview">
+        <div class="hero-panel">
+            <div class="hero-kicker">WHISTLE ARCHIVE</div>
+            <div class="hero-title">팀 중심 기록 대시보드</div>
+            <div class="hero-subtitle">시즌 · 경기 · 선수 · 역대 기록을 한눈에 확인하세요</div>
+        </div>
+
+        <div class="stats-overview" id="statsOverview">
             <div class="stat-card">
                 <div class="stat-title" id="matchesCardTitle">경기 수</div>
                 <div class="stat-value" id="totalMatches">0</div>
@@ -89,21 +102,12 @@
         <div id="mainContent" class="main-content">
             <div class="section" id="matchesSection">
                 <div class="section-title">최근 경기 결과</div>
-                <div class="table-container">
-                    <table class="matches-table">
-                        <thead>
-                            <tr>
-                                <th>날짜</th>
-                                <th>상대</th>
-                                <th>결과</th>
-                                <th>스코어</th>
-                                <th>MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matchesTableBody">
-                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="filter-controls match-sort-controls">
+                    <button class="filter-btn active" data-match-sort="desc" onclick="setMatchSort('desc')">날짜 내림차순</button>
+                    <button class="filter-btn" data-match-sort="asc" onclick="setMatchSort('asc')">날짜 오름차순</button>
+                </div>
+                <div class="match-archive-list" id="matchesList">
+                    <div class="no-data">데이터를 불러오는 중...</div>
                 </div>
             </div>
 
@@ -115,21 +119,8 @@
                     <button class="filter-btn" data-filter="attendance" onclick="filterPlayers('attendance')">참석 순</button>
                     <button class="filter-btn" data-filter="mvp" onclick="filterPlayers('mvp')">MVP 횟수</button>
                 </div>
-                <div class="table-container">
-                    <table class="players-table">
-                        <thead>
-                            <tr id="playersTableHeader">
-                                <th>이름</th>
-                                <th>출전</th>
-                                <th>참석률</th>
-                                <th>골</th>
-                                <th>MVP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="playersTableBody">
-                            <tr><td colspan="5" class="no-data">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="player-ranking-list" id="playersRankList">
+                    <div class="no-data">데이터를 불러오는 중...</div>
                 </div>
             </div>
         </div>
