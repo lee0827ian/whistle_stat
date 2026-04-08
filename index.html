@@ -16,7 +16,19 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="team-name">WHISTLE</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light);">
+                
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="./whistle_logo.jfif" alt="WHISTLE 로고" style="height: 32px; width: auto; object-fit: contain;">
+                    <div class="team-name" style="margin-bottom: 0;">WHISTLE</div>
+                </div>
+                
+                <a href="./admin.html" aria-label="관리자 페이지 이동" style="font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border-main); padding: 6px 14px; border-radius: 20px; color: var(--text-gray); background: var(--bg-card);">
+                    <span>⚙️</span>
+                    <span>관리자</span>
+                </a>
+            </div>
+
             <div class="season-selector">
                 <select id="seasonSelect" onchange="changeSeason()" onclick="onSeasonSelectClick()">
                     <option value="2026">2026 시즌</option>
@@ -56,6 +68,7 @@
                     📊 역대 기록
                 </button>
             </div>
+            
             <nav class="top-tabbar" aria-label="메인 탐색">
                 <button class="top-tab active" data-tab="home" onclick="switchMainTab('home')">Home</button>
                 <button class="top-tab" data-tab="seasons" onclick="switchMainTab('seasons')">Seasons</button>
