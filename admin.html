@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHISTLE 관리자</title>
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=47eed652b004605d8a8e3e39df268f24&libraries=services"></script>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/css/SUIT.css');
+  :root {
+    --bg: #0f1117; --bg2: #1a1d27; --bg3: #22263a;
+    --border: #2e3350; --accent: #4f7fff; --accent2: #7c5cff;
+    --green: #2ecc71; --red: #e74c3c; --yellow: #f1c40f;
+    --text: #e8eaf6; --text2: #8b90b8; --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'SUIT', 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── 로그인 ── */
+  #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 24px; }
+  .login-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; width: 320px; text-align: center; }
+  .login-box h1 { font-size: 28px; font-weight: 800; letter-spacing: 4px; margin-bottom: 8px; }
+  .login-box p { color: var(--text2); font-size: 13px; margin-bottom: 28px; }
+  .login-box input { width: 100%; padding: 12px 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; margin-bottom: 16px; outline: none; }
+  .login-box input:focus { border-color: var(--accent); }
+  .btn-primary { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+  .btn-primary:hover { opacity: .85; }
+  .login-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+
+  /* ── 레이아웃 ── */
+  #adminApp { display: none; }
+  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { font-size: 18px; font-weight: 800; letter-spacing: 3px; color: var(--accent); }
+  .topbar-nav { display: flex; gap: 4px; }
+  .nav-btn { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+  .nav-btn.active, .nav-btn:hover { background: var(--bg3); color: var(--text); }
+  .logout-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text2); font-size: 12px; cursor: pointer; }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+  .main { max-width: 760px; margin: 0 auto; padding: 28px 20px 80px; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-title { font-size: 20px; font-weight: 800; margin-bottom: 24px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+
+  /* ── 폼 요소 ── */
+  .form-row { display: grid; gap: 12px; margin-bottom: 14px; }
+  .form-row.col2 { grid-template-columns: 1fr 1fr; }
+  .form-row.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--text2); font-weight: 600; }
+  .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group select option { background: var(--bg3); }
+
+  /* ── 선수 체크박스 그리드 ── */
+  .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 280px; overflow-y: auto; padding: 4px; }
+  .player-check { display: flex; align-items: center; gap: 6px; padding: 7px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; user-select: none; }
+  .player-check:hover { border-color: var(--accent); }
+  .player-check input { display: none; }
+  .player-check.checked { background: rgba(79,127,255,.15); border-color: var(--accent); color: var(--accent); }
+  .player-check .num { font-size: 10px; color: var(--text2); min-width: 18px; }
+
+  /* ── 득점 입력 ── */
+  .goal-list { display: flex; flex-direction: column; gap: 8px; }
+  .goal-row { display: grid; grid-template-columns: 1fr 80px 36px; gap: 8px; align-items: center; }
+  .goal-row select, .goal-row input { padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; outline: none; }
+  .btn-icon { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .btn-icon:hover { border-color: var(--red); color: var(--red); }
+  .btn-add { padding: 8px 16px; border-radius: 8px; border: 1px dashed var(--border); background: transparent; color: var(--text2); font-size: 13px; cursor: pointer; transition: all .15s; margin-top: 4px; }
+  .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── 버튼 및 토스트 ── */
+  .save-area { margin-top: 24px; }
+  .btn-save { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+  .btn-save:hover { opacity: .85; }
+  .btn-save:disabled { opacity: .4; cursor: not-allowed; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* ── 지도 ── */
+  #scheduleMap { height: 200px; border-radius: 8px; margin-top: 8px; border: 1px solid var(--border); }
+
+  /* ── 테이블 ── */
+  .player-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .player-table th { padding: 10px 12px; text-align: left; color: var(--text2); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; }
+  .player-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .player-table tr:last-child td { border-bottom: none; }
+  .player-table input { background: transparent; border: none; color: var(--text); font-size: 13px; width: 100%; outline: none; }
+  .player-table input:focus { background: var(--bg3); border-radius: 4px; padding: 2px 6px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .badge.active { background: rgba(46,204,113,.15); color: var(--green); }
+  .badge.inactive { background: rgba(231,76,60,.15); color: var(--red); }
+
+  @media (max-width: 480px) { .form-row.col3 { grid-template-columns: 1fr 1fr; } .topbar-nav .nav-btn { padding: 6px 10px; font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>WHISTLE</h1>
+    <p>관리자 전용 데이터센터</p>
+    <input type="email" id="emailInput" placeholder="관리자 이메일 (예: admin@whistle.com)" />
+    <input type="password" id="pwInput" placeholder="비밀번호" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="btn-primary" onclick="login()">접속</button>
+    <div class="login-error" id="loginError">로그인 정보를 확인해주세요</div>
+  </div>
+</div>
+
+<div id="adminApp">
+  <div class="topbar">
+    <div class="topbar-logo">WHISTLE</div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="switchTab('match')">경기 입력</button>
+      <button class="nav-btn" onclick="switchTab('player')">선수 관리</button>
+      <button class="nav-btn" onclick="switchTab('schedule')">다음 경기</button>
+    </div>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+
+  <div class="main">
+    <div class="section active" id="tab-match">
+      <div class="section-title">경기 결과 입력</div>
+      <div class="card">
+        <div class="card-title">경기 정보</div>
+        <div class="form-row col2">
+          <div class="form-group"><label>날짜</label><input type="date" id="m-date"/></div>
+          <div class="form-group"><label>상대팀</label><input type="text" id="m-opponent" placeholder="예: Dream FC"/></div>
+        </div>
+        <div class="form-row col3">
+          <div class="form-group"><label>우리 득점</label><input type="number" id="m-our" min="0" value="0"/></div>
+          <div class="form-group"><label>상대 득점</label><input type="number" id="m-opp" min="0" value="0"/></div>
+          <div class="form-group"><label>용병 수</label><input type="number" id="m-merc" min="0" value="0"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>장소</label><input type="text" id="m-venue" placeholder="예: 은로초등학교"/></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">출전 선수</div>
+        <div class="player-grid" id="lineupGrid"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">득점자</div>
+        <div class="goal-list" id="goalList"></div>
+        <button class="btn-add" onclick="addGoalRow()">+ 득점 추가</button>
+        <div style="margin-top:16px">
+          <div class="form-group">
+            <label>MVP</label>
+            <select id="m-mvp"><option value="">— MVP 선택 —</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="save-area"><button class="btn-save" id="saveMatchBtn" onclick="saveMatch()">경기 저장</button></div>
+    </div>
+
+    <div class="section" id="tab-player">
+      <div class="section-title">선수 관리</div>
+      <div class="card">
+        <div class="card-title">신규 선수 추가</div>
+        <div class="form-row col3">
+          <div class="form-group"><label>등번호</label><input type="number" id="p-number" placeholder="예: 14"/></div>
+          <div class="form-group"><label>이름</label><input type="text" id="p-name" placeholder="예: 이정호"/></div>
+          <div class="form-group" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn-primary" onclick="addPlayer()">추가</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">선수 목록</div>
+        <table class="player-table">
+          <thead><tr><th>번호</th><th>이름</th><th>상태</th><th></th></tr></thead>
+          <tbody id="playerTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="tab-schedule">
+      <div class="section-title">다음 경기 등록</div>
+      <div class="card">
+        <div class="card-title">일정 정보</div>
+        <div class="form-row col2">
+          <div class="form-group"><label>날짜</label><input type="date" id="s-date"/></div>
+          <div class="form-group"><label>시간</label><input type="time" id="s-time" value="07:00"/></div>
+        </div>
+        <div class="form-row"><div class="form-group"><label>상대팀</label><input type="text" id="s-opponent" placeholder="예: FC 챌린지"/></div></div>
+        <div class="form-row"><div class="form-group"><label>구장명</label><input type="text" id="s-venue" placeholder="예: 은로초등학교"/></div></div>
+        <div class="form-row"><div class="form-group"><label>주소 (입력시 카카오맵 자동 검색)</label><input type="text" id="s-address" placeholder="예: 서울 노원구 동일로..." oninput="searchAddress()"/></div></div>
+        
+        <div id="scheduleMap"></div>
+        
+        <div class="form-row" style="margin-top:14px">
+          <div class="form-group"><label>공지 메모</label><textarea id="s-note" rows="3" placeholder="주차 안내, 준비물 등..." style="resize:vertical"></textarea></div>
+        </div>
+      </div>
+      <div class="save-area"><button class="btn-save" onclick="saveSchedule()">일정 저장</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 보안/인증 설정 (가짜 비밀번호 삭제) ──
+const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4"; // 메인과 동일한 공개키
+let accessToken = null; // 로그인 성공 시 부여되는 입장권(토큰)
+
+// ── API (토큰을 헤더에 담아 전송) ──
+async function sbFetch(method, table, data = null, params = "") {
+    const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
+    const headers = new Headers();
+    headers.append("apikey", SUPABASE_ANON_KEY);
+    // 로그인이 안 되어있으면 ANON_KEY 사용, 로그인 했으면 발급받은 accessToken 사용
+    headers.append("Authorization", "Bearer " + (accessToken ? accessToken : SUPABASE_ANON_KEY));
+    headers.append("Content-Type", "application/json");
+    headers.append("Prefer", "return=representation");
+    
+    const res = await fetch(url, { method, headers, body: data ? JSON.stringify(data) : null });
+    if (!res.ok) throw new Error(await res.text());
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+}
+
+// ── 진짜 로그인 연동 (Supabase Auth) ──
+async function login() {
+    const email = document.getElementById("emailInput").value.trim();
+    const pw = document.getElementById("pwInput").value;
+    
+    try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+            method: "POST",
+            headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: pw })
+        });
+        const data = await res.json();
+        
+        if (data.error) throw new Error(data.error_description);
+
+        accessToken = data.access_token;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("adminApp").style.display = "block";
+        init();
+    } catch (e) {
+        document.getElementById("loginError").style.display = "block";
+    }
+}
+
+function logout() {
+    accessToken = null;
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("adminApp").style.display = "none";
+    document.getElementById("pwInput").value = "";
+}
+
+function switchTab(tab) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("tab-" + tab).classList.add("active");
+    event.target.classList.add("active");
+}
+
+let allPlayers = [];
+let scheduleMap = null;
+let scheduleMarker = null;
+let geocoder = null;
+
+async function init() {
+    await loadPlayers();
+    renderLineupGrid();
+    renderMvpSelect();
+    renderPlayerTable();
+    initKakaoMap();
+}
+
+async function loadPlayers() {
+    allPlayers = await sbFetch("GET", "players", null, "?active=eq.true&order=number.asc");
+}
+
+function renderLineupGrid() {
+    const grid = document.getElementById("lineupGrid");
+    grid.innerHTML = allPlayers.map(p => `
+        <label class="player-check" id="pc-${p.id}">
+            <input type="checkbox" value="${p.id}" onchange="togglePlayer(this)"/>
+            <span class="num">${p.number ?? "-"}</span>
+            <span>${p.name}</span>
+        </label>
+    `).join("");
+}
+
+function togglePlayer(cb) {
+    const label = cb.closest(".player-check");
+    label.classList.toggle("checked", cb.checked);
+    renderGoalSelects();
+    renderMvpSelect();
+}
+
+function getCheckedPlayers() {
+    return [...document.querySelectorAll("#lineupGrid input:checked")]
+        .map(cb => ({ id: parseInt(cb.value), name: allPlayers.find(p => p.id == cb.value)?.name }));
+}
+
+function renderMvpSelect() {
+    const sel = document.getElementById("m-mvp");
+    const cur = sel.value;
+    const checked = getCheckedPlayers();
+    sel.innerHTML = `<option value="">— MVP 선택 —</option>` +
+        checked.map(p => `<option value="${p.id}" ${cur == p.id ? "selected" : ""}>${p.name}</option>`).join("");
+}
+
+function renderGoalSelects() {
+    document.querySelectorAll(".goal-select").forEach(sel => {
+        const cur = sel.value;
+        const checked = getCheckedPlayers();
+        sel.innerHTML = `<option value="">용병</option>` + checked.map(p => `<option value="${p.id}" ${cur == p.id ? "selected" : ""}>${p.name}</option>`).join("");
+    });
+}
+
+function addGoalRow() {
+    const checked = getCheckedPlayers();
+    const row = document.createElement("div");
+    row.className = "goal-row";
+    row.innerHTML = `
+        <select class="goal-select"><option value="">용병</option>${checked.map(p => `<option value="${p.id}">${p.name}</option>`).join("")}</select>
+        <input type="number" class="goal-count" value="1" min="1" max="20" placeholder="골 수"/>
+        <button class="btn-icon" onclick="this.closest('.goal-row').remove()">×</button>
+    `;
+    document.getElementById("goalList").appendChild(row);
+}
+
+async function saveMatch() {
+    const btn = document.getElementById("saveMatchBtn");
+    btn.disabled = true; btn.textContent = "저장 중...";
+    try {
+        const date = document.getElementById("m-date").value;
+        const opponent = document.getElementById("m-opponent").value.trim();
+        const ourScore = parseInt(document.getElementById("m-our").value) || 0;
+        const oppScore = parseInt(document.getElementById("m-opp").value) || 0;
+        const venue = document.getElementById("m-venue").value.trim();
+        const mercCount = parseInt(document.getElementById("m-merc").value) || 0;
+        const mvpId = document.getElementById("m-mvp").value;
+
+        if (!date || !opponent) { showToast("날짜와 상대팀을 입력해주세요", "error"); return; }
+
+        const matchRes = await sbFetch("POST", "matches", { season: new Date(date).getFullYear(), date, opponent, venue, our_score: ourScore, opp_score: oppScore });
+        const matchId = matchRes[0].id;
+        const checked = getCheckedPlayers();
+        
+        for (const p of checked) await sbFetch("POST", "match_lineups", { match_id: matchId, player_id: p.id, is_mercenary: false });
+        for (let i = 0; i < mercCount; i++) await sbFetch("POST", "match_lineups", { match_id: matchId, player_id: null, is_mercenary: true });
+        
+        const goalRows = document.querySelectorAll(".goal-row");
+        for (const row of goalRows) {
+            const playerId = row.querySelector(".goal-select").value;
+            const count = parseInt(row.querySelector(".goal-count").value) || 1;
+            for (let i = 0; i < count; i++) await sbFetch("POST", "match_goals", { match_id: matchId, player_id: playerId || null, is_mercenary: !playerId, goal_type: "normal" });
+        }
+        if (mvpId) {
+            const mvpName = allPlayers.find(p => p.id == mvpId)?.name;
+            await sbFetch("POST", "match_mvps", { match_id: matchId, player_id: parseInt(mvpId), raw_name: mvpName });
+        }
+        showToast("✅ 경기 저장 완료!", "success");
+        resetMatchForm();
+    } catch (e) { showToast("저장 실패 (권한 없음 등)", "error"); console.error(e); } finally { btn.disabled = false; btn.textContent = "경기 저장"; }
+}
+
+function resetMatchForm() {
+    document.getElementById("m-date").value = ""; document.getElementById("m-opponent").value = "";
+    document.getElementById("m-our").value = "0"; document.getElementById("m-opp").value = "0";
+    document.getElementById("m-merc").value = "0"; document.getElementById("m-venue").value = "";
+    document.getElementById("goalList").innerHTML = "";
+    document.querySelectorAll(".player-check").forEach(l => { l.classList.remove("checked"); l.querySelector("input").checked = false; });
+    renderMvpSelect();
+}
+
+function renderPlayerTable() {
+    const tbody = document.getElementById("playerTableBody");
+    tbody.innerHTML = allPlayers.map(p => `
+        <tr>
+            <td><input type="number" value="${p.number ?? ""}" style="width:50px" onblur="updatePlayer(${p.id}, 'number', this.value)"/></td>
+            <td><input type="text" value="${p.name}" onblur="updatePlayer(${p.id}, 'name', this.value)"/></td>
+            <td><span class="badge ${p.active ? 'active' : 'inactive'}" onclick="toggleActive(${p.id}, ${p.active})" style="cursor:pointer">${p.active ? '활성' : '비활성'}</span></td>
+            <td style="color:var(--text2);font-size:12px">클릭 수정</td>
+        </tr>
+    `).join("");
+}
+
+async function addPlayer() {
+    const number = document.getElementById("p-number").value;
+    const name = document.getElementById("p-name").value.trim();
+    if (!name) { showToast("이름을 입력해주세요", "error"); return; }
+    try {
+        await sbFetch("POST", "players", { number: number || null, name, active: true });
+        await loadPlayers(); renderLineupGrid(); renderPlayerTable(); renderMvpSelect();
+        document.getElementById("p-number").value = ""; document.getElementById("p-name").value = "";
+        showToast("✅ 선수 추가 완료!", "success");
+    } catch(e) { showToast("추가 실패", "error"); }
+}
+
+async function updatePlayer(id, field, value) {
+    try { await sbFetch("PATCH", `players?id=eq.${id}`, { [field]: value || null }); await loadPlayers(); showToast("수정 완료", "success"); } catch(e) { showToast("수정 실패", "error"); }
+}
+
+async function toggleActive(id, current) {
+    try { await sbFetch("PATCH", `players?id=eq.${id}`, { active: !current }); await loadPlayers(); renderPlayerTable(); showToast(!current ? "활성화됨" : "비활성화됨", "success"); } catch(e) { showToast("변경 실패", "error"); }
+}
+
+// ── 💡 카카오맵 연동 ──
+function initKakaoMap() {
+    if (scheduleMap || typeof kakao === 'undefined') return;
+    const container = document.getElementById('scheduleMap');
+    const options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 3 };
+    scheduleMap = new kakao.maps.Map(container, options);
+    geocoder = new kakao.maps.services.Geocoder();
+}
+
+let searchTimer;
+function searchAddress() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        const addr = document.getElementById("s-address").value.trim();
+        if (!addr || addr.length < 4 || !geocoder) return;
+        
+        geocoder.addressSearch(addr, function(result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                scheduleMap.setCenter(coords);
+                if (scheduleMarker) scheduleMarker.setMap(null);
+                scheduleMarker = new kakao.maps.Marker({ map: scheduleMap, position: coords });
+            }
+        });
+    }, 600);
+}
+
+async function saveSchedule() {
+    const date = document.getElementById("s-date").value;
+    const time = document.getElementById("s-time").value;
+    const opponent = document.getElementById("s-opponent").value.trim();
+    const venue = document.getElementById("s-venue").value.trim();
+    const address = document.getElementById("s-address").value.trim();
+    const note = document.getElementById("s-note").value.trim();
+
+    if (!date || !opponent) { showToast("날짜와 상대팀을 입력해주세요", "error"); return; }
+    try {
+        await sbFetch("POST", "schedules", { date, time, opponent, venue, address, note, season: new Date(date).getFullYear() });
+        showToast("✅ 일정 저장 완료!", "success");
+        document.getElementById("s-date").value = ""; document.getElementById("s-opponent").value = "";
+        document.getElementById("s-venue").value = ""; document.getElementById("s-address").value = ""; document.getElementById("s-note").value = "";
+        if (scheduleMarker) { scheduleMarker.setMap(null); scheduleMarker = null; }
+    } catch(e) { showToast("저장 실패", "error"); }
+}
+
+function showToast(msg, type = "success") {
+    const t = document.getElementById("toast"); t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove("show"), 3000);
+}
+</script>
+</body>
+</html>
