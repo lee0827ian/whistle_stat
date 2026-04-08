@@ -1,5 +1,4 @@
 ﻿.env
 migrate.py
-admin.html
 py migrate_2026.py
 styles_BACKUP.css

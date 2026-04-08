@@ -1689,3 +1689,89 @@ window.filterRegional = filterRegional;
 window.filterTeamRecords = filterTeamRecords;
 window.switchMainTab = switchMainTab;
 window.setMatchSort = setMatchSort;
+
+/* =========================================
+   다음 경기 일정 DB 연동 및 카카오맵 렌더링
+   ========================================= */
+const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4"; 
+
+// 1. DB 통신 함수 (script.js용 읽기 전용)
+async function sbFetch(method, table, data = null, params = "") {
+    const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
+    const headers = new Headers();
+    headers.append("apikey", SUPABASE_ANON_KEY);
+    headers.append("Authorization", "Bearer " + SUPABASE_ANON_KEY);
+    headers.append("Content-Type", "application/json");
+    headers.append("Prefer", "return=representation");
+    
+    const res = await fetch(url, { method, headers, body: data ? JSON.stringify(data) : null });
+    if (!res.ok) throw new Error(await res.text());
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+}
+
+// 2. 일정 가져오기 및 화면 업데이트
+async function loadNextSchedule() {
+    const container = document.getElementById("dynamicScheduleContainer");
+    if (!container) return;
+
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const schedules = await sbFetch("GET", "schedules", null, `?date=gte.${today}&order=date.asc&limit=1`);
+
+        if (!schedules || schedules.length === 0) {
+            container.innerHTML = `<div class="no-data" style="grid-column: 1 / -1;">예정된 다음 경기가 없습니다.</div>`;
+            return;
+        }
+
+        const s = schedules[0];
+        container.innerHTML = `
+            <div class="schedule-container">
+                <h3 style="color: var(--primary); margin-bottom: 15px;">다음 경기 일정</h3>
+                <div class="schedule-item" style="background: #F8FAFC; border: 1px solid var(--border-main); border-radius: 8px; padding: 16px; margin-bottom: 8px;">
+                    <div class="schedule-date" style="font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 6px;">🗓️ ${s.date} ${s.time}</div>
+                    <div class="schedule-opponent" style="font-size: 18px; font-weight: 800; color: var(--text-dark);">⚔️ vs ${s.opponent}</div>
+                </div>
+            </div>
+            <div class="map-container">
+                <h3 style="color: var(--primary); margin-bottom: 15px;">구장 위치</h3>
+                <div id="mainScheduleMap" style="height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-main);"></div>
+                <div class="venue-info" style="margin-top: 12px;">
+                    <div class="venue-name" style="font-size: 16px; font-weight: 800; color: var(--text-dark);">${s.venue}</div>
+                    <div class="venue-address" style="font-size: 13px; color: var(--text-gray); margin-top: 4px;">📍 ${s.address}</div>
+                    <div class="venue-phone" style="font-size: 13px; color: var(--text-gray); margin-top: 2px;">📝 ${s.note || '등록된 공지사항이 없습니다.'}</div>
+                </div>
+            </div>
+        `;
+        renderMainKakaoMap(s.address, s.venue);
+    } catch (error) {
+        container.innerHTML = `<div class="no-data" style="grid-column: 1 / -1;">일정을 불러오는 데 실패했습니다.</div>`;
+    }
+}
+
+// 3. 카카오맵 렌더링
+function renderMainKakaoMap(address, venueName) {
+    if (typeof kakao === 'undefined') return;
+    const mapContainer = document.getElementById('mainScheduleMap');
+    const options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 4 };
+    const map = new kakao.maps.Map(mapContainer, options);
+    const geocoder = new kakao.maps.services.Geocoder();
+
+    geocoder.addressSearch(address, function(result, status) {
+        if (status === kakao.maps.services.Status.OK) {
+            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+            map.setCenter(coords);
+            const marker = new kakao.maps.Marker({ map: map, position: coords });
+            const infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="width:150px;text-align:center;padding:6px 0;font-size:12px;font-weight:700;">${venueName}</div>`
+            });
+            infowindow.open(map, marker);
+        }
+    });
+}
+
+// 4. 페이지 접속 시 자동 실행
+document.addEventListener('DOMContentLoaded', () => {
+    loadNextSchedule(); 
+});
