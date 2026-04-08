@@ -1691,33 +1691,17 @@ window.switchMainTab = switchMainTab;
 window.setMatchSort = setMatchSort;
 
 /* =========================================
-   다음 경기 일정 DB 연동 및 카카오맵 렌더링
+   다음 경기 일정 DB 연동 및 카카오맵 렌더링 (중복 DB 선언 제거됨)
    ========================================= */
-const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4"; 
 
-// 1. DB 통신 함수 (script.js용 읽기 전용)
-async function sbFetch(method, table, data = null, params = "") {
-    const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
-    const headers = new Headers();
-    headers.append("apikey", SUPABASE_ANON_KEY);
-    headers.append("Authorization", "Bearer " + SUPABASE_ANON_KEY);
-    headers.append("Content-Type", "application/json");
-    headers.append("Prefer", "return=representation");
-    
-    const res = await fetch(url, { method, headers, body: data ? JSON.stringify(data) : null });
-    if (!res.ok) throw new Error(await res.text());
-    const text = await res.text();
-    return text ? JSON.parse(text) : null;
-}
-
-// 2. 일정 가져오기 및 화면 업데이트
+// 1. 일정 가져오기 및 화면 업데이트 (기존 상단에 있는 sbFetch 함수를 그대로 가져다 씁니다)
 async function loadNextSchedule() {
     const container = document.getElementById("dynamicScheduleContainer");
     if (!container) return;
 
     try {
         const today = new Date().toISOString().split('T')[0];
+        // 💡 주의: 이 코드가 작동하려면 script.js 상단에 sbFetch 함수가 반드시 있어야 합니다.
         const schedules = await sbFetch("GET", "schedules", null, `?date=gte.${today}&order=date.asc&limit=1`);
 
         if (!schedules || schedules.length === 0) {
@@ -1746,11 +1730,12 @@ async function loadNextSchedule() {
         `;
         renderMainKakaoMap(s.address, s.venue);
     } catch (error) {
+        console.error("일정 로딩 에러:", error);
         container.innerHTML = `<div class="no-data" style="grid-column: 1 / -1;">일정을 불러오는 데 실패했습니다.</div>`;
     }
 }
 
-// 3. 카카오맵 렌더링
+// 2. 카카오맵 렌더링
 function renderMainKakaoMap(address, venueName) {
     if (typeof kakao === 'undefined') return;
     const mapContainer = document.getElementById('mainScheduleMap');
@@ -1771,7 +1756,7 @@ function renderMainKakaoMap(address, venueName) {
     });
 }
 
-// 4. 페이지 접속 시 자동 실행
+// 3. 페이지 접속 시 자동 실행
 document.addEventListener('DOMContentLoaded', () => {
     loadNextSchedule(); 
 });
