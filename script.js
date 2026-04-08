@@ -1694,15 +1694,16 @@ window.setMatchSort = setMatchSort;
    다음 경기 일정 DB 연동 및 카카오맵 렌더링 (중복 DB 선언 제거됨)
    ========================================= */
 
-// 1. 일정 가져오기 및 화면 업데이트 (기존 상단에 있는 sbFetch 함수를 그대로 가져다 씁니다)
+// 1. 일정 가져오기 및 화면 업데이트
 async function loadNextSchedule() {
     const container = document.getElementById("dynamicScheduleContainer");
     if (!container) return;
 
     try {
         const today = new Date().toISOString().split('T')[0];
-        // 💡 주의: 이 코드가 작동하려면 script.js 상단에 sbFetch 함수가 반드시 있어야 합니다.
-        const schedules = await sbFetch("GET", "schedules", null, `?date=gte.${today}&order=date.asc&limit=1`);
+        
+        // 💡 수정된 부분: sbFetch 대신 파일 상단에 이미 있는 supabaseFetch 함수를 사용합니다!
+        const schedules = await supabaseFetch(`schedules?date=gte.${today}&order=date.asc&limit=1`);
 
         if (!schedules || schedules.length === 0) {
             container.innerHTML = `<div class="no-data" style="grid-column: 1 / -1;">예정된 다음 경기가 없습니다.</div>`;
