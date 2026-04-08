@@ -418,15 +418,15 @@ body.page-mode-records #allTimeContent .next-matches-section,
 .player-ranking-list::-webkit-scrollbar-thumb,
 .table-container::-webkit-scrollbar-thumb { background: #c9d1d9; border-radius: 6px; }
 
-/* 2. Seasons 탭: 최근 경기 결과 (최근 3경기 기준 높이) */
-.match-archive-list {
+/* 2. Seasons 탭: 최근 경기 결과 (최근 3~4경기 기준 높이 상향) */
+body.page-mode-seasons .match-archive-list {
     overflow-y: auto;
-    max-height: 360px;
+    max-height: 440px; /* 기존 360px에서 440px로 늘려 3경기 이상 보이도록 수정 */
     padding-right: 6px;
 }
 
-/* 3. Seasons 탭: 선수별 통계 (10명 기준 높이) */
-.player-ranking-list {
+/* 3. Seasons 탭: 선수별 통계 (10명 기준 높이 제한 적용) */
+body.page-mode-seasons .player-ranking-list {
     overflow-y: auto;
     max-height: 680px;
     padding-right: 6px;
