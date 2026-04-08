@@ -1,3 +1,23 @@
+// ── Supabase 설정 ──
+const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4";
+
+async function supabaseFetch(path) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        headers: {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+        }
+    });
+    if (!res.ok) throw new Error(`Supabase 오류: ${res.status}`);
+    return res.json();
+}
+
+// 연결 테스트 (콘솔에서 확인용)
+supabaseFetch("matches?season=eq.2026&order=date.asc")
+    .then(data => console.log("✅ Supabase 연결 성공:", data.length, "경기"))
+    .catch(err => console.error("❌ 연결 실패:", err));
+
 // 전역 상태 관리
 const AppState = {
     map: {
@@ -85,7 +105,7 @@ const GOOGLE_SHEETS_CONFIG = {
     }
 };
 
-const isGoogleSheetSeason = (season) => Boolean(GOOGLE_SHEETS_CONFIG.SEASONS[season]);
+const isGoogleSheetSeason = (season) => true; // 모든 시즌 Supabase로 처리
 
 // 유틸리티
 const koreanCollator = new Intl.Collator('ko', { numeric: true });
@@ -912,39 +932,67 @@ function initializeMap() {
 // --- [ 데이터 로드 함수 ] ---
 
 async function loadFromGoogleSheets(season) {
-    const seasonConfig = GOOGLE_SHEETS_CONFIG.SEASONS[season];
-    if (!seasonConfig) {
-        throw new Error(`${season}년 구글 시트가 설정되지 않았습니다.`);
-    }
+    const season2026plus = parseInt(season) >= 2026;
 
-    const matchesUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.matches}`;
-    const matchesResponse = await fetch(matchesUrl);
-    if (!matchesResponse.ok) throw new Error('경기 결과 시트를 불러올 수 없습니다.');
-    const matchesCsv = await matchesResponse.text();
-    const matchesData = parseCSV(matchesCsv);
+    // 1단계: 경기 ID 목록 먼저
+    const matchIdList = await supabaseFetch(
+        `matches?season=eq.${season}&select=id`
+    );
+    const matchIds = matchIdList.map(m => m.id).join(",") || "0";
 
-    // ... (players, schedule, regional 데이터 로드) ...
-    const playersUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.players}`;
-    const playersResponse = await fetch(playersUrl);
-    if (!playersResponse.ok) throw new Error('선수 통계 시트를 불러올 수 없습니다.');
-    const playersCsv = await playersResponse.text();
-    const playersData = parseCSV(playersCsv);
+    // 2단계: 나머지 병렬 로드
+    const [matchesRaw, playersRaw, mvpRaw] = await Promise.all([
+        supabaseFetch(
+            `matches_with_result?season=eq.${season}&order=date.desc`
+        ),
+        season2026plus
+            ? supabaseFetch(
+                `season_player_stats?season=eq.${season}&select=name,appearances,goals&order=goals.desc`
+              )
+            : supabaseFetch(
+                `legacy_stats?season=eq.${season}&select=appearances,goals,mvp,players(name)&order=goals.desc`
+              ),
+        supabaseFetch(
+            `match_mvps?select=raw_name,match_id&match_id=in.(${matchIds})`
+        )
+    ]);
+    
+    // MVP를 match_id 기준으로 매핑
+    const mvpMap = {};
+    mvpRaw.forEach(row => {
+        if (!mvpMap[row.match_id]) mvpMap[row.match_id] = [];
+        mvpMap[row.match_id].push(row.raw_name);
+    });
 
-    const scheduleUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.schedule}`;
-    const scheduleResponse = await fetch(scheduleUrl);
-    if (!scheduleResponse.ok) throw new Error('다음 경기 일정 시트를 불러올 수 없습니다.');
-    const scheduleCsv = await scheduleResponse.text();
-    const scheduleData = parseCSV(scheduleCsv);
+    const matches = matchesRaw.map(m => ({
+        date: m.date,
+        opponent: m.opponent,
+        result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
+        score: `${m.our_score}:${m.opp_score}`,
+        venue: m.venue || "",
+        mvp: (mvpMap[m.id] || []).join(", ")
+    }));
 
-    const regionalUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SHEET_ID}/export?format=csv&gid=${seasonConfig.regional}`;
-    const regionalResponse = await fetch(regionalUrl);
-    if (!regionalResponse.ok) throw new Error('지역별 기록 시트를 불러올 수 없습니다.');
-    const regionalCsv = await await regionalResponse.text();
-    const regionalData = parseCSV(regionalCsv);
+    // players 포맷 변환
+    const players = {};
+    playersRaw.forEach(row => {
+        const name = season2026plus ? row.name : row.players?.name;
+        if (!name) return;
+        players[name] = {
+            appearances: row.appearances || 0,
+            goals: row.goals || 0,
+            mvp: row.mvp || 0
+        };
+    });
 
-    return processSheetData(matchesData, playersData, scheduleData, regionalData, season);
+    return {
+        season: season,
+        matches: matches,
+        players: players,
+        schedules: [],
+        regional: []
+    };
 }
-
 // JSON 경로를 명확히 지정하여 로드
 async function loadData() {
     AppState.data.matches = [];
@@ -976,17 +1024,13 @@ async function loadData() {
                 return validateSeasonData(rawData);
             };
 
-            if (isGoogleSheetSeason(currentSeasonKey)) {
-                try {
-                    data = await loadFromGoogleSheets(currentSeasonKey);
-                    dataSource = '구글 시트';
-                } catch (gsError) {
-                    logInfo('구글 시트 로딩 실패, JSON 파일로 대체:', gsError.message);
-                    data = await fetchJsonSeason();
-                    dataSource = 'JSON 파일 (대체)';
-                }
-            } else {
+            try {
+                data = await loadFromGoogleSheets(currentSeasonKey);
+                dataSource = 'Supabase';
+            } catch (sbError) {
+                logInfo('Supabase 로딩 실패, JSON 파일로 대체:', sbError.message);
                 data = await fetchJsonSeason();
+                dataSource = 'JSON 파일 (대체)';
             }
 
             seasonDataCache.set(currentSeasonKey, data);
@@ -1055,14 +1099,10 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
             };
 
             let data;
-            if (isGoogleSheetSeason(seasonKey)) {
-                try {
-                    data = await loadFromGoogleSheets(seasonKey);
-                } catch (gsError) {
-                    logError(`시즌 ${seasonKey} 구글 시트 로드 실패, JSON으로 대체`, gsError);
-                    data = await fetchJsonSeason();
-                }
-            } else {
+            try {
+                data = await loadFromGoogleSheets(seasonKey);
+            } catch (sbError) {
+                logError(`시즌 ${seasonKey} Supabase 로드 실패, JSON으로 대체`, sbError);
                 data = await fetchJsonSeason();
             }
 

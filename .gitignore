@@ -1,2 +1,4 @@
 ﻿.env
-"migrate.py" | Add-Content .gitignore
+migrate.py
+admin.html
+py migrate_2026.py
