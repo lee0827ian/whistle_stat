@@ -1,0 +1,429 @@
+{
+    "season": "2001",
+    "matches": [
+        {
+            "date": "2001-12-30",
+            "opponent": "실버스트림",
+            "result": "loss",
+            "score": "2:7",
+            "mvp": ""
+        },
+        {
+            "date": "2001-12-23",
+            "opponent": "아르코",
+            "result": "draw",
+            "score": "4:4",
+            "mvp": ""
+        },
+        {
+            "date": "2001-12-02",
+            "opponent": "JI-ZOON",
+            "result": "win",
+            "score": "6:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-11-18",
+            "opponent": "F.C.성북",
+            "result": "win",
+            "score": "10:7",
+            "mvp": ""
+        },
+        {
+            "date": "2001-11-11",
+            "opponent": "S.I.Z",
+            "result": "loss",
+            "score": "3:7",
+            "mvp": ""
+        },
+        {
+            "date": "2001-10-28",
+            "opponent": "INA",
+            "result": "loss",
+            "score": "1:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-10-28",
+            "opponent": "F.C. SNIPERS",
+            "result": "loss",
+            "score": "2:7",
+            "mvp": ""
+        },
+        {
+            "date": "2001-10-14",
+            "opponent": "special i.9",
+            "result": "loss",
+            "score": "3:4",
+            "mvp": ""
+        },
+        {
+            "date": "2001-09-23",
+            "opponent": "F.C. MARU",
+            "result": "win",
+            "score": "7:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-09-16",
+            "opponent": "F.C. TRUNK",
+            "result": "win",
+            "score": "5:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-09-09",
+            "opponent": "아르코스",
+            "result": "draw",
+            "score": "2:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-09-02",
+            "opponent": "필드킬러",
+            "result": "loss",
+            "score": "2:10",
+            "mvp": ""
+        },
+        {
+            "date": "2001-08-26",
+            "opponent": "SHARP",
+            "result": "win",
+            "score": "3:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-08-19",
+            "opponent": "CROSS FIRE2",
+            "result": "win",
+            "score": "4:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-08-12",
+            "opponent": "INVICTUS",
+            "result": "win",
+            "score": "3:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-08-05",
+            "opponent": "COREA",
+            "result": "draw",
+            "score": "4:4",
+            "mvp": ""
+        },
+        {
+            "date": "2001-07-29",
+            "opponent": "필드킬러",
+            "result": "loss",
+            "score": "4:7",
+            "mvp": ""
+        },
+        {
+            "date": "2001-07-22",
+            "opponent": "도날드",
+            "result": "win",
+            "score": "6:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-07-08",
+            "opponent": "베스트 퓨전",
+            "result": "win",
+            "score": "4:2",
+            "mvp": ""
+        },
+        {
+            "date": "2001-07-01",
+            "opponent": "F.C. MARU",
+            "result": "win",
+            "score": "5:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-06-24",
+            "opponent": "SOCCER CLUB",
+            "result": "loss",
+            "score": "7:8",
+            "mvp": ""
+        },
+        {
+            "date": "2001-06-03",
+            "opponent": "F.C. TRUNK",
+            "result": "win",
+            "score": "5:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-05-27",
+            "opponent": "F.C. ROADRUNNER",
+            "result": "loss",
+            "score": "3:4",
+            "mvp": ""
+        },
+        {
+            "date": "2001-05-20",
+            "opponent": "뚜이다",
+            "result": "loss",
+            "score": "4:6",
+            "mvp": ""
+        },
+        {
+            "date": "2001-05-13",
+            "opponent": "PREMIER F.C.",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2001-05-06",
+            "opponent": "F.C. 강진",
+            "result": "loss",
+            "score": "3:9",
+            "mvp": ""
+        },
+        {
+            "date": "2001-04-15",
+            "opponent": "전설속 퍼플상가",
+            "result": "loss",
+            "score": "6:7",
+            "mvp": ""
+        },
+        {
+            "date": "2001-04-01",
+            "opponent": "송파 라치오",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2001-03-25",
+            "opponent": "THK",
+            "result": "win",
+            "score": "5:4",
+            "mvp": ""
+        },
+        {
+            "date": "2001-03-18",
+            "opponent": "FC. MARU",
+            "result": "win",
+            "score": "3:0",
+            "mvp": ""
+        },
+        {
+            "date": "2001-03-11",
+            "opponent": "인공",
+            "result": "loss",
+            "score": "2:3",
+            "mvp": ""
+        },
+        {
+            "date": "2001-03-11",
+            "opponent": "서일",
+            "result": "win",
+            "score": "2:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-03-04",
+            "opponent": "뚜이다",
+            "result": "win",
+            "score": "6:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-02-25",
+            "opponent": "SNIPERS FC",
+            "result": "draw",
+            "score": "3:3",
+            "mvp": ""
+        },
+        {
+            "date": "2001-02-11",
+            "opponent": "Y.M 데블스",
+            "result": "win",
+            "score": "6:1",
+            "mvp": ""
+        },
+        {
+            "date": "2001-01-21",
+            "opponent": "F.C. TRUNK",
+            "result": "win",
+            "score": "5:2",
+            "mvp": ""
+        }
+    ],
+    "players": {
+        "이근동": {
+            "appearances": 13,
+            "goals": 0,
+            "mvp": 0
+        },
+        "강명국": {
+            "appearances": 24,
+            "goals": 0,
+            "mvp": 0
+        },
+        "정현준": {
+            "appearances": 14,
+            "goals": 0,
+            "mvp": 0
+        },
+        "오지훈": {
+            "appearances": 22,
+            "goals": 0,
+            "mvp": 0
+        },
+        "임태현": {
+            "appearances": 11,
+            "goals": 5,
+            "mvp": 0
+        },
+        "하승협": {
+            "appearances": 20,
+            "goals": 11,
+            "mvp": 0
+        },
+        "김영주": {
+            "appearances": 12,
+            "goals": 1,
+            "mvp": 0
+        },
+        "이항규": {
+            "appearances": 34,
+            "goals": 19,
+            "mvp": 0
+        },
+        "강재웅": {
+            "appearances": 25,
+            "goals": 10,
+            "mvp": 0
+        },
+        "윤호진": {
+            "appearances": 14,
+            "goals": 7,
+            "mvp": 0
+        },
+        "김성환": {
+            "appearances": 26,
+            "goals": 22,
+            "mvp": 0
+        },
+        "문상봉": {
+            "appearances": 8,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김종성": {
+            "appearances": 29,
+            "goals": 0,
+            "mvp": 0
+        },
+        "지주현": {
+            "appearances": 8,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이재희": {
+            "appearances": 25,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김광엽": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 0
+        },
+        "지의태": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "지기남": {
+            "appearances": 8,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김영균": {
+            "appearances": 6,
+            "goals": 1,
+            "mvp": 0
+        },
+        "유랑국": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김기호": {
+            "appearances": 26,
+            "goals": 23,
+            "mvp": 0
+        },
+        "여상현": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 0
+        },
+        "윤재혁": {
+            "appearances": 9,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이종욱": {
+            "appearances": 5,
+            "goals": 2,
+            "mvp": 0
+        },
+        "박성호": {
+            "appearances": 12,
+            "goals": 17,
+            "mvp": 0
+        },
+        "강용기": {
+            "appearances": 6,
+            "goals": 3,
+            "mvp": 0
+        },
+        "이진호": {
+            "appearances": 8,
+            "goals": 0,
+            "mvp": 0
+        },
+        "박준석": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 0
+        },
+        "윤정광": {
+            "appearances": 30,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이광수": {
+            "appearances": 26,
+            "goals": 15,
+            "mvp": 0
+        },
+        "최용신": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "한승종": {
+            "appearances": 8,
+            "goals": 7,
+            "mvp": 0
+        },
+        "오진석": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "권순구": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        }
+    }
+}

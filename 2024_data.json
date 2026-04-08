@@ -1,0 +1,545 @@
+{
+  "season": "2024",
+  "matches": [
+    {
+      "date": "2024-12-28",
+      "opponent": "삼미FC",
+      "result": "loss",
+      "score": "2:6",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2024-12-22",
+      "opponent": "Hood FC",
+      "result": "loss",
+      "score": "4:6",
+      "mvp": "김경배"
+    },
+    {
+      "date": "2024-12-15",
+      "opponent": "FC시스템",
+      "result": "win",
+      "score": "4:2",
+      "mvp": "이정호"
+    },
+    {
+      "date": "2024-12-07",
+      "opponent": "레나",
+      "result": "win",
+      "score": "16:5",
+      "mvp": "조인혁"
+    },
+    {
+      "date": "2024-12-01",
+      "opponent": "선후 FC",
+      "result": "loss",
+      "score": "4:7",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2024-11-24",
+      "opponent": "RS",
+      "result": "loss",
+      "score": "2:13",
+      "mvp": "이항규"
+    },
+    {
+      "date": "2024-11-17",
+      "opponent": "광림FC",
+      "result": "win",
+      "score": "6:3",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2024-11-10",
+      "opponent": "가양2동조기회",
+      "result": "loss",
+      "score": "1:7",
+      "mvp": "유지현"
+    },
+    {
+      "date": "2024-11-03",
+      "opponent": "템페스트",
+      "result": "loss",
+      "score": "1:5",
+      "mvp": "서원덕"
+    },
+    {
+      "date": "2024-10-27",
+      "opponent": "FC그린",
+      "result": "draw",
+      "score": "2:2",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2024-10-20",
+      "opponent": "BFC",
+      "result": "loss",
+      "score": "2:5",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2024-10-13",
+      "opponent": "Passion FC",
+      "result": "win",
+      "score": "18:5",
+      "mvp": "윤종진"
+    },
+    {
+      "date": "2024-10-06",
+      "opponent": "FC 아르마다",
+      "result": "win",
+      "score": "3:2",
+      "mvp": "오진석"
+    },
+    {
+      "date": "2024-09-29",
+      "opponent": "유한FC",
+      "result": "win",
+      "score": "3:0",
+      "mvp": "서원덕"
+    },
+    {
+      "date": "2024-09-22",
+      "opponent": "유토피아FC",
+      "result": "win",
+      "score": "10:2",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2024-09-08",
+      "opponent": "싸이코스",
+      "result": "loss",
+      "score": "2:7",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2024-08-31",
+      "opponent": "무명FC",
+      "result": "loss",
+      "score": "1:5",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2024-08-25",
+      "opponent": "사커FC",
+      "result": "win",
+      "score": "8:6",
+      "mvp": "반기훈"
+    },
+    {
+      "date": "2024-08-18",
+      "opponent": "FC dental 치과의사축구팀",
+      "result": "win",
+      "score": "5:4",
+      "mvp": "곽웅"
+    },
+    {
+      "date": "2024-08-04",
+      "opponent": "신사에이스FC",
+      "result": "win",
+      "score": "5:4",
+      "mvp": "김경현"
+    },
+    {
+      "date": "2024-07-28",
+      "opponent": "FC차나마나",
+      "result": "win",
+      "score": "6:2",
+      "mvp": "이광수"
+    },
+    {
+      "date": "2024-07-20",
+      "opponent": "FC 포디",
+      "result": "win",
+      "score": "13:3",
+      "mvp": "곽웅"
+    },
+    {
+      "date": "2024-07-13",
+      "opponent": "정금축구단",
+      "result": "win",
+      "score": "9:6",
+      "mvp": "김진호"
+    },
+    {
+      "date": "2024-07-07",
+      "opponent": "FC 엘마노",
+      "result": "win",
+      "score": "5:3",
+      "mvp": "오진석"
+    },
+    {
+      "date": "2024-06-30",
+      "opponent": "한울FC",
+      "result": "win",
+      "score": "7:1",
+      "mvp": "곽웅"
+    },
+    {
+      "date": "2024-06-23",
+      "opponent": "FC리베로",
+      "result": "loss",
+      "score": "2:7",
+      "mvp": "김경배"
+    },
+    {
+      "date": "2024-06-16",
+      "opponent": "FC포텐",
+      "result": "win",
+      "score": "5:4",
+      "mvp": "이상보"
+    },
+    {
+      "date": "2024-06-09",
+      "opponent": "TEAM MARK",
+      "result": "loss",
+      "score": "6:8",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2024-06-02",
+      "opponent": "FC Swingz",
+      "result": "win",
+      "score": "11:1",
+      "mvp": "서원덕"
+    },
+    {
+      "date": "2024-05-25",
+      "opponent": "FC family",
+      "result": "loss",
+      "score": "3:8",
+      "mvp": "안창영"
+    },
+    {
+      "date": "2024-05-19",
+      "opponent": "FC 바스타드",
+      "result": "win",
+      "score": "6:3",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2024-05-11",
+      "opponent": "상록수축구단",
+      "result": "loss",
+      "score": "5:7",
+      "mvp": "이상보"
+    },
+    {
+      "date": "2024-05-05",
+      "opponent": "양동FC",
+      "result": "win",
+      "score": "3:2",
+      "mvp": "이항규"
+    },
+    {
+      "date": "2024-04-28",
+      "opponent": "FC SON",
+      "result": "win",
+      "score": "8:2",
+      "mvp": "곽웅"
+    },
+    {
+      "date": "2024-04-21",
+      "opponent": "한울FC",
+      "result": "draw",
+      "score": "1:1",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2024-04-14",
+      "opponent": "잠실FC",
+      "result": "win",
+      "score": "7:3",
+      "mvp": "서원덕"
+    },
+    {
+      "date": "2024-04-07",
+      "opponent": "중앙FC",
+      "result": "win",
+      "score": "13:2",
+      "mvp": "신규환"
+    },
+    {
+      "date": "2024-03-31",
+      "opponent": "DFC",
+      "result": "win",
+      "score": "7:2",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2024-03-23",
+      "opponent": "루나틱FC",
+      "result": "draw",
+      "score": "6:6",
+      "mvp": "이정호"
+    },
+    {
+      "date": "2024-03-17",
+      "opponent": "FC언남",
+      "result": "loss",
+      "score": "2:3",
+      "mvp": "박지성"
+    },
+    {
+      "date": "2024-03-10",
+      "opponent": "발모아FC",
+      "result": "win",
+      "score": "9:2",
+      "mvp": "오진석"
+    },
+    {
+      "date": "2024-03-03",
+      "opponent": "BTG FC",
+      "result": "win",
+      "score": "4:3",
+      "mvp": "이항규"
+    },
+    {
+      "date": "2024-02-25",
+      "opponent": "대진FC",
+      "result": "win",
+      "score": "3:2",
+      "mvp": "권창호"
+    },
+    {
+      "date": "2024-02-18",
+      "opponent": "FC 양천드래곤즈",
+      "result": "win",
+      "score": "6:2",
+      "mvp": "김경배"
+    },
+    {
+      "date": "2024-02-04",
+      "opponent": "드림 FC",
+      "result": "loss",
+      "score": "3:4",
+      "mvp": "오진석"
+    },
+    {
+      "date": "2024-01-28",
+      "opponent": "회기 유나이티드 즐겜팀",
+      "result": "win",
+      "score": "5:2",
+      "mvp": "이정호"
+    },
+    {
+      "date": "2024-01-20",
+      "opponent": "비상FC",
+      "result": "win",
+      "score": "7:4",
+      "mvp": "김기호"
+    },
+    {
+      "date": "2024-01-14",
+      "opponent": "R.S",
+      "result": "win",
+      "score": "5:3",
+      "mvp": "이상보"
+    },
+    {
+      "date": "2024-01-07",
+      "opponent": "FC Sunday",
+      "result": "win",
+      "score": "7:3",
+      "mvp": "유지현"
+    }
+  ],
+  "players": {
+    "이항규": {
+      "appearances": 43,
+      "goals": 43,
+      "mvp": 1
+    },
+    "오진석": {
+      "appearances": 47,
+      "goals": 70,
+      "mvp": 3
+    },
+    "이정호": {
+      "appearances": 17,
+      "goals": 22,
+      "mvp": 2
+    },
+    "이광수": {
+      "appearances": 38,
+      "goals": 10,
+      "mvp": 1
+    },
+    "김기호": {
+      "appearances": 38,
+      "goals": 24,
+      "mvp": 4
+    },
+    "권창호": {
+      "appearances": 13,
+      "goals": 16,
+      "mvp": 1
+    },
+    "이경윤": {
+      "appearances": 20,
+      "goals": 3,
+      "mvp": 0
+    },
+    "반기훈": {
+      "appearances": 23,
+      "goals": 4,
+      "mvp": 1
+    },
+    "곽웅": {
+      "appearances": 11,
+      "goals": 11,
+      "mvp": 3
+    },
+    "김경배": {
+      "appearances": 28,
+      "goals": 5,
+      "mvp": 2
+    },
+    "조인혁": {
+      "appearances": 19,
+      "goals": 14,
+      "mvp": 1
+    },
+    "안태수": {
+      "appearances": 16,
+      "goals": 1,
+      "mvp": 0
+    },
+    "김태종": {
+      "appearances": 9,
+      "goals": 3,
+      "mvp": 0
+    },
+    "신규환": {
+      "appearances": 37,
+      "goals": 6,
+      "mvp": 4
+    },
+    "안창영": {
+      "appearances": 15,
+      "goals": 3,
+      "mvp": 1
+    },
+    "김경현": {
+      "appearances": 7,
+      "goals": 2,
+      "mvp": 1
+    },
+    "강재웅": {
+      "appearances": 9,
+      "goals": 1,
+      "mvp": 0
+    },
+    "강용기": {
+      "appearances": 36,
+      "goals": 1,
+      "mvp": 0
+    },
+    "조상현": {
+      "appearances": 8,
+      "goals": 1,
+      "mvp": 0
+    },
+    "김진호": {
+      "appearances": 11,
+      "goals": 1,
+      "mvp": 1
+    },
+    "윤종진": {
+      "appearances": 5,
+      "goals": 6,
+      "mvp": 1
+    },
+    "윤준배": {
+      "appearances": 3,
+      "goals": 1,
+      "mvp": 0
+    },
+    "김영주": {
+      "appearances": 26,
+      "goals": 1,
+      "mvp": 0
+    },
+    "박지성": {
+      "appearances": 45,
+      "goals": 0,
+      "mvp": 4
+    },
+    "유지현": {
+      "appearances": 24,
+      "goals": 0,
+      "mvp": 1
+    },
+    "서원덕": {
+      "appearances": 33,
+      "goals": 0,
+      "mvp": 3
+    },
+    "이상보": {
+      "appearances": 10,
+      "goals": 0,
+      "mvp": 2
+    },
+    "김병태": {
+      "appearances": 14,
+      "goals": 0,
+      "mvp": 0
+    },
+    "박윤제": {
+      "appearances": 2,
+      "goals": 0,
+      "mvp": 0
+    },
+    "강현제": {
+      "appearances": 3,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김동규": {
+      "appearances": 5,
+      "goals": 0,
+      "mvp": 0
+    },
+    "강명국": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "윤정광": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "이치석": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "임태현": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "손의창": {
+      "appearances": 1,
+      "goals": 0,
+      "mvp": 0
+    },
+    "김종우": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "이지훈": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    },
+    "안수영": {
+      "appearances": 0,
+      "goals": 0,
+      "mvp": 0
+    }
+  }
+}

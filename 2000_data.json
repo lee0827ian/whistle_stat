@@ -1,0 +1,239 @@
+{
+    "season": "2000",
+    "matches": [
+        {
+            "date": "2000-12-23",
+            "opponent": "FC Sting",
+            "result": "loss",
+            "score": "0:10",
+            "mvp": ""
+        },
+        {
+            "date": "2000-12-17",
+            "opponent": "인공",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2000-12-03",
+            "opponent": "신화창조",
+            "result": "loss",
+            "score": "4:5",
+            "mvp": ""
+        },
+        {
+            "date": "2000-11-26",
+            "opponent": "FC. TRUNK",
+            "result": "win",
+            "score": "5:3",
+            "mvp": ""
+        },
+        {
+            "date": "2000-11-19",
+            "opponent": "야생마",
+            "result": "win",
+            "score": "3:2",
+            "mvp": ""
+        },
+        {
+            "date": "2000-11-12",
+            "opponent": "한국외대 포르투갈어과",
+            "result": "win",
+            "score": "14:0",
+            "mvp": ""
+        },
+        {
+            "date": "2000-11-05",
+            "opponent": "야생마",
+            "result": "loss",
+            "score": "0:1",
+            "mvp": ""
+        },
+        {
+            "date": "2000-10-14",
+            "opponent": "Sat's",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2000-10-01",
+            "opponent": "동국대 사회학과",
+            "result": "win",
+            "score": "8:2",
+            "mvp": ""
+        },
+        {
+            "date": "2000-09-24",
+            "opponent": "한국외대 포르투갈어과",
+            "result": "win",
+            "score": "6:5",
+            "mvp": ""
+        },
+        {
+            "date": "2000-09-17",
+            "opponent": "인공",
+            "result": "win",
+            "score": "4:3",
+            "mvp": ""
+        },
+        {
+            "date": "2000-09-03",
+            "opponent": "NETIAN 동아리",
+            "result": "draw",
+            "score": "4:4",
+            "mvp": ""
+        },
+        {
+            "date": "2000-08-13",
+            "opponent": "인공",
+            "result": "draw",
+            "score": "3:3",
+            "mvp": ""
+        },
+        {
+            "date": "2000-07-30",
+            "opponent": "천리안 동아리",
+            "result": "loss",
+            "score": "3:6",
+            "mvp": ""
+        },
+        {
+            "date": "2000-07-16",
+            "opponent": "고삐리",
+            "result": "loss",
+            "score": "4:5",
+            "mvp": ""
+        },
+        {
+            "date": "2000-07-09",
+            "opponent": "동국대 사회학과",
+            "result": "loss",
+            "score": "1:5",
+            "mvp": ""
+        }
+    ],
+    "players": {
+        "이근동": {
+            "appearances": 10,
+            "goals": 1,
+            "mvp": 0
+        },
+        "강명국": {
+            "appearances": 8,
+            "goals": 0,
+            "mvp": 0
+        },
+        "정현준": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "오지훈": {
+            "appearances": 16,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김영주": {
+            "appearances": 0,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이항규": {
+            "appearances": 16,
+            "goals": 7,
+            "mvp": 0
+        },
+        "강재웅": {
+            "appearances": 10,
+            "goals": 9,
+            "mvp": 0
+        },
+        "윤호진": {
+            "appearances": 10,
+            "goals": 8,
+            "mvp": 0
+        },
+        "김성환": {
+            "appearances": 12,
+            "goals": 15,
+            "mvp": 0
+        },
+        "문상봉": {
+            "appearances": 10,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김종성": {
+            "appearances": 15,
+            "goals": 2,
+            "mvp": 0
+        },
+        "이재희": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "지의태": {
+            "appearances": 6,
+            "goals": 1,
+            "mvp": 0
+        },
+        "지기남": {
+            "appearances": 3,
+            "goals": 0,
+            "mvp": 0
+        },
+        "김영균": {
+            "appearances": 4,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김기호": {
+            "appearances": 10,
+            "goals": 17,
+            "mvp": 0
+        },
+        "윤재혁": {
+            "appearances": 4,
+            "goals": 0,
+            "mvp": 0
+        },
+        "윤정광": {
+            "appearances": 6,
+            "goals": 0,
+            "mvp": 0
+        },
+        "최용신": {
+            "appearances": 10,
+            "goals": 1,
+            "mvp": 0
+        },
+        "주 철": {
+            "appearances": 1,
+            "goals": 0,
+            "mvp": 0
+        },
+        "박준석": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "이성재": {
+            "appearances": 2,
+            "goals": 0,
+            "mvp": 0
+        },
+        "심규혁": {
+            "appearances": 1,
+            "goals": 1,
+            "mvp": 0
+        },
+        "김영렬": {
+            "appearances": 2,
+            "goals": 1,
+            "mvp": 0
+        }
+    }
+}

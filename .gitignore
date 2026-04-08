@@ -1,0 +1,2 @@
+﻿.env
+"migrate.py" | Add-Content .gitignore
