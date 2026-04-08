@@ -180,25 +180,11 @@ body {
 .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
 .filter-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
-/* ── 경기 & 선수 목록 공통 ── */
-.match-archive-list { display: flex; flex-direction: column; gap: 8px; }
-
-/* 2. 역대 선수 목록 스크롤 커스텀 적용 */
-.player-ranking-list { 
+/* ── 경기 & 선수 목록 공통 (중복 병합 완료) ── */
+.match-archive-list, .player-ranking-list { 
     display: flex; 
     flex-direction: column; 
     gap: 8px; 
-    max-height: 720px; 
-    overflow-y: auto; 
-    padding-right: 6px; 
-}
-
-.player-ranking-list::-webkit-scrollbar {
-    width: 8px;
-}
-.player-ranking-list::-webkit-scrollbar-thumb {
-    background: #c9d1d9;
-    border-radius: 8px;
 }
 
 .match-archive-item, .player-rank-item {
@@ -417,4 +403,51 @@ body.page-mode-records #allTimeContent .next-matches-section,
 
 @media (min-width: 601px) and (max-width: 960px) {
     .container { padding: 0 16px 80px; }
+}
+
+/* =========================================
+   UI 영역별 개별 스크롤 및 헤더 고정 (최적화)
+   ========================================= */
+
+/* 1. 공통: 얇고 깔끔한 스크롤바 디자인 */
+.match-archive-list::-webkit-scrollbar,
+.player-ranking-list::-webkit-scrollbar,
+.table-container::-webkit-scrollbar { width: 6px; }
+
+.match-archive-list::-webkit-scrollbar-thumb,
+.player-ranking-list::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb { background: #c9d1d9; border-radius: 6px; }
+
+/* 2. Seasons 탭: 최근 경기 결과 (최근 3경기 기준 높이) */
+.match-archive-list {
+    overflow-y: auto;
+    max-height: 360px;
+    padding-right: 6px;
+}
+
+/* 3. Seasons 탭: 선수별 통계 (10명 기준 높이) */
+.player-ranking-list {
+    overflow-y: auto;
+    max-height: 680px;
+    padding-right: 6px;
+}
+
+/* 4. Records 탭: 역대 선수 기록 테이블 (15명 기준 높이) */
+#allTimeContent .section:first-of-type .table-container {
+    overflow-y: auto;
+    max-height: 640px;
+}
+
+/* 5. Records 탭: 역대 팀 기록 테이블 (최상위 7개 시즌 기준 높이) */
+#teamRecordsContainer .table-container {
+    overflow-y: auto;
+    max-height: 350px;
+}
+
+/* 6. 공통: 테이블(표) 스크롤 시 상단 헤더 고정 */
+.table-container th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #F8FAFC; 
 }
