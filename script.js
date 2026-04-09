@@ -1476,11 +1476,9 @@ async function loadAllTimeSeasonsParallel() {
     showStatusMessage('역대 기록을 불러오는 중...', 'loading');
 
     try {
-        const [playerStats, allMatches, legacySeasonStats, currentSeasonStats] = await Promise.all([
+        const [playerStats, allMatches] = await Promise.all([
             supabaseFetch('alltime_player_stats?select=name,total_appearances,total_goals,total_mvp&order=total_goals.desc'),
-            supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc'),
-            supabaseFetchAll('legacy_stats?select=season,appearances,players(name)&appearances=gt.0'),
-            supabaseFetchAll('season_player_stats?select=season,name,appearances&appearances=gt.0')
+            supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
         ]);
 
         const dbAllTimeStats = {};
@@ -1517,7 +1515,19 @@ async function loadAllTimeSeasonsParallel() {
         }));
 
         const teamRecords = calculateTeamRecords(matchesFormatted);
-        const debutTimeline = calculateDebutTimeline(allTimeStats, legacySeasonStats, currentSeasonStats);
+        let debutTimeline = [];
+
+        try {
+            const [legacySeasonStats, currentSeasonStats] = await Promise.all([
+                supabaseFetchAll('legacy_stats?select=season,appearances,players(name)&appearances=gt.0'),
+                supabaseFetchAll('season_player_stats?select=season,name,appearances&appearances=gt.0')
+            ]);
+
+            debutTimeline = calculateDebutTimeline(allTimeStats, legacySeasonStats, currentSeasonStats);
+        } catch (debutError) {
+            logError('데뷔년도 데이터 로드 실패:', debutError);
+            debutTimeline = [];
+        }
 
         hideStatusMessage();
         hideLoadingProgress();
@@ -1533,7 +1543,7 @@ async function loadAllTimeSeasonsParallel() {
     } catch(e) {
         logError('역대 기록 로드 실패:', e);
         showStatusMessage('역대 기록을 불러올 수 없습니다.', 'error');
-        return { stats: {}, matches: [], records: null, regional: [] };
+        return { stats: {}, matches: [], records: null, regional: [], debuts: [] };
     }
 }
 
