@@ -122,6 +122,10 @@ body {
 
 /* ── 메인 콘텐츠 & 시즌 요약 카드 ── */
 .main-content, .all-time-content { padding: 16px 20px 0; }
+.all-time-content { display: flex; flex-direction: column; }
+.all-time-content > .team-records-section { order: 1; }
+.all-time-content > .regional-records-section { order: 2; }
+.all-time-content > .section { order: 3; }
 
 .stats-overview {
     display: grid;
@@ -314,6 +318,7 @@ body {
 
 /* ── 지역별 기록 & 지도 ── */
 .team-records-section, .regional-records-section { margin-top: 24px; }
+.all-time-content > .team-records-section { margin-top: 0; }
 .heatmap-card { background: var(--bg-card); border: 1px solid var(--border-main); border-radius: 10px; padding: 16px; margin-top: 12px; }
 .section-subtitle { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; }
 #mapContainer { width: 100%; height: 280px; }

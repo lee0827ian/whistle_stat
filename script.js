@@ -2,6 +2,24 @@
 const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4";
 
+async function supabaseFetchAll(path, pageSize = 1000) {
+    const rows = [];
+    let offset = 0;
+
+    while (true) {
+        const separator = path.includes('?') ? '&' : '?';
+        const batch = await supabaseFetch(`${path}${separator}limit=${pageSize}&offset=${offset}`);
+
+        if (!Array.isArray(batch) || batch.length === 0) break;
+        rows.push(...batch);
+        if (batch.length < pageSize) break;
+
+        offset += pageSize;
+    }
+
+    return rows;
+}
+
 async function supabaseFetch(path) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
         headers: {
@@ -73,6 +91,284 @@ const CONFIG = {
         MAX_CONCURRENT: 3
     }
 };
+
+const MANUAL_ALLTIME_PLAYER_RECORDS = Object.fromEntries([
+    ['강규주', { totalAppearances: 5, totalGoals: 0 }],
+    ['강동규', { totalAppearances: 1, totalGoals: 1 }],
+    ['강동호', { totalAppearances: 2, totalGoals: 0 }],
+    ['강명국', { totalAppearances: 131, totalGoals: 1 }],
+    ['강목은', { totalAppearances: 2, totalGoals: 0 }],
+    ['강민수', { totalAppearances: 2, totalGoals: 0 }],
+    ['강백신', { totalAppearances: 1, totalGoals: 0 }],
+    ['강영찬', { totalAppearances: 2, totalGoals: 0 }],
+    ['강용기', { totalAppearances: 464, totalGoals: 32 }],
+    ['강재웅', { totalAppearances: 455, totalGoals: 166 }],
+    ['강진민', { totalAppearances: 3, totalGoals: 0 }],
+    ['강태경', { totalAppearances: 20, totalGoals: 0 }],
+    ['강현제', { totalAppearances: 13, totalGoals: 0 }],
+    ['고영규', { totalAppearances: 7, totalGoals: 1 }],
+    ['고일진', { totalAppearances: 2, totalGoals: 0 }],
+    ['고태경', { totalAppearances: 197, totalGoals: 64 }],
+    ['공재문', { totalAppearances: 11, totalGoals: 0 }],
+    ['구자홍', { totalAppearances: 5, totalGoals: 0 }],
+    ['곽 웅', { totalAppearances: 47, totalGoals: 31 }],
+    ['권순구', { totalAppearances: 17, totalGoals: 0 }],
+    ['권창호', { totalAppearances: 463, totalGoals: 433 }],
+    ['김경배', { totalAppearances: 589, totalGoals: 170 }],
+    ['김경현', { totalAppearances: 25, totalGoals: 4 }],
+    ['김광열', { totalAppearances: 70, totalGoals: 47 }],
+    ['김광엽', { totalAppearances: 6, totalGoals: 0 }],
+    ['김기범', { totalAppearances: 60, totalGoals: 35 }],
+    ['김기호', { totalAppearances: 366, totalGoals: 216 }],
+    ['김덕희', { totalAppearances: 9, totalGoals: 2 }],
+    ['김동현', { totalAppearances: 2, totalGoals: 0 }],
+    ['김동후', { totalAppearances: 38, totalGoals: 8 }],
+    ['김동규', { totalAppearances: 221, totalGoals: 8 }],
+    ['김명재', { totalAppearances: 47, totalGoals: 3 }],
+    ['김민석', { totalAppearances: 3, totalGoals: 1 }],
+    ['김민성', { totalAppearances: 27, totalGoals: 1 }],
+    ['김보경', { totalAppearances: 3, totalGoals: 0 }],
+    ['김병태', { totalAppearances: 427, totalGoals: 10 }],
+    ['김석환', { totalAppearances: 2, totalGoals: 2 }],
+    ['김성광', { totalAppearances: 21, totalGoals: 6 }],
+    ['김성환', { totalAppearances: 56, totalGoals: 45 }],
+    ['김세연', { totalAppearances: 1, totalGoals: 0 }],
+    ['김세원', { totalAppearances: 9, totalGoals: 2 }],
+    ['김소중', { totalAppearances: 11, totalGoals: 1 }],
+    ['김승태', { totalAppearances: 1, totalGoals: 0 }],
+    ['김영균', { totalAppearances: 10, totalGoals: 2 }],
+    ['김영렬', { totalAppearances: 2, totalGoals: 1 }],
+    ['김영윤', { totalAppearances: 1, totalGoals: 0 }],
+    ['김영주', { totalAppearances: 586, totalGoals: 27 }],
+    ['김영택', { totalAppearances: 2, totalGoals: 0 }],
+    ['김요한', { totalAppearances: 1, totalGoals: 0 }],
+    ['김용호', { totalAppearances: 2, totalGoals: 1 }],
+    ['김우철', { totalAppearances: 11, totalGoals: 2 }],
+    ['김유신', { totalAppearances: 6, totalGoals: 0 }],
+    ['김은택', { totalAppearances: 20, totalGoals: 3 }],
+    ['김장훈', { totalAppearances: 134, totalGoals: 90 }],
+    ['김정훈', { totalAppearances: 28, totalGoals: 0 }],
+    ['김종대', { totalAppearances: 17, totalGoals: 2 }],
+    ['김종민', { totalAppearances: 2, totalGoals: 1 }],
+    ['김종성', { totalAppearances: 60, totalGoals: 3 }],
+    ['김종우', { totalAppearances: 218, totalGoals: 149 }],
+    ['김종훈', { totalAppearances: 1, totalGoals: 0 }],
+    ['김주현', { totalAppearances: 4, totalGoals: 0 }],
+    ['김준형', { totalAppearances: 120, totalGoals: 0 }],
+    ['김준호', { totalAppearances: 37, totalGoals: 6 }],
+    ['김진성', { totalAppearances: 1, totalGoals: 0 }],
+    ['김진호', { totalAppearances: 323, totalGoals: 67 }],
+    ['김진혁', { totalAppearances: 3, totalGoals: 1 }],
+    ['김태종', { totalAppearances: 42, totalGoals: 36 }],
+    ['김현철', { totalAppearances: 3, totalGoals: 0 }],
+    ['김현호', { totalAppearances: 5, totalGoals: 1 }],
+    ['김형주', { totalAppearances: 2, totalGoals: 0 }],
+    ['나규병', { totalAppearances: 91, totalGoals: 10 }],
+    ['류기욱', { totalAppearances: 9, totalGoals: 2 }],
+    ['문상봉', { totalAppearances: 31, totalGoals: 2 }],
+    ['문승건', { totalAppearances: 6, totalGoals: 0 }],
+    ['민경철', { totalAppearances: 7, totalGoals: 2 }],
+    ['박대현', { totalAppearances: 1, totalGoals: 0 }],
+    ['박병걸', { totalAppearances: 6, totalGoals: 0 }],
+    ['박성준', { totalAppearances: 6, totalGoals: 1 }],
+    ['박성호', { totalAppearances: 33, totalGoals: 59 }],
+    ['박수일', { totalAppearances: 24, totalGoals: 1 }],
+    ['박용선', { totalAppearances: 1, totalGoals: 0 }],
+    ['박윤제', { totalAppearances: 55, totalGoals: 15 }],
+    ['박인수', { totalAppearances: 5, totalGoals: 0 }],
+    ['박재원', { totalAppearances: 4, totalGoals: 0 }],
+    ['박재현', { totalAppearances: 3, totalGoals: 0 }],
+    ['박제성', { totalAppearances: 1, totalGoals: 0 }],
+    ['박종훈', { totalAppearances: 1, totalGoals: 0 }],
+    ['박준수', { totalAppearances: 6, totalGoals: 1 }],
+    ['박준석', { totalAppearances: 8, totalGoals: 0 }],
+    ['박지성', { totalAppearances: 547, totalGoals: 23 }],
+    ['박진우', { totalAppearances: 2, totalGoals: 0 }],
+    ['박흥걸', { totalAppearances: 2, totalGoals: 0 }],
+    ['반기훈', { totalAppearances: 634, totalGoals: 234 }],
+    ['배병철', { totalAppearances: 1, totalGoals: 0 }],
+    ['사공훈', { totalAppearances: 4, totalGoals: 0 }],
+    ['서귀석', { totalAppearances: 25, totalGoals: 18 }],
+    ['서원덕', { totalAppearances: 238, totalGoals: 10 }],
+    ['석재호', { totalAppearances: 62, totalGoals: 6 }],
+    ['손유창', { totalAppearances: 20, totalGoals: 0 }],
+    ['손의창', { totalAppearances: 148, totalGoals: 106 }],
+    ['송문환', { totalAppearances: 24, totalGoals: 13 }],
+    ['송봉현', { totalAppearances: 8, totalGoals: 6 }],
+    ['송형돈', { totalAppearances: 3, totalGoals: 2 }],
+    ['신규환', { totalAppearances: 106, totalGoals: 27 }],
+    ['심규혁', { totalAppearances: 1, totalGoals: 1 }],
+    ['심기용', { totalAppearances: 1, totalGoals: 0 }],
+    ['안대훈', { totalAppearances: 2, totalGoals: 0 }],
+    ['안수영', { totalAppearances: 113, totalGoals: 21 }],
+    ['안영학', { totalAppearances: 7, totalGoals: 1 }],
+    ['안중오', { totalAppearances: 27, totalGoals: 14 }],
+    ['안찬식', { totalAppearances: 3, totalGoals: 0 }],
+    ['안창영', { totalAppearances: 288, totalGoals: 91 }],
+    ['안태수', { totalAppearances: 661, totalGoals: 191 }],
+    ['엄기영', { totalAppearances: 21, totalGoals: 1 }],
+    ['엄정호', { totalAppearances: 6, totalGoals: 0 }],
+    ['여상현', { totalAppearances: 6, totalGoals: 0 }],
+    ['연제승', { totalAppearances: 52, totalGoals: 5 }],
+    ['염재호', { totalAppearances: 3, totalGoals: 0 }],
+    ['오종성', { totalAppearances: 14, totalGoals: 2 }],
+    ['오지훈', { totalAppearances: 152, totalGoals: 1 }],
+    ['오진석', { totalAppearances: 271, totalGoals: 381 }],
+    ['오태균', { totalAppearances: 100, totalGoals: 24 }],
+    ['왕영훈', { totalAppearances: 1, totalGoals: 0 }],
+    ['우동진', { totalAppearances: 3, totalGoals: 0 }],
+    ['우민수', { totalAppearances: 28, totalGoals: 0 }],
+    ['우희헌', { totalAppearances: 31, totalGoals: 2 }],
+    ['유민호', { totalAppearances: 1, totalGoals: 0 }],
+    ['유승우', { totalAppearances: 13, totalGoals: 8 }],
+    ['유승우B', { totalAppearances: 1, totalGoals: 0 }],
+    ['유지현', { totalAppearances: 494, totalGoals: 44 }],
+    ['윤성훈', { totalAppearances: 5, totalGoals: 0 }],
+    ['윤성현', { totalAppearances: 2, totalGoals: 1 }],
+    ['윤유인', { totalAppearances: 1, totalGoals: 0 }],
+    ['윤재혁', { totalAppearances: 137, totalGoals: 6 }],
+    ['윤정광', { totalAppearances: 305, totalGoals: 3 }],
+    ['윤정재', { totalAppearances: 2, totalGoals: 0 }],
+    ['윤종진', { totalAppearances: 228, totalGoals: 178 }],
+    ['윤준배', { totalAppearances: 12, totalGoals: 2 }],
+    ['윤호진', { totalAppearances: 135, totalGoals: 37 }],
+    ['윤희중', { totalAppearances: 3, totalGoals: 0 }],
+    ['이가람', { totalAppearances: 2, totalGoals: 0 }],
+    ['이건우', { totalAppearances: 1, totalGoals: 0 }],
+    ['이경윤', { totalAppearances: 42, totalGoals: 5 }],
+    ['이경찬', { totalAppearances: 20, totalGoals: 2 }],
+    ['이광수', { totalAppearances: 229, totalGoals: 89 }],
+    ['이국민', { totalAppearances: 3, totalGoals: 2 }],
+    ['이근동', { totalAppearances: 23, totalGoals: 1 }],
+    ['이기룡', { totalAppearances: 2, totalGoals: 0 }],
+    ['이기쁨', { totalAppearances: 2, totalGoals: 1 }],
+    ['이동엽', { totalAppearances: 3, totalGoals: 2 }],
+    ['이두희', { totalAppearances: 6, totalGoals: 0 }],
+    ['이병선', { totalAppearances: 1, totalGoals: 0 }],
+    ['이상보', { totalAppearances: 65, totalGoals: 4 }],
+    ['이상엽', { totalAppearances: 5, totalGoals: 0 }],
+    ['(故) 이성재', { totalAppearances: 9, totalGoals: 3 }],
+    ['이성훈', { totalAppearances: 38, totalGoals: 2 }],
+    ['이양찬', { totalAppearances: 1, totalGoals: 0 }],
+    ['이윤석', { totalAppearances: 1, totalGoals: 0 }],
+    ['이욱섭', { totalAppearances: 3, totalGoals: 0 }],
+    ['이웅진', { totalAppearances: 25, totalGoals: 1 }],
+    ['이원일', { totalAppearances: 1, totalGoals: 0 }],
+    ['이원호', { totalAppearances: 17, totalGoals: 5 }],
+    ['이일용', { totalAppearances: 2, totalGoals: 0 }],
+    ['이재기', { totalAppearances: 6, totalGoals: 0 }],
+    ['이재용', { totalAppearances: 1, totalGoals: 0 }],
+    ['이재희', { totalAppearances: 55, totalGoals: 2 }],
+    ['이종욱', { totalAppearances: 5, totalGoals: 2 }],
+    ['이준성', { totalAppearances: 3, totalGoals: 2 }],
+    ['이정호', { totalAppearances: 279, totalGoals: 330 }],
+    ['이지훈', { totalAppearances: 53, totalGoals: 1 }],
+    ['이진성', { totalAppearances: 1, totalGoals: 0 }],
+    ['이진호', { totalAppearances: 12, totalGoals: 0 }],
+    ['이진희', { totalAppearances: 14, totalGoals: 0 }],
+    ['이 찬', { totalAppearances: 1, totalGoals: 1 }],
+    ['이치석', { totalAppearances: 219, totalGoals: 14 }],
+    ['이태원', { totalAppearances: 5, totalGoals: 0 }],
+    ['이항규', { totalAppearances: 1069, totalGoals: 966 }],
+    ['이현정', { totalAppearances: 37, totalGoals: 2 }],
+    ['이호영', { totalAppearances: 1, totalGoals: 0 }],
+    ['인 걸', { totalAppearances: 1, totalGoals: 1 }],
+    ['임기홍', { totalAppearances: 8, totalGoals: 0 }],
+    ['임슬기', { totalAppearances: 37, totalGoals: 2 }],
+    ['임인천', { totalAppearances: 2, totalGoals: 0 }],
+    ['임태현', { totalAppearances: 292, totalGoals: 45 }],
+    ['장문성', { totalAppearances: 1, totalGoals: 0 }],
+    ['장상우', { totalAppearances: 135, totalGoals: 34 }],
+    ['장석중', { totalAppearances: 7, totalGoals: 2 }],
+    ['장은철', { totalAppearances: 2, totalGoals: 0 }],
+    ['장재혁', { totalAppearances: 49, totalGoals: 3 }],
+    ['전윤길', { totalAppearances: 35, totalGoals: 14 }],
+    ['전재민', { totalAppearances: 3, totalGoals: 0 }],
+    ['전충원', { totalAppearances: 33, totalGoals: 0 }],
+    ['정경운', { totalAppearances: 52, totalGoals: 5 }],
+    ['정다운', { totalAppearances: 5, totalGoals: 1 }],
+    ['정민현', { totalAppearances: 2, totalGoals: 0 }],
+    ['정승훈', { totalAppearances: 14, totalGoals: 2 }],
+    ['정현준', { totalAppearances: 83, totalGoals: 0 }],
+    ['조상현', { totalAppearances: 400, totalGoals: 299 }],
+    ['조원재', { totalAppearances: 1, totalGoals: 0 }],
+    ['조인혁', { totalAppearances: 72, totalGoals: 54 }],
+    ['주  철', { totalAppearances: 3, totalGoals: 0 }],
+    ['지기남', { totalAppearances: 11, totalGoals: 0 }],
+    ['지의태', { totalAppearances: 7, totalGoals: 2 }],
+    ['지주현', { totalAppearances: 34, totalGoals: 7 }],
+    ['차경윤', { totalAppearances: 4, totalGoals: 0 }],
+    ['최광재', { totalAppearances: 5, totalGoals: 3 }],
+    ['최낙혁', { totalAppearances: 9, totalGoals: 12 }],
+    ['최성준', { totalAppearances: 2, totalGoals: 0 }],
+    ['최용신', { totalAppearances: 10, totalGoals: 1 }],
+    ['최준혁', { totalAppearances: 1, totalGoals: 0 }],
+    ['최진오', { totalAppearances: 5, totalGoals: 0 }],
+    ['최진우', { totalAppearances: 5, totalGoals: 0 }],
+    ['최태승', { totalAppearances: 16, totalGoals: 6 }],
+    ['최현철', { totalAppearances: 3, totalGoals: 0 }],
+    ['하승우', { totalAppearances: 107, totalGoals: 30 }],
+    ['하승협', { totalAppearances: 154, totalGoals: 53 }],
+    ['한승종', { totalAppearances: 42, totalGoals: 27 }],
+    ['허 승', { totalAppearances: 1, totalGoals: 0 }],
+    ['허지훈', { totalAppearances: 1, totalGoals: 0 }],
+    ['홍동현', { totalAppearances: 52, totalGoals: 27 }],
+    ['홍세철', { totalAppearances: 147, totalGoals: 22 }],
+    ['홍순욱', { totalAppearances: 2, totalGoals: 0 }],
+    ['홍우승', { totalAppearances: 1, totalGoals: 0 }],
+    ['홍제완', { totalAppearances: 34, totalGoals: 2 }],
+    ['홍종범', { totalAppearances: 12, totalGoals: 2 }],
+    ['홍태욱', { totalAppearances: 18, totalGoals: 1 }],
+    ['황  현', { totalAppearances: 1, totalGoals: 1 }]
+]);
+
+const MANUAL_ALLTIME_REGIONAL_RECORDS = [
+    { region: '전체', matches: 1233, wins: 790, draws: 119, losses: 324 },
+    { region: '강남구', matches: 75, wins: 46, draws: 5, losses: 24 },
+    { region: '강동구', matches: 48, wins: 33, draws: 6, losses: 9 },
+    { region: '강북구', matches: 27, wins: 20, draws: 2, losses: 5 },
+    { region: '강서구', matches: 76, wins: 43, draws: 12, losses: 21 },
+    { region: '관악구', matches: 68, wins: 40, draws: 8, losses: 20 },
+    { region: '광진구', matches: 53, wins: 34, draws: 4, losses: 15 },
+    { region: '구로구', matches: 39, wins: 30, draws: 5, losses: 4 },
+    { region: '금천구', matches: 18, wins: 15, draws: 0, losses: 3 },
+    { region: '노원구', matches: 100, wins: 66, draws: 10, losses: 24 },
+    { region: '도봉구', matches: 31, wins: 18, draws: 6, losses: 7 },
+    { region: '동대문구', matches: 59, wins: 35, draws: 6, losses: 18 },
+    { region: '동작구', matches: 36, wins: 26, draws: 0, losses: 10 },
+    { region: '마포구', matches: 29, wins: 23, draws: 1, losses: 5 },
+    { region: '서대문구', matches: 26, wins: 20, draws: 1, losses: 5 },
+    { region: '서초구', matches: 65, wins: 42, draws: 7, losses: 16 },
+    { region: '성동구', matches: 50, wins: 24, draws: 8, losses: 18 },
+    { region: '성북구', matches: 47, wins: 33, draws: 5, losses: 9 },
+    { region: '송파구', matches: 55, wins: 34, draws: 6, losses: 15 },
+    { region: '양천구', matches: 31, wins: 26, draws: 1, losses: 4 },
+    { region: '영등포구', matches: 57, wins: 35, draws: 5, losses: 17 },
+    { region: '용산구', matches: 17, wins: 9, draws: 1, losses: 7 },
+    { region: '은평구', matches: 15, wins: 6, draws: 0, losses: 9 },
+    { region: '종로구', matches: 16, wins: 12, draws: 3, losses: 1 },
+    { region: '중구', matches: 40, wins: 32, draws: 1, losses: 7 },
+    { region: '중랑구', matches: 50, wins: 32, draws: 4, losses: 14 },
+    { region: '고양시', matches: 14, wins: 10, draws: 1, losses: 3 },
+    { region: '광명시', matches: 16, wins: 6, draws: 2, losses: 8 },
+    { region: '구리시', matches: 3, wins: 1, draws: 0, losses: 2 },
+    { region: '군포시', matches: 1, wins: 1, draws: 0, losses: 0 },
+    { region: '김포시', matches: 1, wins: 0, draws: 0, losses: 1 },
+    { region: '남양주시', matches: 7, wins: 1, draws: 1, losses: 5 },
+    { region: '부천시', matches: 11, wins: 7, draws: 2, losses: 2 },
+    { region: '성남시', matches: 24, wins: 13, draws: 4, losses: 7 },
+    { region: '수원시', matches: 2, wins: 2, draws: 0, losses: 0 },
+    { region: '시흥시', matches: 1, wins: 1, draws: 0, losses: 0 },
+    { region: '안양시', matches: 5, wins: 2, draws: 1, losses: 2 },
+    { region: '양주시', matches: 1, wins: 1, draws: 0, losses: 0 },
+    { region: '양평군', matches: 1, wins: 0, draws: 0, losses: 1 },
+    { region: '용인시', matches: 2, wins: 1, draws: 0, losses: 1 },
+    { region: '의왕시', matches: 4, wins: 4, draws: 0, losses: 0 },
+    { region: '의정부시', matches: 6, wins: 3, draws: 1, losses: 2 },
+    { region: '파주시', matches: 0, wins: 0, draws: 0, losses: 0 },
+    { region: '평택시', matches: 1, wins: 1, draws: 0, losses: 0 },
+    { region: '하남시', matches: 5, wins: 2, draws: 0, losses: 3 }
+];
 
 const SEASON_DISPLAY_OVERRIDES = {
     '2025': {
@@ -1181,15 +1477,31 @@ async function loadAllTimeSeasonsParallel() {
     try {
         const [playerStats, allMatches] = await Promise.all([
             supabaseFetch('alltime_player_stats?select=name,total_appearances,total_goals,total_mvp&order=total_goals.desc'),
-            supabaseFetch('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
+            supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
         ]);
 
-        const allTimeStats = {};
+        const dbAllTimeStats = {};
         playerStats.forEach(p => {
-            allTimeStats[p.name] = {
+            dbAllTimeStats[p.name] = {
                 totalAppearances: p.total_appearances || 0,
                 totalGoals: p.total_goals || 0,
                 totalMvp: p.total_mvp || 0
+            };
+        });
+
+        const manualNames = Object.keys(MANUAL_ALLTIME_PLAYER_RECORDS);
+
+        // DB 데이터를 기본값으로, 수동기록으로 덮어쓰기 (수동 우선 → DB 폴백)
+        const allTimeStats = { ...dbAllTimeStats };
+
+        manualNames.forEach(name => {
+            const manual = MANUAL_ALLTIME_PLAYER_RECORDS[name];
+            const db = dbAllTimeStats[name] || {};
+
+            allTimeStats[name] = {
+                totalAppearances: manual.totalAppearances ?? 0,
+                totalGoals: manual.totalGoals ?? 0,
+                totalMvp: db.totalMvp || 0
             };
         });
 
@@ -1210,7 +1522,7 @@ async function loadAllTimeSeasonsParallel() {
             stats: allTimeStats,
             matches: matchesFormatted,
             records: teamRecords,
-            regional: []
+            regional: MANUAL_ALLTIME_REGIONAL_RECORDS
         };
 
     } catch(e) {
@@ -1267,7 +1579,8 @@ function updateRegionalTable(regionalData = AppState.data.regionalStats, sortBy 
 
     tbody.innerHTML = '';
 
-    if (!regionalData || regionalData.length === 0) {
+    const heatmapData = (regionalData || []).filter(region => region.region !== '전체');
+    if (heatmapData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="no-data">지역별 데이터가 없습니다.</td></tr>';
         updateRegionalSortIndicators(sortBy);
         return;
@@ -1290,6 +1603,9 @@ function updateRegionalTable(regionalData = AppState.data.regionalStats, sortBy 
     });
 
     sorted.sort((a, b) => {
+        if (a.region === '전체') return -1;
+        if (b.region === '전체') return 1;
+
         switch (sortBy) {
             case 'matches':
                 return b.matches - a.matches;
@@ -1348,7 +1664,7 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
         return;
     }
 
-    const enriched = regionalData.map(region => ({
+    const enriched = regionalData.filter(r => r.region !== '전체').map(region => ({
         ...region,
         matches: Number(region.matches) || 0,
         wins: Number(region.wins) || 0,
