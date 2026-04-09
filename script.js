@@ -49,6 +49,7 @@ const AppState = {
     },
     ui: {
         currentFilter: 'all',
+        currentAllTimeFilter: 'attendance',
         currentRegionalFilter: 'winrate',
         currentTeamSort: 'season',
         currentMainTab: 'home',
@@ -1535,7 +1536,11 @@ async function loadAllTimeSeasonsParallel() {
 
 // UI/Event Handler 함수
 function filterPlayers(filter) {
-    AppState.ui.currentFilter = filter;
+    if (AppState.data.isAllTimeView) {
+        AppState.ui.currentAllTimeFilter = filter;
+    } else {
+        AppState.ui.currentFilter = filter;
+    }
 
     document.querySelectorAll('.player-filter-controls .filter-btn').forEach(button => {
         button.classList.toggle('active', button.dataset.filter === filter);
@@ -1678,8 +1683,8 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
     };
 
     const columns = Math.min(4, enriched.length);
-    const cellWidth = 90;
-    const cellHeight = 70;
+    const cellWidth = 124;
+    const cellHeight = 100;
     const gap = 12;
     const padding = 20;
     const rows = Math.ceil(enriched.length / columns);
@@ -1806,6 +1811,106 @@ function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
             </div>
             <div>
                 <span>최대 패배</span>
+                <strong>${toughestLoss ? `${toughestLoss.season} ${toughestLoss.score} vs ${toughestLoss.opponent}` : '-'}</strong>
+            </div>
+        </div>
+        <div class="filter-controls team-sort-controls">
+            <button class="filter-btn ${sortBy === 'season' ? 'active' : ''}" onclick="filterTeamRecords('season')">시즌 순</button>
+            <button class="filter-btn ${sortBy === 'winrate' ? 'active' : ''}" onclick="filterTeamRecords('winrate')">승률 순</button>
+            <button class="filter-btn ${sortBy === 'wins' ? 'active' : ''}" onclick="filterTeamRecords('wins')">승수 순</button>
+            <button class="filter-btn ${sortBy === 'matches' ? 'active' : ''}" onclick="filterTeamRecords('matches')">경기수 순</button>
+        </div>
+        <div class="table-container">
+            <table class="players-table">
+                <thead>
+                    <tr>
+                        <th>시즌</th>
+                        <th>경기수</th>
+                        <th>승</th>
+                        <th>무</th>
+                        <th>패</th>
+                        <th>승률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${seasonRows}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
+    const container = document.getElementById('teamRecordsContainer');
+    if (!container) return;
+
+    if (!teamRecords) {
+        container.innerHTML = '<div class="no-data">팀 기록을 계산할 데이터가 없습니다.</div>';
+        return;
+    }
+
+    const { overall, perSeason, biggestWin, toughestLoss } = teamRecords;
+    const formatNumber = (value) => Number(value || 0).toLocaleString('ko-KR');
+    const overallRecordText = `${formatNumber(overall.matches)}경기`;
+    const overallRecordDetail = `${formatNumber(overall.wins)}승 ${formatNumber(overall.draws)}무 ${formatNumber(overall.losses)}패`;
+    const overallWinRateText = `${Number(overall.winRate || 0).toFixed(1)}%`;
+    const goalRecordText = `${formatNumber(overall.goalsFor)} / ${formatNumber(overall.goalsAgainst)}`;
+
+    const sortedPerSeason = [...perSeason];
+    sortedPerSeason.sort((a, b) => {
+        switch (sortBy) {
+            case 'matches':
+                return b.matches - a.matches || b.winRate - a.winRate;
+            case 'wins':
+                return b.wins - a.wins || b.winRate - a.winRate;
+            case 'winrate':
+                return b.winRate - a.winRate || b.matches - a.matches;
+            case 'losses':
+                return b.losses - a.losses || b.matches - a.matches;
+            case 'draws':
+                return b.draws - a.draws || b.matches - a.matches;
+            case 'season':
+            default:
+                return b.season.localeCompare(a.season);
+        }
+    });
+
+    const seasonRows = sortedPerSeason.length > 0 ? sortedPerSeason.map(stats => `
+        <tr>
+            <td>${stats.season}</td>
+            <td>${stats.matches}</td>
+            <td>${stats.wins}</td>
+            <td>${stats.draws}</td>
+            <td>${stats.losses}</td>
+            <td>${stats.winRate}%</td>
+        </tr>
+    `).join('') : '<tr><td colspan="6" class="no-data">시즌별 기록이 없습니다.</td></tr>';
+
+    container.innerHTML = `
+        <div class="team-overview">
+            <div class="team-summary-card">
+                <div class="team-summary-label"><span class="team-summary-icon">1</span>총 경기</div>
+                <div class="team-summary-value">${overallRecordText}</div>
+                <div class="team-summary-detail">${overallRecordDetail}</div>
+            </div>
+            <div class="team-summary-card">
+                <div class="team-summary-label"><span class="team-summary-icon">2</span>통산 승률</div>
+                <div class="team-summary-value">${overallWinRateText}</div>
+                <div class="team-summary-detail">경기 결과 기준 승률</div>
+            </div>
+            <div class="team-summary-card">
+                <div class="team-summary-label"><span class="team-summary-icon">3</span>득점 / 실점</div>
+                <div class="team-summary-value">${goalRecordText}</div>
+                <div class="team-summary-detail">통산 누적 득점과 실점</div>
+            </div>
+        </div>
+        <div class="team-highlights">
+            <div>
+                <span>최대 승리</span>
+                <strong>${biggestWin ? `${biggestWin.season} ${biggestWin.score} vs ${biggestWin.opponent}` : '-'}</strong>
+            </div>
+            <div>
+                <span>최다 실점 경기</span>
                 <strong>${toughestLoss ? `${toughestLoss.season} ${toughestLoss.score} vs ${toughestLoss.opponent}` : '-'}</strong>
             </div>
         </div>
@@ -1963,7 +2068,7 @@ async function toggleAllTimeView() {
 
         if (AppState.allTime.loaded) {
             updateAllTimeRankings(AppState.allTime.stats);
-            updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentFilter);
+            updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentAllTimeFilter);
             updateTeamRecords(AppState.allTime.records, AppState.ui.currentTeamSort);
             updateRegionalTable(AppState.allTime.regional, AppState.ui.currentRegionalFilter);
             createRegionalHeatmap(AppState.allTime.regional);
@@ -1972,7 +2077,7 @@ async function toggleAllTimeView() {
 
     updateStats();
     updateButtonStates();
-    filterPlayers(AppState.ui.currentFilter);
+    filterPlayers(AppState.data.isAllTimeView ? AppState.ui.currentAllTimeFilter : AppState.ui.currentFilter);
     filterRegional(AppState.ui.currentRegionalFilter);
 }
 
