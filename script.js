@@ -71,7 +71,8 @@ const AppState = {
         stats: {},
         matches: [],
         records: null,
-        regional: []
+        regional: [],
+        debuts: []
     }
 };
 
@@ -1397,7 +1398,6 @@ async function loadData() {
         updateTable(AppState.data.matches, [], 'matchesList', 'matches');
         updateSchedule(data.schedules || []);
         updateRegionalTable(AppState.data.regionalStats, AppState.ui.currentRegionalFilter);
-        createRegionalHeatmap(AppState.data.regionalStats);
 
         if (data.schedules && data.schedules.length > 0) {
              loadKakaoMap();
@@ -1476,9 +1476,11 @@ async function loadAllTimeSeasonsParallel() {
     showStatusMessage('역대 기록을 불러오는 중...', 'loading');
 
     try {
-        const [playerStats, allMatches] = await Promise.all([
+        const [playerStats, allMatches, legacySeasonStats, currentSeasonStats] = await Promise.all([
             supabaseFetch('alltime_player_stats?select=name,total_appearances,total_goals,total_mvp&order=total_goals.desc'),
-            supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
+            supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc'),
+            supabaseFetchAll('legacy_stats?select=season,appearances,players(name)&appearances=gt.0'),
+            supabaseFetchAll('season_player_stats?select=season,name,appearances&appearances=gt.0')
         ]);
 
         const dbAllTimeStats = {};
@@ -1515,6 +1517,7 @@ async function loadAllTimeSeasonsParallel() {
         }));
 
         const teamRecords = calculateTeamRecords(matchesFormatted);
+        const debutTimeline = calculateDebutTimeline(allTimeStats, legacySeasonStats, currentSeasonStats);
 
         hideStatusMessage();
         hideLoadingProgress();
@@ -1523,7 +1526,8 @@ async function loadAllTimeSeasonsParallel() {
             stats: allTimeStats,
             matches: matchesFormatted,
             records: teamRecords,
-            regional: MANUAL_ALLTIME_REGIONAL_RECORDS
+            regional: MANUAL_ALLTIME_REGIONAL_RECORDS,
+            debuts: debutTimeline
         };
 
     } catch(e) {
@@ -1567,7 +1571,10 @@ function filterRegional(filter) {
         : AppState.data.regionalStats;
 
     updateRegionalTable(dataSource, filter);
-    createRegionalHeatmap(dataSource);
+
+    if (AppState.data.isAllTimeView && AppState.allTime.loaded) {
+        updateDebutTimeline(AppState.allTime.debuts);
+    }
 }
 
 function filterTeamRecords(sortBy) {
@@ -1715,6 +1722,102 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
         <rect x="0" y="0" width="${width}" height="${height}" fill="#f8fafc" rx="12"></rect>
         ${cells}
     `;
+}
+
+function calculateDebutTimeline(allTimeStats = {}, legacySeasonStats = [], currentSeasonStats = []) {
+    const debutByName = new Map();
+    const totalsByName = new Map();
+
+    const registerDebut = (name, season) => {
+        if (!name || season === null || season === undefined) return;
+
+        const numericSeason = Number(season);
+        if (!Number.isFinite(numericSeason)) return;
+
+        const current = debutByName.get(name);
+        if (current === undefined || numericSeason < current) {
+            debutByName.set(name, numericSeason);
+        }
+    };
+
+    const addAppearances = (name, appearances) => {
+        if (!name) return;
+        const numericAppearances = Number(appearances) || 0;
+        if (numericAppearances <= 0) return;
+
+        totalsByName.set(name, (totalsByName.get(name) || 0) + numericAppearances);
+    };
+
+    (legacySeasonStats || []).forEach(entry => {
+        const appearances = Number(entry?.appearances) || 0;
+        const name = entry?.players?.name;
+        if (appearances > 0) {
+            registerDebut(name, entry.season);
+            addAppearances(name, appearances);
+        }
+    });
+
+    (currentSeasonStats || []).forEach(entry => {
+        const appearances = Number(entry?.appearances) || 0;
+        if (appearances > 0) {
+            registerDebut(entry?.name, entry?.season);
+            addAppearances(entry?.name, appearances);
+        }
+    });
+
+    const grouped = new Map();
+
+    debutByName.forEach((season, name) => {
+        const totals = allTimeStats[name] || {};
+        if (!grouped.has(season)) {
+            grouped.set(season, []);
+        }
+
+        grouped.get(season).push({
+            name,
+            totalAppearances: Number(totals.totalAppearances) || totalsByName.get(name) || 0,
+            totalGoals: Number(totals.totalGoals) || 0,
+            totalMvp: Number(totals.totalMvp) || 0
+        });
+    });
+
+    return Array.from(grouped.entries())
+        .map(([season, players]) => ({
+            season,
+            players: players.sort((a, b) =>
+                (b.totalAppearances - a.totalAppearances) ||
+                (b.totalGoals - a.totalGoals) ||
+                (b.totalMvp - a.totalMvp) ||
+                koreanCollator.compare(a.name, b.name)
+            )
+        }))
+        .sort((a, b) => b.season - a.season);
+}
+
+function updateDebutTimeline(debutTimeline = AppState.allTime.debuts) {
+    const container = document.getElementById('debutTimelineContainer');
+    if (!container) return;
+
+    if (!debutTimeline || debutTimeline.length === 0) {
+        container.innerHTML = '<div class="no-data">데뷔년도 데이터가 없습니다.</div>';
+        return;
+    }
+
+    container.innerHTML = debutTimeline.map(group => {
+        const playersMarkup = group.players.map(player => `
+            <div class="debut-player-chip">
+                <strong>${player.name}</strong>
+                <span>${player.totalAppearances}경기</span>
+            </div>
+        `).join('');
+
+        return `
+            <section class="debut-year-group">
+                <h4 class="debut-year-title">${group.season}년</h4>
+                <div class="debut-player-list">${playersMarkup}</div>
+            </section>
+        `;
+    }).join('');
 }
 
 function updateAllTimeRankings(allTimeStats) {
@@ -2063,6 +2166,7 @@ async function toggleAllTimeView() {
                 AppState.allTime.matches = result.matches;
                 AppState.allTime.records = result.records;
                 AppState.allTime.regional = result.regional;
+                AppState.allTime.debuts = result.debuts;
             }
         }
 
@@ -2071,7 +2175,7 @@ async function toggleAllTimeView() {
             updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentAllTimeFilter);
             updateTeamRecords(AppState.allTime.records, AppState.ui.currentTeamSort);
             updateRegionalTable(AppState.allTime.regional, AppState.ui.currentRegionalFilter);
-            createRegionalHeatmap(AppState.allTime.regional);
+            updateDebutTimeline(AppState.allTime.debuts);
         }
     }
 
