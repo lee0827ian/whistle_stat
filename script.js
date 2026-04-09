@@ -1518,12 +1518,10 @@ async function loadAllTimeSeasonsParallel() {
         let debutTimeline = [];
 
         try {
-            const [legacySeasonStats, currentSeasonStats] = await Promise.all([
-                supabaseFetchAll('legacy_stats?select=season,appearances,players(name)&appearances=gt.0'),
-                supabaseFetchAll('season_player_stats?select=season,name,appearances&appearances=gt.0')
-            ]);
-
-            debutTimeline = calculateDebutTimeline(allTimeStats, legacySeasonStats, currentSeasonStats);
+            const lineupData = await supabaseFetchAll(
+                'match_lineups?select=players(name),matches(season)&is_mercenary=eq.false&player_id=not.is.null'
+            );
+            debutTimeline = calculateDebutTimelineFromLineups(lineupData, allTimeStats);
         } catch (debutError) {
             logError('데뷔년도 데이터 로드 실패:', debutError);
             debutTimeline = [];
@@ -1734,58 +1732,30 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
     `;
 }
 
-function calculateDebutTimeline(allTimeStats = {}, legacySeasonStats = [], currentSeasonStats = []) {
+function calculateDebutTimelineFromLineups(lineupData = [], allTimeStats = {}) {
     const debutByName = new Map();
-    const totalsByName = new Map();
+    const appearancesByName = new Map();
 
-    const registerDebut = (name, season) => {
-        if (!name || season === null || season === undefined) return;
-
-        const numericSeason = Number(season);
-        if (!Number.isFinite(numericSeason)) return;
+    (lineupData || []).forEach(entry => {
+        const name = entry?.players?.name;
+        const season = Number(entry?.matches?.season);
+        if (!name || !Number.isFinite(season)) return;
 
         const current = debutByName.get(name);
-        if (current === undefined || numericSeason < current) {
-            debutByName.set(name, numericSeason);
+        if (current === undefined || season < current) {
+            debutByName.set(name, season);
         }
-    };
-
-    const addAppearances = (name, appearances) => {
-        if (!name) return;
-        const numericAppearances = Number(appearances) || 0;
-        if (numericAppearances <= 0) return;
-
-        totalsByName.set(name, (totalsByName.get(name) || 0) + numericAppearances);
-    };
-
-    (legacySeasonStats || []).forEach(entry => {
-        const appearances = Number(entry?.appearances) || 0;
-        const name = entry?.players?.name;
-        if (appearances > 0) {
-            registerDebut(name, entry.season);
-            addAppearances(name, appearances);
-        }
-    });
-
-    (currentSeasonStats || []).forEach(entry => {
-        const appearances = Number(entry?.appearances) || 0;
-        if (appearances > 0) {
-            registerDebut(entry?.name, entry?.season);
-            addAppearances(entry?.name, appearances);
-        }
+        appearancesByName.set(name, (appearancesByName.get(name) || 0) + 1);
     });
 
     const grouped = new Map();
 
     debutByName.forEach((season, name) => {
         const totals = allTimeStats[name] || {};
-        if (!grouped.has(season)) {
-            grouped.set(season, []);
-        }
-
+        if (!grouped.has(season)) grouped.set(season, []);
         grouped.get(season).push({
             name,
-            totalAppearances: Number(totals.totalAppearances) || totalsByName.get(name) || 0,
+            totalAppearances: Number(totals.totalAppearances) || appearancesByName.get(name) || 0,
             totalGoals: Number(totals.totalGoals) || 0,
             totalMvp: Number(totals.totalMvp) || 0
         });

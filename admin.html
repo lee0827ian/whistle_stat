@@ -106,7 +106,39 @@
   .badge.active { background: rgba(46,204,113,.15); color: var(--green); }
   .badge.inactive { background: rgba(231,76,60,.15); color: var(--red); }
 
-  @media (max-width: 480px) { .form-row.col3 { grid-template-columns: 1fr 1fr; } .topbar-nav .nav-btn { padding: 6px 10px; font-size: 12px; } }
+  @media (max-width: 600px) {
+    /* 로그인 */
+    .login-box { width: 92%; padding: 28px 18px; }
+
+    /* 탑바: 로고+로그아웃(1행) / 네비(2행) */
+    .topbar { height: auto; flex-wrap: wrap; padding: 10px 12px; gap: 6px; }
+    .topbar-logo { order: 1; font-size: 16px; }
+    .logout-btn { order: 2; font-size: 11px; padding: 5px 10px; }
+    .topbar-nav { order: 3; width: 100%; display: flex; gap: 4px; }
+    .nav-btn { flex: 1; text-align: center; padding: 7px 4px; font-size: 12px; }
+
+    /* 메인 패딩 */
+    .main { padding: 16px 12px 80px; }
+    .section-title { font-size: 17px; margin-bottom: 16px; }
+    .card { padding: 16px 14px; margin-bottom: 14px; }
+
+    /* 폼: col2, col3 모두 1열 */
+    .form-row.col2, .form-row.col3 { grid-template-columns: 1fr; }
+
+    /* 득점 행: 입력란 줄이기 */
+    .goal-row { grid-template-columns: 1fr 64px 36px; }
+
+    /* 출전 선수 그리드 */
+    .player-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+
+    /* 선수 테이블: 가로 스크롤 */
+    .card { overflow-x: auto; }
+    .player-table { font-size: 12px; min-width: 300px; }
+    .player-table th, .player-table td { padding: 8px 8px; }
+
+    /* 저장 버튼 */
+    .btn-save { font-size: 15px; padding: 13px; }
+  }
 </style>
 </head>
 <body>
