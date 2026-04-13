@@ -249,7 +249,7 @@ const MANUAL_ALLTIME_PLAYER_RECORDS = Object.fromEntries([
     ['이병선', { totalAppearances: 1, totalGoals: 0 }],
     ['이상보', { totalAppearances: 65, totalGoals: 4 }],
     ['이상엽', { totalAppearances: 5, totalGoals: 0 }],
-    ['(故) 이성재', { totalAppearances: 9, totalGoals: 3 }],
+    ['이성재', { totalAppearances: 9, totalGoals: 3 }],
     ['이성훈', { totalAppearances: 38, totalGoals: 2 }],
     ['이양찬', { totalAppearances: 1, totalGoals: 0 }],
     ['이윤석', { totalAppearances: 1, totalGoals: 0 }],
@@ -1481,31 +1481,16 @@ async function loadAllTimeSeasonsParallel() {
             supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
         ]);
 
-        const dbAllTimeStats = {};
+        const allTimeStats = {};
         playerStats.forEach(p => {
-            dbAllTimeStats[p.name] = {
+            allTimeStats[p.name] = {
                 totalAppearances: p.total_appearances || 0,
                 totalGoals: p.total_goals || 0,
                 totalMvp: p.total_mvp || 0
             };
         });
 
-        const manualNames = Object.keys(MANUAL_ALLTIME_PLAYER_RECORDS);
-
-        // DB 데이터를 기본값으로, 수동기록으로 덮어쓰기 (수동 우선 → DB 폴백)
-        const allTimeStats = { ...dbAllTimeStats };
-
-        manualNames.forEach(name => {
-            const manual = MANUAL_ALLTIME_PLAYER_RECORDS[name];
-            const db = dbAllTimeStats[name] || {};
-
-            allTimeStats[name] = {
-                totalAppearances: manual.totalAppearances ?? 0,
-                totalGoals: manual.totalGoals ?? 0,
-                totalMvp: db.totalMvp || 0
-            };
-        });
-
+        // 역대 선수 기록은 DB raw 집계 뷰를 단일 기준으로 사용한다.
         const matchesFormatted = allMatches.map(m => ({
             season: m.season,
             date: m.date,
