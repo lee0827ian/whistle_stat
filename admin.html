@@ -332,7 +332,8 @@ async function init() {
 }
 
 async function loadPlayers() {
-    allPlayers = await sbFetch("GET", "players", null, "?active=eq.true&order=number.asc");
+    // ADMIN 경기 입력은 등번호가 부여된 휘슬러 로스터만 사용한다.
+    allPlayers = await sbFetch("GET", "players", null, "?number=not.is.null&order=number.asc");
 }
 
 // ── 💡 출전 선수 렌더링 및 초성 필터 로직 ──
@@ -362,6 +363,17 @@ function togglePlayer(cb) {
 function getCheckedPlayers() {
     return [...document.querySelectorAll("#lineupGrid input:checked")]
         .map(cb => ({ id: parseInt(cb.value), name: allPlayers.find(p => p.id == cb.value)?.name }));
+}
+
+function resolveCheckedPlayer(inputName, checkedPlayers) {
+    const name = inputName.trim();
+    if (!name) return null;
+
+    const exactMatch = checkedPlayers.find(p => p.name === name);
+    if (exactMatch) return exactMatch;
+
+    const fuzzyMatches = checkedPlayers.filter(p => matchName(p.name, name));
+    return fuzzyMatches.length === 1 ? fuzzyMatches[0] : null;
 }
 
 // ── 💡 앱 스타일 네이티브 자동완성 UI ──
@@ -442,7 +454,7 @@ async function saveMatch() {
             const count = parseInt(row.querySelector(".goal-count").value) || 1;
             let playerId = null;
             if (inputName) {
-                const matchedUser = checked.find(p => p.name === inputName);
+                const matchedUser = resolveCheckedPlayer(inputName, checked);
                 if (matchedUser) playerId = matchedUser.id;
             }
             for (let i = 0; i < count; i++) await sbFetch("POST", "match_goals", { match_id: matchId, player_id: playerId, is_mercenary: !playerId, goal_type: "normal" });
@@ -450,7 +462,7 @@ async function saveMatch() {
         
         // MVP 저장
         if (mvpName) {
-            const matchedMvp = checked.find(p => p.name === mvpName);
+            const matchedMvp = resolveCheckedPlayer(mvpName, checked);
             if (matchedMvp) await sbFetch("POST", "match_mvps", { match_id: matchId, player_id: matchedMvp.id, raw_name: matchedMvp.name });
         }
 
