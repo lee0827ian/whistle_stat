@@ -81,8 +81,6 @@ const CONFIG = {
     AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
     DEFAULT_SEASON: '2026',
     KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
-    BASE_PATH: './',
-    DATA_PATH: (season) => `${CONFIG.BASE_PATH}${season}_data.json`,
     VENUE: {
         name: '성불빌라',
         address: '서울 노원구 동일로231가길 7',
@@ -1359,32 +1357,14 @@ async function loadData() {
         }
         AppState.network.currentAbortController = new AbortController();
 
-        let data, dataSource = 'JSON 파일';
+        let data, dataSource = 'Supabase';
         const currentSeasonKey = AppState.data.currentSeason;
 
         if (seasonDataCache.has(currentSeasonKey)) {
             data = seasonDataCache.get(currentSeasonKey);
             dataSource = '캐시';
         } else {
-            const fetchJsonSeason = async () => {
-                const response = await fetch(CONFIG.DATA_PATH(currentSeasonKey), {
-                    signal: AppState.network.currentAbortController.signal,
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
-                const rawData = await response.json();
-                return validateSeasonData(rawData);
-            };
-
-            try {
-                data = await loadFromGoogleSheets(currentSeasonKey);
-                dataSource = 'Supabase';
-            } catch (sbError) {
-                logInfo('Supabase 로딩 실패, JSON 파일로 대체:', sbError.message);
-                data = await fetchJsonSeason();
-                dataSource = 'JSON 파일 (대체)';
-            }
-
+            data = await loadFromGoogleSheets(currentSeasonKey);
             seasonDataCache.set(currentSeasonKey, data);
         }
 
@@ -1440,23 +1420,7 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
                 return { success: true, season: seasonKey, data: seasonDataCache.get(seasonKey) };
             }
 
-            const fetchJsonSeason = async () => {
-                const response = await fetch(CONFIG.DATA_PATH(seasonKey), { headers: { 'Cache-Control': 'no-cache' } });
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                const rawData = await response.json();
-                return validateSeasonData(rawData);
-            };
-
-            let data;
-            try {
-                data = await loadFromGoogleSheets(seasonKey);
-            } catch (sbError) {
-                logError(`시즌 ${seasonKey} Supabase 로드 실패, JSON으로 대체`, sbError);
-                data = await fetchJsonSeason();
-            }
-
+            const data = await loadFromGoogleSheets(seasonKey);
             seasonDataCache.set(seasonKey, data);
             return { success: true, season: seasonKey, data };
         } catch (error) {
@@ -1822,90 +1786,6 @@ function updateAllTimeRankings(allTimeStats) {
             <div class="highlight-value">${highlight.value}</div>
         </div>
     `).join('');
-}
-
-function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
-    const container = document.getElementById('teamRecordsContainer');
-    if (!container) return;
-
-    if (!teamRecords) {
-        container.innerHTML = '<div class="no-data">팀 기록을 계산할 데이터가 없습니다.</div>';
-        return;
-    }
-
-    const { overall, perSeason, biggestWin, toughestLoss } = teamRecords;
-    const overallRecordText = `${overall.matches}경기 (${overall.wins}승 ${overall.draws}무 ${overall.losses}패)`;
-
-    const sortedPerSeason = [...perSeason];
-    sortedPerSeason.sort((a, b) => {
-        switch (sortBy) {
-            case 'matches':
-                return b.matches - a.matches || b.winRate - a.winRate;
-            case 'wins':
-                return b.wins - a.wins || b.winRate - a.winRate;
-            case 'winrate':
-                return b.winRate - a.winRate || b.matches - a.matches;
-            case 'losses':
-                return b.losses - a.losses || b.matches - a.matches;
-            case 'draws':
-                return b.draws - a.draws || b.matches - a.matches;
-            case 'season':
-            default:
-                return b.season.localeCompare(a.season);
-        }
-    });
-
-    const seasonRows = sortedPerSeason.length > 0 ? sortedPerSeason.map(stats => `
-        <tr>
-            <td>${stats.season}</td>
-            <td>${stats.matches}</td>
-            <td>${stats.wins}</td>
-            <td>${stats.draws}</td>
-            <td>${stats.losses}</td>
-            <td>${stats.winRate}%</td>
-        </tr>
-    `).join('') : '<tr><td colspan="6" class="no-data">시즌별 기록이 없습니다.</td></tr>';
-
-    container.innerHTML = `
-        <div class="team-overview">
-            <div><span>총 경기</span><strong>${overallRecordText}</strong></div>
-            <div><span>통산 승률</span><strong>${overall.winRate}%</strong></div>
-            <div><span>득점 / 실점</span><strong>${overall.goalsFor} / ${overall.goalsAgainst}</strong></div>
-        </div>
-        <div class="team-highlights">
-            <div>
-                <span>최대 승리</span>
-                <strong>${biggestWin ? `${biggestWin.season} ${biggestWin.score} vs ${biggestWin.opponent}` : '-'}</strong>
-            </div>
-            <div>
-                <span>최대 패배</span>
-                <strong>${toughestLoss ? `${toughestLoss.season} ${toughestLoss.score} vs ${toughestLoss.opponent}` : '-'}</strong>
-            </div>
-        </div>
-        <div class="filter-controls team-sort-controls">
-            <button class="filter-btn ${sortBy === 'season' ? 'active' : ''}" onclick="filterTeamRecords('season')">시즌 순</button>
-            <button class="filter-btn ${sortBy === 'winrate' ? 'active' : ''}" onclick="filterTeamRecords('winrate')">승률 순</button>
-            <button class="filter-btn ${sortBy === 'wins' ? 'active' : ''}" onclick="filterTeamRecords('wins')">승수 순</button>
-            <button class="filter-btn ${sortBy === 'matches' ? 'active' : ''}" onclick="filterTeamRecords('matches')">경기수 순</button>
-        </div>
-        <div class="table-container">
-            <table class="players-table">
-                <thead>
-                    <tr>
-                        <th>시즌</th>
-                        <th>경기수</th>
-                        <th>승</th>
-                        <th>무</th>
-                        <th>패</th>
-                        <th>승률</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${seasonRows}
-                </tbody>
-            </table>
-        </div>
-    `;
 }
 
 function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
