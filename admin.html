@@ -159,6 +159,7 @@
     <div class="topbar-logo">WHISTLE</div>
     <div class="topbar-nav">
       <button class="nav-btn active" onclick="switchTab('match')">경기 입력</button>
+      <button class="nav-btn" onclick="switchTab('edit')">경기 수정</button>
       <button class="nav-btn" onclick="switchTab('player')">선수 관리</button>
       <button class="nav-btn" onclick="switchTab('schedule')">다음 경기</button>
     </div>
@@ -204,6 +205,54 @@
         </div>
       </div>
       <div class="save-area"><button class="btn-save" id="saveMatchBtn" onclick="saveMatch()">경기 저장</button></div>
+    </div>
+
+    <div class="section" id="tab-edit">
+      <div class="section-title">저장된 경기 수정</div>
+      <div class="card">
+        <div class="card-title">최근 경기</div>
+        <table class="player-table">
+          <thead><tr><th>날짜</th><th>상대</th><th>스코어</th><th></th></tr></thead>
+          <tbody id="editMatchList"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="editMatchForm" style="display:none">
+        <div class="card-title">경기 정보 수정</div>
+        <div class="form-row col2">
+          <div class="form-group"><label>날짜</label><input type="date" id="e-date"/></div>
+          <div class="form-group"><label>상대팀</label><input type="text" id="e-opponent"/></div>
+        </div>
+        <div class="form-row col3">
+          <div class="form-group"><label>우리 득점</label><input type="number" id="e-our" min="0" value="0"/></div>
+          <div class="form-group"><label>상대 득점</label><input type="number" id="e-opp" min="0" value="0"/></div>
+          <div class="form-group"><label>용병 수</label><input type="number" id="e-merc" min="0" value="0"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>장소</label><input type="text" id="e-venue"/></div>
+        </div>
+      </div>
+
+      <div class="card" id="editLineupCard" style="display:none">
+        <div class="card-title">출전 선수 수정</div>
+        <input type="text" class="search-input" id="searchEditLineup" placeholder="🔍 초성 또는 이름 검색" oninput="filterEditLineup()">
+        <div class="player-grid" id="editLineupGrid"></div>
+      </div>
+
+      <div class="card" id="editGoalCard" style="display:none">
+        <div class="card-title">득점자 및 MVP 수정</div>
+        <div class="goal-list" id="editGoalList"></div>
+        <button class="btn-add" onclick="addEditGoalRow()">+ 득점 추가</button>
+        <div style="margin-top:16px">
+          <div class="form-group">
+            <label>MVP (선택)</label>
+            <div class="autocomplete-wrapper">
+              <input type="text" id="e-mvp" placeholder="🔍 MVP 이름 검색 (초성 지원)">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="save-area" id="editSaveArea" style="display:none"><button class="btn-save" id="updateMatchBtn" onclick="updateMatch()">경기 수정 저장</button></div>
     </div>
 
     <div class="section" id="tab-player">
@@ -284,6 +333,7 @@ function matchName(name, query) {
     if (!query) return true;
     const lowerQuery = query.toLowerCase();
     if (name.toLowerCase().includes(lowerQuery)) return true; // 일반 검색
+    if (name.replace(/\s/g, '').toLowerCase().includes(lowerQuery.replace(/\s/g, ''))) return true; // 공백 무시 검색
     return getChosung(name).includes(lowerQuery); // 초성 검색
 }
 
@@ -318,9 +368,11 @@ function switchTab(tab) {
     document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
     document.getElementById("tab-" + tab).classList.add("active");
     event.target.classList.add("active");
+    if (tab === 'edit') loadRecentMatches();
 }
 
 let allPlayers = [];
+let editingMatchId = null;
 let scheduleMap = null; let scheduleMarker = null; let geocoder = null;
 
 async function init() {
@@ -377,15 +429,16 @@ function resolveCheckedPlayer(inputName, checkedPlayers) {
 }
 
 // ── 💡 앱 스타일 네이티브 자동완성 UI ──
-function setupAutocomplete(input) {
+function setupAutocomplete(input, getPlayers = getCheckedPlayers) {
     let wrapper = input.parentElement;
+    wrapper.querySelectorAll('.autocomplete-list').forEach(el => el.remove());
     let list = document.createElement('div');
     list.className = 'autocomplete-list';
     wrapper.appendChild(list);
 
     input.addEventListener('input', function() {
         const query = this.value.trim();
-        const players = getCheckedPlayers(); // 체크된(출전) 선수만 노출
+        const players = getPlayers(); // 체크된(출전) 선수만 노출
         list.innerHTML = '';
 
         const matches = players.filter(p => matchName(p.name, query));
@@ -478,6 +531,185 @@ function resetMatchForm() {
     document.getElementById("m-mvp").value = ""; document.getElementById("searchLineup").value = "";
     document.getElementById("goalList").innerHTML = "";
     document.querySelectorAll(".player-check").forEach(l => { l.style.display = "flex"; l.classList.remove("checked"); l.querySelector("input").checked = false; });
+}
+
+// ── 저장된 경기 수정 ──
+async function loadRecentMatches() {
+    const tbody = document.getElementById("editMatchList");
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4">불러오는 중...</td></tr>';
+
+    try {
+        const matches = await sbFetch("GET", "matches", null, "?season=eq.2026&order=date.desc,created_at.desc&limit=20");
+        tbody.innerHTML = matches.map(match => `
+            <tr>
+                <td>${match.date}</td>
+                <td>${match.opponent}</td>
+                <td>${match.our_score}:${match.opp_score}</td>
+                <td><button class="btn-add" onclick="loadMatchForEdit(${match.id})">수정</button></td>
+            </tr>
+        `).join("") || '<tr><td colspan="4">수정할 경기가 없습니다.</td></tr>';
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4">경기를 불러오지 못했습니다.</td></tr>';
+    }
+}
+
+function showEditForm(show) {
+    ["editMatchForm", "editLineupCard", "editGoalCard", "editSaveArea"].forEach(id => {
+        document.getElementById(id).style.display = show ? "" : "none";
+    });
+}
+
+async function loadMatchForEdit(matchId) {
+    try {
+        const [matches, lineups, goals, mvps] = await Promise.all([
+            sbFetch("GET", "matches", null, `?id=eq.${matchId}`),
+            sbFetch("GET", "match_lineups", null, `?select=is_mercenary,player_id,players(name)&match_id=eq.${matchId}`),
+            sbFetch("GET", "match_goals", null, `?select=is_mercenary,player_id,players(name)&match_id=eq.${matchId}&order=id.asc`),
+            sbFetch("GET", "match_mvps", null, `?select=player_id,raw_name,players(name)&match_id=eq.${matchId}`)
+        ]);
+
+        const match = matches[0];
+        if (!match) throw new Error("match not found");
+
+        editingMatchId = matchId;
+        document.getElementById("e-date").value = match.date || "";
+        document.getElementById("e-opponent").value = match.opponent || "";
+        document.getElementById("e-our").value = match.our_score ?? 0;
+        document.getElementById("e-opp").value = match.opp_score ?? 0;
+        document.getElementById("e-venue").value = match.venue || "";
+        document.getElementById("e-merc").value = lineups.filter(l => l.is_mercenary).length;
+
+        const selectedRosterIds = lineups.filter(l => !l.is_mercenary).map(lineup => {
+            if (allPlayers.some(p => p.id === lineup.player_id)) return lineup.player_id;
+            const fallback = findRosterMatchByName(lineup.players?.name || "");
+            return fallback?.id || lineup.player_id;
+        });
+        renderEditLineupGrid(selectedRosterIds);
+        renderEditGoals(goals);
+        document.getElementById("e-mvp").value = getRosterDisplayName(mvps[0]?.players?.name || mvps[0]?.raw_name || "");
+        setupAutocomplete(document.getElementById("e-mvp"), getEditCheckedPlayers);
+        showEditForm(true);
+        showToast("경기 정보를 불러왔습니다.", "success");
+    } catch (e) {
+        showToast("경기 정보를 불러오지 못했습니다.", "error");
+    }
+}
+
+function renderEditLineupGrid(selectedIds = []) {
+    const selected = new Set(selectedIds.filter(Boolean));
+    const grid = document.getElementById("editLineupGrid");
+    grid.innerHTML = allPlayers.map(p => {
+        const checked = selected.has(p.id);
+        return `
+            <label class="player-check edit-player-check ${checked ? 'checked' : ''}" data-name="${p.name}">
+                <input type="checkbox" value="${p.id}" ${checked ? 'checked' : ''} onchange="togglePlayer(this)"/>
+                <span class="num">${p.number ?? "-"}</span>
+                <span class="name">${p.name}</span>
+            </label>
+        `;
+    }).join("");
+}
+
+function filterEditLineup() {
+    const query = document.getElementById("searchEditLineup").value.trim();
+    document.querySelectorAll(".edit-player-check").forEach(el => {
+        const name = el.getAttribute("data-name");
+        el.style.display = matchName(name, query) ? "flex" : "none";
+    });
+}
+
+function getEditCheckedPlayers() {
+    return [...document.querySelectorAll("#editLineupGrid input:checked")]
+        .map(cb => ({ id: parseInt(cb.value), name: allPlayers.find(p => p.id == cb.value)?.name }))
+        .filter(p => p.name);
+}
+
+function findRosterMatchByName(name) {
+    if (!name) return null;
+    const matches = allPlayers.filter(p => matchName(p.name, name));
+    return matches.length === 1 ? matches[0] : null;
+}
+
+function getRosterDisplayName(name) {
+    return findRosterMatchByName(name)?.name || name;
+}
+
+function renderEditGoals(goals = []) {
+    const goalCounts = new Map();
+    goals.forEach(goal => {
+        const name = goal.is_mercenary ? "" : getRosterDisplayName(goal.players?.name || "");
+        goalCounts.set(name, (goalCounts.get(name) || 0) + 1);
+    });
+
+    const list = document.getElementById("editGoalList");
+    list.innerHTML = "";
+    goalCounts.forEach((count, name) => addEditGoalRow(name, count));
+}
+
+function addEditGoalRow(name = "", count = 1) {
+    const row = document.createElement("div");
+    row.className = "goal-row edit-goal-row";
+    row.innerHTML = `
+        <div class="autocomplete-wrapper">
+            <input type="text" class="edit-goal-player-input" placeholder="🔍 득점자 이름 (용병은 비움)" value="${name}"/>
+        </div>
+        <input type="number" class="edit-goal-count" value="${count}" min="1" max="20" placeholder="골 수"/>
+        <button class="btn-icon" onclick="this.closest('.edit-goal-row').remove()">×</button>
+    `;
+    document.getElementById("editGoalList").appendChild(row);
+    setupAutocomplete(row.querySelector('.edit-goal-player-input'), getEditCheckedPlayers);
+}
+
+async function updateMatch() {
+    if (!editingMatchId) return;
+
+    const btn = document.getElementById("updateMatchBtn");
+    btn.disabled = true; btn.textContent = "수정 중...";
+
+    try {
+        const date = document.getElementById("e-date").value;
+        const opponent = document.getElementById("e-opponent").value.trim();
+        const ourScore = parseInt(document.getElementById("e-our").value) || 0;
+        const oppScore = parseInt(document.getElementById("e-opp").value) || 0;
+        const venue = document.getElementById("e-venue").value.trim();
+        const mercCount = parseInt(document.getElementById("e-merc").value) || 0;
+        const mvpName = document.getElementById("e-mvp").value.trim();
+        const checked = getEditCheckedPlayers();
+
+        if (!date || !opponent) { showToast("날짜와 상대팀을 입력해주세요", "error"); return; }
+
+        await sbFetch("PATCH", `matches?id=eq.${editingMatchId}`, { season: new Date(date).getFullYear(), date, opponent, venue, our_score: ourScore, opp_score: oppScore });
+        await sbFetch("DELETE", "match_goals", null, `?match_id=eq.${editingMatchId}`);
+        await sbFetch("DELETE", "match_mvps", null, `?match_id=eq.${editingMatchId}`);
+        await sbFetch("DELETE", "match_lineups", null, `?match_id=eq.${editingMatchId}`);
+
+        for (const p of checked) await sbFetch("POST", "match_lineups", { match_id: editingMatchId, player_id: p.id, is_mercenary: false });
+        for (let i = 0; i < mercCount; i++) await sbFetch("POST", "match_lineups", { match_id: editingMatchId, player_id: null, is_mercenary: true });
+
+        const goalRows = document.querySelectorAll(".edit-goal-row");
+        for (const row of goalRows) {
+            const inputName = row.querySelector(".edit-goal-player-input").value.trim();
+            const count = parseInt(row.querySelector(".edit-goal-count").value) || 1;
+            const matchedUser = inputName ? resolveCheckedPlayer(inputName, checked) : null;
+            for (let i = 0; i < count; i++) {
+                await sbFetch("POST", "match_goals", { match_id: editingMatchId, player_id: matchedUser?.id || null, is_mercenary: !matchedUser, goal_type: "normal" });
+            }
+        }
+
+        if (mvpName) {
+            const matchedMvp = resolveCheckedPlayer(mvpName, checked);
+            if (matchedMvp) await sbFetch("POST", "match_mvps", { match_id: editingMatchId, player_id: matchedMvp.id, raw_name: matchedMvp.name });
+        }
+
+        await loadRecentMatches();
+        showToast("✅ 경기 수정 완료!", "success");
+    } catch (e) {
+        showToast("수정 실패 (권한 또는 데이터 확인)", "error");
+        console.error(e);
+    } finally {
+        btn.disabled = false; btn.textContent = "경기 수정 저장";
+    }
 }
 
 // ── 💡 선수 관리 테이블 및 초성 필터 ──
