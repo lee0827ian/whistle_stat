@@ -278,6 +278,13 @@
     <div class="section" id="tab-schedule">
       <div class="section-title">다음 경기 등록</div>
       <div class="card">
+        <div class="card-title">등록된 일정</div>
+        <table class="player-table">
+          <thead><tr><th>날짜</th><th>상대</th><th>구장</th><th></th></tr></thead>
+          <tbody id="scheduleList"></tbody>
+        </table>
+      </div>
+      <div class="card">
         <div class="card-title">일정 정보</div>
         <div class="form-row col2">
           <div class="form-group"><label>날짜</label><input type="date" id="s-date"/></div>
@@ -291,7 +298,10 @@
           <div class="form-group"><label>공지 메모</label><textarea id="s-note" rows="3" placeholder="주차 안내, 준비물 등..." style="resize:vertical"></textarea></div>
         </div>
       </div>
-      <div class="save-area"><button class="btn-save" onclick="saveSchedule()">일정 저장</button></div>
+      <div class="save-area">
+        <button class="btn-save" id="saveScheduleBtn" onclick="saveSchedule()">일정 저장</button>
+        <button class="btn-add" id="newScheduleBtn" onclick="resetScheduleForm()" style="width:100%; margin-top:10px; display:none">+ 새 일정으로 입력</button>
+      </div>
     </div>
   </div>
 </div>
@@ -369,10 +379,12 @@ function switchTab(tab) {
     document.getElementById("tab-" + tab).classList.add("active");
     event.target.classList.add("active");
     if (tab === 'edit') loadRecentMatches();
+    if (tab === 'schedule') loadSchedules();
 }
 
 let allPlayers = [];
 let editingMatchId = null;
+let editingScheduleId = null;
 let scheduleMap = null; let scheduleMarker = null; let geocoder = null;
 
 async function init() {
@@ -778,6 +790,51 @@ function searchAddress() {
     }, 600);
 }
 
+async function loadSchedules() {
+    const tbody = document.getElementById("scheduleList");
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4">불러오는 중...</td></tr>';
+
+    try {
+        const schedules = await sbFetch("GET", "schedules", null, "?select=*&order=date.asc,time.asc&limit=30");
+        tbody.innerHTML = schedules.map(schedule => `
+            <tr>
+                <td>${schedule.date}${schedule.time ? ` ${schedule.time}` : ""}</td>
+                <td>${schedule.opponent || "-"}</td>
+                <td>${schedule.venue || "미정"}</td>
+                <td>
+                    <button class="btn-add" onclick="loadScheduleForEdit(${schedule.id})">수정</button>
+                    <button class="btn-add" onclick="deleteSchedule(${schedule.id})" style="border-color:var(--red);color:var(--red);margin-left:4px">삭제</button>
+                </td>
+            </tr>
+        `).join("") || '<tr><td colspan="4">등록된 일정이 없습니다.</td></tr>';
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4">일정을 불러오지 못했습니다.</td></tr>';
+    }
+}
+
+async function loadScheduleForEdit(scheduleId) {
+    try {
+        const schedules = await sbFetch("GET", "schedules", null, `?id=eq.${scheduleId}`);
+        const schedule = schedules[0];
+        if (!schedule) throw new Error("schedule not found");
+
+        editingScheduleId = schedule.id;
+        document.getElementById("s-date").value = schedule.date || "";
+        document.getElementById("s-time").value = schedule.time || "07:00";
+        document.getElementById("s-opponent").value = schedule.opponent || "";
+        document.getElementById("s-venue").value = schedule.venue || "";
+        document.getElementById("s-address").value = schedule.address || "";
+        document.getElementById("s-note").value = schedule.note || "";
+        document.getElementById("saveScheduleBtn").textContent = "일정 수정 저장";
+        document.getElementById("newScheduleBtn").style.display = "block";
+        searchAddress();
+        showToast("일정을 불러왔습니다.", "success");
+    } catch (e) {
+        showToast("일정을 불러오지 못했습니다.", "error");
+    }
+}
+
 async function saveSchedule() {
     const date = document.getElementById("s-date").value;
     const time = document.getElementById("s-time").value;
@@ -788,12 +845,41 @@ async function saveSchedule() {
 
     if (!date || !opponent) { showToast("날짜와 상대팀을 입력해주세요", "error"); return; }
     try {
-        await sbFetch("POST", "schedules", { date, time, opponent, venue, address, note, season: new Date(date).getFullYear() });
-        showToast("✅ 일정 저장 완료!", "success");
-        document.getElementById("s-date").value = ""; document.getElementById("s-opponent").value = "";
-        document.getElementById("s-venue").value = ""; document.getElementById("s-address").value = ""; document.getElementById("s-note").value = "";
-        if (scheduleMarker) { scheduleMarker.setMap(null); scheduleMarker = null; }
+        const payload = { date, time, opponent, venue, address, note, season: new Date(date).getFullYear() };
+        if (editingScheduleId) {
+            await sbFetch("PATCH", `schedules?id=eq.${editingScheduleId}`, payload);
+        } else {
+            await sbFetch("POST", "schedules", payload);
+        }
+        showToast(editingScheduleId ? "✅ 일정 수정 완료!" : "✅ 일정 저장 완료!", "success");
+        resetScheduleForm();
+        await loadSchedules();
     } catch(e) { showToast("저장 실패", "error"); }
+}
+
+async function deleteSchedule(scheduleId) {
+    if (!confirm("이 일정을 삭제할까요?")) return;
+    try {
+        await sbFetch("DELETE", "schedules", null, `?id=eq.${scheduleId}`);
+        if (editingScheduleId === scheduleId) resetScheduleForm();
+        await loadSchedules();
+        showToast("일정을 삭제했습니다.", "success");
+    } catch (e) {
+        showToast("삭제 실패", "error");
+    }
+}
+
+function resetScheduleForm() {
+    editingScheduleId = null;
+    document.getElementById("s-date").value = "";
+    document.getElementById("s-time").value = "07:00";
+    document.getElementById("s-opponent").value = "";
+    document.getElementById("s-venue").value = "";
+    document.getElementById("s-address").value = "";
+    document.getElementById("s-note").value = "";
+    document.getElementById("saveScheduleBtn").textContent = "일정 저장";
+    document.getElementById("newScheduleBtn").style.display = "none";
+    if (scheduleMarker) { scheduleMarker.setMap(null); scheduleMarker = null; }
 }
 
 function showToast(msg, type = "success") {
