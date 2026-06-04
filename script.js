@@ -97,6 +97,13 @@ const REGION_OPTIONS = [
     '고양시','광명시','구리시','군포시','김포시','남양주시','부천시','성남시','수원시','시흥시','안양시','양주시','양평군','용인시','의왕시','의정부시','파주시','평택시','하남시'
 ];
 const REGION_VENUE_SEPARATOR = ' | ';
+const VENUE_REGION_MAP = [
+    ['은로초등학교', '노원구'],
+    ['은로초', '노원구'],
+    ['은호초등학교', '노원구'],
+    ['은호초', '노원구'],
+    ['성불빌라', '노원구']
+];
 
 function normalizeRegion(region) {
     const value = sanitizeTableData(region || '').trim();
@@ -116,6 +123,27 @@ function extractRegionFromText(text) {
     return REGION_OPTIONS.find(option => value.includes(option)) || '';
 }
 
+function normalizeVenueKeyword(value) {
+    return sanitizeTableData(value || '').replace(/\s/g, '').toLowerCase();
+}
+
+function inferRegionFromVenue(venue) {
+    const value = sanitizeTableData(venue || '').trim();
+    if (!value) return '';
+
+    const explicitRegion = extractRegionFromText(value);
+    if (explicitRegion) return explicitRegion;
+
+    const normalizedVenue = normalizeVenueKeyword(value);
+    if (normalizedVenue.length < 2) return '';
+
+    const match = VENUE_REGION_MAP.find(([venueName]) => {
+        const normalizedName = normalizeVenueKeyword(venueName);
+        return normalizedVenue.includes(normalizedName) || normalizedName.includes(normalizedVenue);
+    });
+    return match ? match[1] : '';
+}
+
 function stripRegionFromVenue(venue = '') {
     const value = sanitizeTableData(venue || '').trim();
     if (!value) return '';
@@ -128,7 +156,7 @@ function calculateRegionalStatsFromMatches(matches = []) {
     const overall = { region: '전체', matches: 0, wins: 0, draws: 0, losses: 0 };
 
     matches.forEach(match => {
-        const region = normalizeRegion(match.region || extractRegionFromText(match.venue));
+        const region = normalizeRegion(match.region || inferRegionFromVenue(match.venue));
         if (!region) return;
 
         const row = regionalMap.get(region) || { region, matches: 0, wins: 0, draws: 0, losses: 0 };
@@ -1374,7 +1402,7 @@ async function loadFromSupabase(season) {
             result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
             score: `${m.our_score}:${m.opp_score}`,
             venue: stripRegionFromVenue(storedVenue),
-            region: normalizeRegion(m.region || extractRegionFromText(storedVenue)),
+            region: normalizeRegion(m.region || inferRegionFromVenue(storedVenue)),
             mvp: (mvpMap[m.id] || []).join(", ")
         };
     });
@@ -1532,7 +1560,7 @@ async function loadAllTimeSeasonsParallel() {
                 opponent: m.opponent,
                 score: `${m.our_score}:${m.opp_score}`,
                 venue: stripRegionFromVenue(storedVenue),
-                region: normalizeRegion(m.region || extractRegionFromText(storedVenue)),
+                region: normalizeRegion(m.region || inferRegionFromVenue(storedVenue)),
                 result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss'
             };
         });
