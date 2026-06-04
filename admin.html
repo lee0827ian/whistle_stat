@@ -532,18 +532,36 @@ function buildVenueValue(region, venue) {
     return cleanVenue || normalizedRegion;
 }
 
+function canAutoUpdateRegion(regionInput, force = false) {
+    return force || !regionInput.value.trim() || regionInput.dataset.regionAutoFilled === 'true';
+}
+
+function setRegionValue(regionInput, region, autoFilled = true) {
+    regionInput.value = region || '';
+    regionInput.dataset.regionAutoFilled = autoFilled && region ? 'true' : 'false';
+}
+
+function clearAutoFilledRegion(regionInput) {
+    if (regionInput.dataset.regionAutoFilled === 'true') {
+        setRegionValue(regionInput, '', false);
+    }
+}
+
 function scheduleKakaoVenueRegionMapping(venueInputId, regionInputId, force = false) {
     clearTimeout(venueRegionSearchTimers[venueInputId]);
     venueRegionSearchTimers[venueInputId] = setTimeout(async () => {
         const venueInput = document.getElementById(venueInputId);
         const regionInput = document.getElementById(regionInputId);
-        if (!venueInput || !regionInput) return;
-        if (!force && regionInput.value.trim()) return;
+        if (!venueInput || !regionInput || !canAutoUpdateRegion(regionInput, force)) return;
 
         const searchValue = venueInput.value.trim();
         const region = await lookupRegionWithKakao(searchValue);
-        if (region && venueInput.value.trim() === searchValue && (force || !regionInput.value.trim())) {
-            regionInput.value = region;
+        if (venueInput.value.trim() !== searchValue || !canAutoUpdateRegion(regionInput, force)) return;
+
+        if (region) {
+            setRegionValue(regionInput, region, true);
+        } else {
+            clearAutoFilledRegion(regionInput);
         }
     }, KAKAO_REGION_SEARCH_DELAY);
 }
@@ -551,14 +569,15 @@ function scheduleKakaoVenueRegionMapping(venueInputId, regionInputId, force = fa
 function applyVenueRegionMapping(venueInputId, regionInputId, force = false) {
     const venueInput = document.getElementById(venueInputId);
     const regionInput = document.getElementById(regionInputId);
-    if (!venueInput || !regionInput) return;
+    if (!venueInput || !regionInput || !canAutoUpdateRegion(regionInput, force)) return;
 
     const inferredRegion = inferRegionFromVenue(venueInput.value);
-    if (inferredRegion && (force || !regionInput.value.trim())) {
-        regionInput.value = inferredRegion;
+    if (inferredRegion) {
+        setRegionValue(regionInput, inferredRegion, true);
         return;
     }
 
+    clearAutoFilledRegion(regionInput);
     scheduleKakaoVenueRegionMapping(venueInputId, regionInputId, force);
 }
 
@@ -566,14 +585,18 @@ async function buildVenueValueWithKakao(regionInputId, venueInputId) {
     const regionInput = document.getElementById(regionInputId);
     const venueInput = document.getElementById(venueInputId);
     const cleanVenue = (venueInput?.value || '').trim();
-    let region = normalizeRegion(regionInput?.value || inferRegionFromVenue(cleanVenue));
+    const hasManualRegion = regionInput?.value.trim() && regionInput.dataset.regionAutoFilled !== 'true';
+    let region = hasManualRegion ? normalizeRegion(regionInput.value) : normalizeRegion(inferRegionFromVenue(cleanVenue));
 
     if (!region) {
         region = await lookupRegionWithKakao(cleanVenue);
-        if (region && regionInput) regionInput.value = region;
     }
 
-    return buildVenueValue(region, cleanVenue);
+    if (region && regionInput && !hasManualRegion) {
+        setRegionValue(regionInput, region, true);
+    }
+
+    return buildVenueValue(region || (hasManualRegion ? regionInput.value : ''), cleanVenue);
 }
 
 function setupVenueRegionAutoFill() {
@@ -582,10 +605,14 @@ function setupVenueRegionAutoFill() {
         ['e-venue', 'e-region']
     ].forEach(([venueInputId, regionInputId]) => {
         const venueInput = document.getElementById(venueInputId);
-        if (!venueInput || venueInput.dataset.regionAutoFillBound === 'true') return;
+        const regionInput = document.getElementById(regionInputId);
+        if (!venueInput || !regionInput || venueInput.dataset.regionAutoFillBound === 'true') return;
         venueInput.dataset.regionAutoFillBound = 'true';
         ['input', 'change', 'blur'].forEach(eventName => {
             venueInput.addEventListener(eventName, () => applyVenueRegionMapping(venueInputId, regionInputId));
+        });
+        regionInput.addEventListener('input', () => {
+            regionInput.dataset.regionAutoFilled = 'false';
         });
     });
 }
@@ -744,7 +771,7 @@ async function saveMatch() {
 function resetMatchForm() {
     document.getElementById("m-date").value = ""; document.getElementById("m-opponent").value = "";
     document.getElementById("m-our").value = "0"; document.getElementById("m-opp").value = "0";
-    document.getElementById("m-merc").value = "0"; document.getElementById("m-region").value = ""; document.getElementById("m-venue").value = "";
+    document.getElementById("m-merc").value = "0"; document.getElementById("m-region").value = ""; document.getElementById("m-region").dataset.regionAutoFilled = "false"; document.getElementById("m-venue").value = "";
     document.getElementById("m-mvp").value = ""; document.getElementById("searchLineup").value = "";
     document.getElementById("goalList").innerHTML = "";
     document.querySelectorAll(".player-check").forEach(l => { l.style.display = "flex"; l.classList.remove("checked"); l.querySelector("input").checked = false; });
@@ -795,7 +822,7 @@ async function loadMatchForEdit(matchId) {
         document.getElementById("e-our").value = match.our_score ?? 0;
         document.getElementById("e-opp").value = match.opp_score ?? 0;
         const venueRegion = splitVenueRegion(match.venue || "");
-        document.getElementById("e-region").value = venueRegion.region;
+        setRegionValue(document.getElementById("e-region"), venueRegion.region, Boolean(venueRegion.region));
         document.getElementById("e-venue").value = venueRegion.venue;
         document.getElementById("e-merc").value = lineups.filter(l => l.is_mercenary).length;
 
