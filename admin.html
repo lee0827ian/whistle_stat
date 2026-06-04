@@ -180,7 +180,8 @@
           <div class="form-group"><label>상대 득점</label><input type="number" id="m-opp" min="0" value="0"/></div>
           <div class="form-group"><label>용병 수</label><input type="number" id="m-merc" min="0" value="0"/></div>
         </div>
-        <div class="form-row">
+        <div class="form-row col2">
+          <div class="form-group"><label>지역</label><input type="text" id="m-region" list="regionOptions" placeholder="예: 노원구"/></div>
           <div class="form-group"><label>장소</label><input type="text" id="m-venue" placeholder="예: 은로초등학교"/></div>
         </div>
       </div>
@@ -228,7 +229,8 @@
           <div class="form-group"><label>상대 득점</label><input type="number" id="e-opp" min="0" value="0"/></div>
           <div class="form-group"><label>용병 수</label><input type="number" id="e-merc" min="0" value="0"/></div>
         </div>
-        <div class="form-row">
+        <div class="form-row col2">
+          <div class="form-group"><label>지역</label><input type="text" id="e-region" list="regionOptions" placeholder="예: 노원구"/></div>
           <div class="form-group"><label>장소</label><input type="text" id="e-venue"/></div>
         </div>
       </div>
@@ -307,6 +309,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<datalist id="regionOptions"></datalist>
 
 <script>
 // ── 보안/통신 설정 ──
@@ -387,7 +391,109 @@ let editingMatchId = null;
 let editingScheduleId = null;
 let scheduleMap = null; let scheduleMarker = null; let geocoder = null;
 
+const REGION_OPTIONS = [
+    '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구',
+    '고양시','광명시','구리시','군포시','김포시','남양주시','부천시','성남시','수원시','시흥시','안양시','양주시','양평군','용인시','의왕시','의정부시','파주시','평택시','하남시'
+];
+const REGION_VENUE_SEPARATOR = ' | ';
+const VENUE_REGION_MAP = [
+    ['은로초등학교', '노원구'],
+    ['은로초', '노원구'],
+    ['은호초등학교', '노원구'],
+    ['은호초', '노원구'],
+    ['성불빌라', '노원구']
+];
+
+function renderRegionOptions() {
+    const datalist = document.getElementById('regionOptions');
+    if (!datalist) return;
+    datalist.innerHTML = REGION_OPTIONS.map(region => `<option value="${region}"></option>`).join('');
+}
+
+function normalizeRegion(region) {
+    const value = (region || '').trim();
+    if (!value) return '';
+    const exact = REGION_OPTIONS.find(option => option === value);
+    if (exact) return exact;
+    return REGION_OPTIONS.find(option => value.includes(option) || option.includes(value)) || value;
+}
+
+function normalizeVenueKeyword(value) {
+    return (value || '').replace(/\s/g, '').toLowerCase();
+}
+
+function inferRegionFromVenue(venue) {
+    const value = (venue || '').trim();
+    if (!value) return '';
+
+    const explicitRegion = extractRegionFromText(value);
+    if (explicitRegion) return explicitRegion;
+
+    const normalizedVenue = normalizeVenueKeyword(value);
+    if (normalizedVenue.length < 2) return '';
+
+    const match = VENUE_REGION_MAP.find(([venueName]) => {
+        const normalizedName = normalizeVenueKeyword(venueName);
+        return normalizedVenue.includes(normalizedName) || normalizedName.includes(normalizedVenue);
+    });
+    return match ? match[1] : '';
+}
+
+function extractRegionFromText(text) {
+    const value = (text || '').trim();
+    if (!value) return '';
+    if (value.includes(REGION_VENUE_SEPARATOR)) {
+        const separatedRegion = value.split(REGION_VENUE_SEPARATOR)[0]?.trim();
+        return normalizeRegion(separatedRegion);
+    }
+    return REGION_OPTIONS.find(option => value.includes(option)) || '';
+}
+
+function splitVenueRegion(value = '') {
+    const venue = (value || '').trim();
+    if (!venue) return { region: '', venue: '' };
+    if (venue.includes(REGION_VENUE_SEPARATOR)) {
+        const [regionPart, ...venueParts] = venue.split(REGION_VENUE_SEPARATOR);
+        return { region: normalizeRegion(regionPart), venue: venueParts.join(REGION_VENUE_SEPARATOR).trim() };
+    }
+    return { region: inferRegionFromVenue(venue), venue };
+}
+
+function buildVenueValue(region, venue) {
+    const cleanVenue = (venue || '').trim();
+    const normalizedRegion = normalizeRegion(region || inferRegionFromVenue(cleanVenue));
+    if (normalizedRegion && cleanVenue) return `${normalizedRegion}${REGION_VENUE_SEPARATOR}${cleanVenue}`;
+    return cleanVenue || normalizedRegion;
+}
+
+function applyVenueRegionMapping(venueInputId, regionInputId, force = false) {
+    const venueInput = document.getElementById(venueInputId);
+    const regionInput = document.getElementById(regionInputId);
+    if (!venueInput || !regionInput) return;
+
+    const inferredRegion = inferRegionFromVenue(venueInput.value);
+    if (inferredRegion && (force || !regionInput.value.trim())) {
+        regionInput.value = inferredRegion;
+    }
+}
+
+function setupVenueRegionAutoFill() {
+    [
+        ['m-venue', 'm-region'],
+        ['e-venue', 'e-region']
+    ].forEach(([venueInputId, regionInputId]) => {
+        const venueInput = document.getElementById(venueInputId);
+        if (!venueInput || venueInput.dataset.regionAutoFillBound === 'true') return;
+        venueInput.dataset.regionAutoFillBound = 'true';
+        ['input', 'change', 'blur'].forEach(eventName => {
+            venueInput.addEventListener(eventName, () => applyVenueRegionMapping(venueInputId, regionInputId));
+        });
+    });
+}
+
 async function init() {
+    renderRegionOptions();
+    setupVenueRegionAutoFill();
     await loadPlayers();
     renderLineupGrid();
     renderPlayerTable();
@@ -499,7 +605,8 @@ async function saveMatch() {
         const opponent = document.getElementById("m-opponent").value.trim();
         const ourScore = parseInt(document.getElementById("m-our").value) || 0;
         const oppScore = parseInt(document.getElementById("m-opp").value) || 0;
-        const venue = document.getElementById("m-venue").value.trim();
+        const region = document.getElementById("m-region").value.trim();
+        const venue = buildVenueValue(region, document.getElementById("m-venue").value);
         const mercCount = parseInt(document.getElementById("m-merc").value) || 0;
         const mvpName = document.getElementById("m-mvp").value.trim();
 
@@ -539,7 +646,7 @@ async function saveMatch() {
 function resetMatchForm() {
     document.getElementById("m-date").value = ""; document.getElementById("m-opponent").value = "";
     document.getElementById("m-our").value = "0"; document.getElementById("m-opp").value = "0";
-    document.getElementById("m-merc").value = "0"; document.getElementById("m-venue").value = "";
+    document.getElementById("m-merc").value = "0"; document.getElementById("m-region").value = ""; document.getElementById("m-venue").value = "";
     document.getElementById("m-mvp").value = ""; document.getElementById("searchLineup").value = "";
     document.getElementById("goalList").innerHTML = "";
     document.querySelectorAll(".player-check").forEach(l => { l.style.display = "flex"; l.classList.remove("checked"); l.querySelector("input").checked = false; });
@@ -552,7 +659,7 @@ async function loadRecentMatches() {
     tbody.innerHTML = '<tr><td colspan="4">불러오는 중...</td></tr>';
 
     try {
-        const matches = await sbFetch("GET", "matches", null, "?season=eq.2026&order=date.desc,created_at.desc&limit=20");
+        const matches = await sbFetch("GET", "matches", null, "?order=date.desc,created_at.desc&limit=20");
         tbody.innerHTML = matches.map(match => `
             <tr>
                 <td>${match.date}</td>
@@ -589,7 +696,9 @@ async function loadMatchForEdit(matchId) {
         document.getElementById("e-opponent").value = match.opponent || "";
         document.getElementById("e-our").value = match.our_score ?? 0;
         document.getElementById("e-opp").value = match.opp_score ?? 0;
-        document.getElementById("e-venue").value = match.venue || "";
+        const venueRegion = splitVenueRegion(match.venue || "");
+        document.getElementById("e-region").value = venueRegion.region;
+        document.getElementById("e-venue").value = venueRegion.venue;
         document.getElementById("e-merc").value = lineups.filter(l => l.is_mercenary).length;
 
         const selectedRosterIds = lineups.filter(l => !l.is_mercenary).map(lineup => {
@@ -684,7 +793,8 @@ async function updateMatch() {
         const opponent = document.getElementById("e-opponent").value.trim();
         const ourScore = parseInt(document.getElementById("e-our").value) || 0;
         const oppScore = parseInt(document.getElementById("e-opp").value) || 0;
-        const venue = document.getElementById("e-venue").value.trim();
+        const region = document.getElementById("e-region").value.trim();
+        const venue = buildVenueValue(region, document.getElementById("e-venue").value);
         const mercCount = parseInt(document.getElementById("e-merc").value) || 0;
         const mvpName = document.getElementById("e-mvp").value.trim();
         const checked = getEditCheckedPlayers();
