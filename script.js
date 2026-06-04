@@ -92,6 +92,97 @@ const CONFIG = {
     }
 };
 
+const REGION_OPTIONS = [
+    '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구',
+    '고양시','광명시','구리시','군포시','김포시','남양주시','부천시','성남시','수원시','시흥시','안양시','양주시','양평군','용인시','의왕시','의정부시','파주시','평택시','하남시'
+];
+const REGION_VENUE_SEPARATOR = ' | ';
+const VENUE_REGION_MAP = [
+    ['은로초등학교', '노원구'],
+    ['은로초', '노원구'],
+    ['은호초등학교', '노원구'],
+    ['은호초', '노원구'],
+    ['망우중학교', '중랑구'],
+    ['망우중', '중랑구'],
+    ['성불빌라', '노원구']
+];
+
+function normalizeRegion(region) {
+    const value = sanitizeTableData(region || '').trim();
+    if (!value) return '';
+    const exact = REGION_OPTIONS.find(option => option === value);
+    if (exact) return exact;
+    return REGION_OPTIONS.find(option => value.includes(option) || option.includes(value)) || value;
+}
+
+function extractRegionFromText(text) {
+    const value = sanitizeTableData(text || '').trim();
+    if (!value) return '';
+    if (value.includes(REGION_VENUE_SEPARATOR)) {
+        const separatedRegion = value.split(REGION_VENUE_SEPARATOR)[0]?.trim();
+        return normalizeRegion(separatedRegion);
+    }
+    return REGION_OPTIONS.find(option => value.includes(option)) || '';
+}
+
+function normalizeVenueKeyword(value) {
+    return sanitizeTableData(value || '').replace(/\s/g, '').toLowerCase();
+}
+
+function inferRegionFromVenue(venue) {
+    const value = sanitizeTableData(venue || '').trim();
+    if (!value) return '';
+
+    const explicitRegion = extractRegionFromText(value);
+    if (explicitRegion) return explicitRegion;
+
+    const normalizedVenue = normalizeVenueKeyword(value);
+    if (normalizedVenue.length < 2) return '';
+
+    const match = VENUE_REGION_MAP.find(([venueName]) => {
+        const normalizedName = normalizeVenueKeyword(venueName);
+        return normalizedVenue.includes(normalizedName) || normalizedName.includes(normalizedVenue);
+    });
+    return match ? match[1] : '';
+}
+
+function stripRegionFromVenue(venue = '') {
+    const value = sanitizeTableData(venue || '').trim();
+    if (!value) return '';
+    if (!value.includes(REGION_VENUE_SEPARATOR)) return value;
+    return value.split(REGION_VENUE_SEPARATOR).slice(1).join(REGION_VENUE_SEPARATOR).trim();
+}
+
+function calculateRegionalStatsFromMatches(matches = []) {
+    const regionalMap = new Map();
+    const overall = { region: '전체', matches: 0, wins: 0, draws: 0, losses: 0 };
+
+    matches.forEach(match => {
+        const region = normalizeRegion(match.region || inferRegionFromVenue(match.venue));
+        if (!region) return;
+
+        const row = regionalMap.get(region) || { region, matches: 0, wins: 0, draws: 0, losses: 0 };
+        row.matches += 1;
+        overall.matches += 1;
+
+        if (match.result === 'win') {
+            row.wins += 1;
+            overall.wins += 1;
+        } else if (match.result === 'draw') {
+            row.draws += 1;
+            overall.draws += 1;
+        } else {
+            row.losses += 1;
+            overall.losses += 1;
+        }
+
+        regionalMap.set(region, row);
+    });
+
+    const rows = Array.from(regionalMap.values());
+    return rows.length > 0 ? [overall, ...rows] : [];
+}
+
 const MANUAL_ALLTIME_PLAYER_RECORDS = Object.fromEntries([
     ['강규주', { totalAppearances: 5, totalGoals: 0 }],
     ['강동규', { totalAppearances: 1, totalGoals: 1 }],
@@ -1264,14 +1355,15 @@ function initializeMap() {
 
 // --- [ 데이터 로드 함수 ] ---
 
-async function loadFromGoogleSheets(season) {
+async function loadFromSupabase(season) {
     const season2026plus = parseInt(season) >= 2026;
 
     // 1단계: 경기 ID 목록 먼저
     const matchIdList = await supabaseFetch(
-        `matches?season=eq.${season}&select=id`
+        `matches?season=eq.${season}&select=id,venue`
     );
     const matchIds = matchIdList.map(m => m.id).join(",") || "0";
+    const venueByMatchId = new Map(matchIdList.map(match => [match.id, match.venue || '']));
 
     // 💡 오늘 날짜 구하기 (지나간 일정은 안 보이게)
     const today = new Date().toISOString().split('T')[0];
@@ -1304,14 +1396,18 @@ async function loadFromGoogleSheets(season) {
         mvpMap[row.match_id].push(row.raw_name);
     });
 
-    const matches = matchesRaw.map(m => ({
-        date: m.date,
-        opponent: m.opponent,
-        result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
-        score: `${m.our_score}:${m.opp_score}`,
-        venue: m.venue || "",
-        mvp: (mvpMap[m.id] || []).join(", ")
-    }));
+    const matches = matchesRaw.map(m => {
+        const storedVenue = m.venue || venueByMatchId.get(m.id) || '';
+        return {
+            date: m.date,
+            opponent: m.opponent,
+            result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
+            score: `${m.our_score}:${m.opp_score}`,
+            venue: stripRegionFromVenue(storedVenue),
+            region: normalizeRegion(m.region || inferRegionFromVenue(storedVenue)),
+            mvp: (mvpMap[m.id] || []).join(", ")
+        };
+    });
 
     // players 매핑
     const players = {};
@@ -1340,7 +1436,7 @@ async function loadFromGoogleSheets(season) {
         matches: matches,
         players: players,
         schedules: schedules, // 💡 더 이상 빈 배열([])이 아닌 진짜 데이터 연결!
-        regional: []
+        regional: calculateRegionalStatsFromMatches(matches)
     };
 }
 // JSON 경로를 명확히 지정하여 로드
@@ -1364,7 +1460,7 @@ async function loadData() {
             data = seasonDataCache.get(currentSeasonKey);
             dataSource = '캐시';
         } else {
-            data = await loadFromGoogleSheets(currentSeasonKey);
+            data = await loadFromSupabase(currentSeasonKey);
             seasonDataCache.set(currentSeasonKey, data);
         }
 
@@ -1420,7 +1516,7 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
                 return { success: true, season: seasonKey, data: seasonDataCache.get(seasonKey) };
             }
 
-            const data = await loadFromGoogleSheets(seasonKey);
+            const data = await loadFromSupabase(seasonKey);
             seasonDataCache.set(seasonKey, data);
             return { success: true, season: seasonKey, data };
         } catch (error) {
@@ -1440,10 +1536,13 @@ async function loadAllTimeSeasonsParallel() {
     showStatusMessage('역대 기록을 불러오는 중...', 'loading');
 
     try {
-        const [playerStats, allMatches] = await Promise.all([
+        const [playerStats, allMatches, rawMatches] = await Promise.all([
             supabaseFetch('alltime_player_stats?select=name,total_appearances,total_goals,total_mvp&order=total_goals.desc'),
-            supabaseFetchAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
+            supabaseFetchAll('matches_with_result?select=*&order=date.asc'),
+            supabaseFetchAll('matches?select=id,date,opponent,venue&order=date.asc')
         ]);
+        const rawVenueById = new Map(rawMatches.map(match => [match.id, match.venue || '']));
+        const rawVenueByFallbackKey = new Map(rawMatches.map(match => [`${match.date}|${match.opponent}`, match.venue || '']));
 
         const allTimeStats = {};
         playerStats.forEach(p => {
@@ -1455,15 +1554,21 @@ async function loadAllTimeSeasonsParallel() {
         });
 
         // 역대 선수 기록은 DB raw 집계 뷰를 단일 기준으로 사용한다.
-        const matchesFormatted = allMatches.map(m => ({
-            season: m.season,
-            date: m.date,
-            opponent: m.opponent,
-            score: `${m.our_score}:${m.opp_score}`,
-            result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss'
-        }));
+        const matchesFormatted = allMatches.map(m => {
+            const storedVenue = m.venue || rawVenueById.get(m.id) || rawVenueByFallbackKey.get(`${m.date}|${m.opponent}`) || '';
+            return {
+                season: m.season,
+                date: m.date,
+                opponent: m.opponent,
+                score: `${m.our_score}:${m.opp_score}`,
+                venue: stripRegionFromVenue(storedVenue),
+                region: normalizeRegion(m.region || inferRegionFromVenue(storedVenue)),
+                result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss'
+            };
+        });
 
         const teamRecords = calculateTeamRecords(matchesFormatted);
+        const calculatedRegionalRecords = calculateRegionalStatsFromMatches(matchesFormatted);
         let debutTimeline = [];
 
         try {
@@ -1483,7 +1588,7 @@ async function loadAllTimeSeasonsParallel() {
             stats: allTimeStats,
             matches: matchesFormatted,
             records: teamRecords,
-            regional: MANUAL_ALLTIME_REGIONAL_RECORDS,
+            regional: calculatedRegionalRecords.length > 0 ? calculatedRegionalRecords : MANUAL_ALLTIME_REGIONAL_RECORDS,
             debuts: debutTimeline
         };
 
