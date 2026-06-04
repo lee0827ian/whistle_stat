@@ -389,7 +389,205 @@ function switchTab(tab) {
 let allPlayers = [];
 let editingMatchId = null;
 let editingScheduleId = null;
-let scheduleMap = null; let scheduleMarker = null; let geocoder = null;
+let scheduleMap = null; let scheduleMarker = null; let geocoder = null; let placeSearchService = null;
+
+const REGION_OPTIONS = [
+    '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구',
+    '고양시','광명시','구리시','군포시','김포시','남양주시','부천시','성남시','수원시','시흥시','안양시','양주시','양평군','용인시','의왕시','의정부시','파주시','평택시','하남시'
+];
+const REGION_VENUE_SEPARATOR = ' | ';
+const KAKAO_REGION_SEARCH_DELAY = 600;
+const KAKAO_REGION_LOOKUP_TIMEOUT = 2200;
+const venueRegionSearchTimers = {};
+const VENUE_REGION_MAP = [
+    ['은로초등학교', '노원구'],
+    ['은로초', '노원구'],
+    ['은호초등학교', '노원구'],
+    ['은호초', '노원구'],
+    ['망우중학교', '중랑구'],
+    ['망우중', '중랑구'],
+    ['성불빌라', '노원구']
+];
+
+function renderRegionOptions() {
+    const datalist = document.getElementById('regionOptions');
+    if (!datalist) return;
+    datalist.innerHTML = REGION_OPTIONS.map(region => `<option value="${region}"></option>`).join('');
+}
+
+function normalizeRegion(region) {
+    const value = (region || '').trim();
+    if (!value) return '';
+    const exact = REGION_OPTIONS.find(option => option === value);
+    if (exact) return exact;
+    return REGION_OPTIONS.find(option => value.includes(option) || option.includes(value)) || value;
+}
+
+function normalizeVenueKeyword(value) {
+    return (value || '').replace(/\s/g, '').toLowerCase();
+}
+
+function inferRegionFromVenue(venue) {
+    const value = (venue || '').trim();
+    if (!value) return '';
+
+    const explicitRegion = extractRegionFromText(value);
+    if (explicitRegion) return explicitRegion;
+
+    const normalizedVenue = normalizeVenueKeyword(value);
+    if (normalizedVenue.length < 2) return '';
+
+    const match = VENUE_REGION_MAP.find(([venueName]) => {
+        const normalizedName = normalizeVenueKeyword(venueName);
+        return normalizedVenue.includes(normalizedName) || normalizedName.includes(normalizedVenue);
+    });
+    return match ? match[1] : '';
+}
+
+function ensureKakaoServices() {
+    if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.services) return false;
+    if (!geocoder) geocoder = new kakao.maps.services.Geocoder();
+    if (!placeSearchService) placeSearchService = new kakao.maps.services.Places();
+    return true;
+}
+
+function extractRegionFromKakaoResult(result) {
+    if (!result) return '';
+    return extractRegionFromText([
+        result.road_address_name,
+        result.address_name,
+        result.place_name
+    ].filter(Boolean).join(' '));
+}
+
+function findRegionInKakaoResults(results = []) {
+    const match = (results || [])
+        .map(extractRegionFromKakaoResult)
+        .find(Boolean);
+    return match || '';
+}
+
+function lookupRegionWithKakao(venue, timeoutMs = KAKAO_REGION_LOOKUP_TIMEOUT) {
+    const query = (venue || '').trim();
+    if (query.length < 2 || !ensureKakaoServices()) return Promise.resolve('');
+
+    return new Promise(resolve => {
+        let settled = false;
+        const finish = (region = '') => {
+            if (settled) return;
+            settled = true;
+            resolve(normalizeRegion(region));
+        };
+
+        const searchByKeyword = () => {
+            placeSearchService.keywordSearch(query, (places, status) => {
+                if (status === kakao.maps.services.Status.OK) {
+                    finish(findRegionInKakaoResults(places));
+                } else {
+                    finish('');
+                }
+            }, { size: 5 });
+        };
+
+        geocoder.addressSearch(query, (results, status) => {
+            if (status === kakao.maps.services.Status.OK) {
+                const region = findRegionInKakaoResults(results);
+                if (region) {
+                    finish(region);
+                    return;
+                }
+            }
+            searchByKeyword();
+        });
+
+        setTimeout(() => finish(''), timeoutMs);
+    });
+}
+
+function extractRegionFromText(text) {
+    const value = (text || '').trim();
+    if (!value) return '';
+    if (value.includes(REGION_VENUE_SEPARATOR)) {
+        const separatedRegion = value.split(REGION_VENUE_SEPARATOR)[0]?.trim();
+        return normalizeRegion(separatedRegion);
+    }
+    return REGION_OPTIONS.find(option => value.includes(option)) || '';
+}
+
+function splitVenueRegion(value = '') {
+    const venue = (value || '').trim();
+    if (!venue) return { region: '', venue: '' };
+    if (venue.includes(REGION_VENUE_SEPARATOR)) {
+        const [regionPart, ...venueParts] = venue.split(REGION_VENUE_SEPARATOR);
+        return { region: normalizeRegion(regionPart), venue: venueParts.join(REGION_VENUE_SEPARATOR).trim() };
+    }
+    return { region: inferRegionFromVenue(venue), venue };
+}
+
+function buildVenueValue(region, venue) {
+    const cleanVenue = (venue || '').trim();
+    const normalizedRegion = normalizeRegion(region || inferRegionFromVenue(cleanVenue));
+    if (normalizedRegion && cleanVenue) return `${normalizedRegion}${REGION_VENUE_SEPARATOR}${cleanVenue}`;
+    return cleanVenue || normalizedRegion;
+}
+
+function scheduleKakaoVenueRegionMapping(venueInputId, regionInputId, force = false) {
+    clearTimeout(venueRegionSearchTimers[venueInputId]);
+    venueRegionSearchTimers[venueInputId] = setTimeout(async () => {
+        const venueInput = document.getElementById(venueInputId);
+        const regionInput = document.getElementById(regionInputId);
+        if (!venueInput || !regionInput) return;
+        if (!force && regionInput.value.trim()) return;
+
+        const searchValue = venueInput.value.trim();
+        const region = await lookupRegionWithKakao(searchValue);
+        if (region && venueInput.value.trim() === searchValue && (force || !regionInput.value.trim())) {
+            regionInput.value = region;
+        }
+    }, KAKAO_REGION_SEARCH_DELAY);
+}
+
+function applyVenueRegionMapping(venueInputId, regionInputId, force = false) {
+    const venueInput = document.getElementById(venueInputId);
+    const regionInput = document.getElementById(regionInputId);
+    if (!venueInput || !regionInput) return;
+
+    const inferredRegion = inferRegionFromVenue(venueInput.value);
+    if (inferredRegion && (force || !regionInput.value.trim())) {
+        regionInput.value = inferredRegion;
+        return;
+    }
+
+    scheduleKakaoVenueRegionMapping(venueInputId, regionInputId, force);
+}
+
+async function buildVenueValueWithKakao(regionInputId, venueInputId) {
+    const regionInput = document.getElementById(regionInputId);
+    const venueInput = document.getElementById(venueInputId);
+    const cleanVenue = (venueInput?.value || '').trim();
+    let region = normalizeRegion(regionInput?.value || inferRegionFromVenue(cleanVenue));
+
+    if (!region) {
+        region = await lookupRegionWithKakao(cleanVenue);
+        if (region && regionInput) regionInput.value = region;
+    }
+
+    return buildVenueValue(region, cleanVenue);
+}
+
+function setupVenueRegionAutoFill() {
+    [
+        ['m-venue', 'm-region'],
+        ['e-venue', 'e-region']
+    ].forEach(([venueInputId, regionInputId]) => {
+        const venueInput = document.getElementById(venueInputId);
+        if (!venueInput || venueInput.dataset.regionAutoFillBound === 'true') return;
+        venueInput.dataset.regionAutoFillBound = 'true';
+        ['input', 'change', 'blur'].forEach(eventName => {
+            venueInput.addEventListener(eventName, () => applyVenueRegionMapping(venueInputId, regionInputId));
+        });
+    });
+}
 
 const REGION_OPTIONS = [
     '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구',
@@ -605,8 +803,7 @@ async function saveMatch() {
         const opponent = document.getElementById("m-opponent").value.trim();
         const ourScore = parseInt(document.getElementById("m-our").value) || 0;
         const oppScore = parseInt(document.getElementById("m-opp").value) || 0;
-        const region = document.getElementById("m-region").value.trim();
-        const venue = buildVenueValue(region, document.getElementById("m-venue").value);
+        const venue = await buildVenueValueWithKakao("m-region", "m-venue");
         const mercCount = parseInt(document.getElementById("m-merc").value) || 0;
         const mvpName = document.getElementById("m-mvp").value.trim();
 
@@ -793,8 +990,7 @@ async function updateMatch() {
         const opponent = document.getElementById("e-opponent").value.trim();
         const ourScore = parseInt(document.getElementById("e-our").value) || 0;
         const oppScore = parseInt(document.getElementById("e-opp").value) || 0;
-        const region = document.getElementById("e-region").value.trim();
-        const venue = buildVenueValue(region, document.getElementById("e-venue").value);
+        const venue = await buildVenueValueWithKakao("e-region", "e-venue");
         const mercCount = parseInt(document.getElementById("e-merc").value) || 0;
         const mvpName = document.getElementById("e-mvp").value.trim();
         const checked = getEditCheckedPlayers();
@@ -881,6 +1077,7 @@ function initKakaoMap() {
     const options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 3 };
     scheduleMap = new kakao.maps.Map(container, options);
     geocoder = new kakao.maps.services.Geocoder();
+    placeSearchService = new kakao.maps.services.Places();
 }
 
 let searchTimer;
