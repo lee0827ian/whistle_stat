@@ -2,24 +2,6 @@
 const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4";
 
-async function supabaseFetchAll(path, pageSize = 1000) {
-    const rows = [];
-    let offset = 0;
-
-    while (true) {
-        const separator = path.includes('?') ? '&' : '?';
-        const batch = await supabaseFetch(`${path}${separator}limit=${pageSize}&offset=${offset}`);
-
-        if (!Array.isArray(batch) || batch.length === 0) break;
-        rows.push(...batch);
-        if (batch.length < pageSize) break;
-
-        offset += pageSize;
-    }
-
-    return rows;
-}
-
 async function supabaseFetch(path) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
         headers: {
@@ -49,7 +31,6 @@ const AppState = {
     },
     ui: {
         currentFilter: 'all',
-        currentAllTimeFilter: 'attendance',
         currentRegionalFilter: 'winrate',
         currentTeamSort: 'season',
         currentMainTab: 'home',
@@ -71,8 +52,7 @@ const AppState = {
         stats: {},
         matches: [],
         records: null,
-        regional: [],
-        debuts: []
+        regional: []
     }
 };
 
@@ -81,6 +61,8 @@ const CONFIG = {
     AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
     DEFAULT_SEASON: '2026',
     KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
+    BASE_PATH: './',
+    DATA_PATH: (season) => `${CONFIG.BASE_PATH}${season}_data.json`,
     VENUE: {
         name: '성불빌라',
         address: '서울 노원구 동일로231가길 7',
@@ -91,375 +73,6 @@ const CONFIG = {
         MAX_CONCURRENT: 3
     }
 };
-
-const REGION_OPTIONS = [
-    '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구',
-    '고양시','광명시','구리시','군포시','김포시','남양주시','부천시','성남시','수원시','시흥시','안양시','양주시','양평군','용인시','의왕시','의정부시','파주시','평택시','하남시'
-];
-const REGION_VENUE_SEPARATOR = ' | ';
-const VENUE_REGION_MAP = [
-    ['은로초등학교', '노원구'],
-    ['은로초', '노원구'],
-    ['은호초등학교', '노원구'],
-    ['은호초', '노원구'],
-    ['망우중학교', '중랑구'],
-    ['망우중', '중랑구'],
-    ['성불빌라', '노원구']
-];
-
-function normalizeRegion(region) {
-    const value = sanitizeTableData(region || '').trim();
-    if (!value) return '';
-    const exact = REGION_OPTIONS.find(option => option === value);
-    if (exact) return exact;
-    return REGION_OPTIONS.find(option => value.includes(option) || option.includes(value)) || value;
-}
-
-function extractRegionFromText(text) {
-    const value = sanitizeTableData(text || '').trim();
-    if (!value) return '';
-    if (value.includes(REGION_VENUE_SEPARATOR)) {
-        const separatedRegion = value.split(REGION_VENUE_SEPARATOR)[0]?.trim();
-        return normalizeRegion(separatedRegion);
-    }
-    return REGION_OPTIONS.find(option => value.includes(option)) || '';
-}
-
-function normalizeVenueKeyword(value) {
-    return sanitizeTableData(value || '').replace(/\s/g, '').toLowerCase();
-}
-
-function inferRegionFromVenue(venue) {
-    const value = sanitizeTableData(venue || '').trim();
-    if (!value) return '';
-
-    const explicitRegion = extractRegionFromText(value);
-    if (explicitRegion) return explicitRegion;
-
-    const normalizedVenue = normalizeVenueKeyword(value);
-    if (normalizedVenue.length < 2) return '';
-
-    const match = VENUE_REGION_MAP.find(([venueName]) => {
-        const normalizedName = normalizeVenueKeyword(venueName);
-        return normalizedVenue.includes(normalizedName) || normalizedName.includes(normalizedVenue);
-    });
-    return match ? match[1] : '';
-}
-
-function stripRegionFromVenue(venue = '') {
-    const value = sanitizeTableData(venue || '').trim();
-    if (!value) return '';
-    if (!value.includes(REGION_VENUE_SEPARATOR)) return value;
-    return value.split(REGION_VENUE_SEPARATOR).slice(1).join(REGION_VENUE_SEPARATOR).trim();
-}
-
-function calculateRegionalStatsFromMatches(matches = []) {
-    const regionalMap = new Map();
-    const overall = { region: '전체', matches: 0, wins: 0, draws: 0, losses: 0 };
-
-    matches.forEach(match => {
-        const region = normalizeRegion(match.region || inferRegionFromVenue(match.venue));
-        if (!region) return;
-
-        const row = regionalMap.get(region) || { region, matches: 0, wins: 0, draws: 0, losses: 0 };
-        row.matches += 1;
-        overall.matches += 1;
-
-        if (match.result === 'win') {
-            row.wins += 1;
-            overall.wins += 1;
-        } else if (match.result === 'draw') {
-            row.draws += 1;
-            overall.draws += 1;
-        } else {
-            row.losses += 1;
-            overall.losses += 1;
-        }
-
-        regionalMap.set(region, row);
-    });
-
-    const rows = Array.from(regionalMap.values());
-    return rows.length > 0 ? [overall, ...rows] : [];
-}
-
-const MANUAL_ALLTIME_PLAYER_RECORDS = Object.fromEntries([
-    ['강규주', { totalAppearances: 5, totalGoals: 0 }],
-    ['강동규', { totalAppearances: 1, totalGoals: 1 }],
-    ['강동호', { totalAppearances: 2, totalGoals: 0 }],
-    ['강명국', { totalAppearances: 131, totalGoals: 1 }],
-    ['강목은', { totalAppearances: 2, totalGoals: 0 }],
-    ['강민수', { totalAppearances: 2, totalGoals: 0 }],
-    ['강백신', { totalAppearances: 1, totalGoals: 0 }],
-    ['강영찬', { totalAppearances: 2, totalGoals: 0 }],
-    ['강용기', { totalAppearances: 464, totalGoals: 32 }],
-    ['강재웅', { totalAppearances: 455, totalGoals: 166 }],
-    ['강진민', { totalAppearances: 3, totalGoals: 0 }],
-    ['강태경', { totalAppearances: 20, totalGoals: 0 }],
-    ['강현제', { totalAppearances: 13, totalGoals: 0 }],
-    ['고영규', { totalAppearances: 7, totalGoals: 1 }],
-    ['고일진', { totalAppearances: 2, totalGoals: 0 }],
-    ['고태경', { totalAppearances: 197, totalGoals: 64 }],
-    ['공재문', { totalAppearances: 11, totalGoals: 0 }],
-    ['구자홍', { totalAppearances: 5, totalGoals: 0 }],
-    ['곽 웅', { totalAppearances: 47, totalGoals: 31 }],
-    ['권순구', { totalAppearances: 17, totalGoals: 0 }],
-    ['권창호', { totalAppearances: 463, totalGoals: 433 }],
-    ['김경배', { totalAppearances: 589, totalGoals: 170 }],
-    ['김경현', { totalAppearances: 25, totalGoals: 4 }],
-    ['김광열', { totalAppearances: 70, totalGoals: 47 }],
-    ['김광엽', { totalAppearances: 6, totalGoals: 0 }],
-    ['김기범', { totalAppearances: 60, totalGoals: 35 }],
-    ['김기호', { totalAppearances: 366, totalGoals: 216 }],
-    ['김덕희', { totalAppearances: 9, totalGoals: 2 }],
-    ['김동현', { totalAppearances: 2, totalGoals: 0 }],
-    ['김동후', { totalAppearances: 38, totalGoals: 8 }],
-    ['김동규', { totalAppearances: 221, totalGoals: 8 }],
-    ['김명재', { totalAppearances: 47, totalGoals: 3 }],
-    ['김민석', { totalAppearances: 3, totalGoals: 1 }],
-    ['김민성', { totalAppearances: 27, totalGoals: 1 }],
-    ['김보경', { totalAppearances: 3, totalGoals: 0 }],
-    ['김병태', { totalAppearances: 427, totalGoals: 10 }],
-    ['김석환', { totalAppearances: 2, totalGoals: 2 }],
-    ['김성광', { totalAppearances: 21, totalGoals: 6 }],
-    ['김성환', { totalAppearances: 56, totalGoals: 45 }],
-    ['김세연', { totalAppearances: 1, totalGoals: 0 }],
-    ['김세원', { totalAppearances: 9, totalGoals: 2 }],
-    ['김소중', { totalAppearances: 11, totalGoals: 1 }],
-    ['김승태', { totalAppearances: 1, totalGoals: 0 }],
-    ['김영균', { totalAppearances: 10, totalGoals: 2 }],
-    ['김영렬', { totalAppearances: 2, totalGoals: 1 }],
-    ['김영윤', { totalAppearances: 1, totalGoals: 0 }],
-    ['김영주', { totalAppearances: 586, totalGoals: 27 }],
-    ['김영택', { totalAppearances: 2, totalGoals: 0 }],
-    ['김요한', { totalAppearances: 1, totalGoals: 0 }],
-    ['김용호', { totalAppearances: 2, totalGoals: 1 }],
-    ['김우철', { totalAppearances: 11, totalGoals: 2 }],
-    ['김유신', { totalAppearances: 6, totalGoals: 0 }],
-    ['김은택', { totalAppearances: 20, totalGoals: 3 }],
-    ['김장훈', { totalAppearances: 134, totalGoals: 90 }],
-    ['김정훈', { totalAppearances: 28, totalGoals: 0 }],
-    ['김종대', { totalAppearances: 17, totalGoals: 2 }],
-    ['김종민', { totalAppearances: 2, totalGoals: 1 }],
-    ['김종성', { totalAppearances: 60, totalGoals: 3 }],
-    ['김종우', { totalAppearances: 218, totalGoals: 149 }],
-    ['김종훈', { totalAppearances: 1, totalGoals: 0 }],
-    ['김주현', { totalAppearances: 4, totalGoals: 0 }],
-    ['김준형', { totalAppearances: 120, totalGoals: 0 }],
-    ['김준호', { totalAppearances: 37, totalGoals: 6 }],
-    ['김진성', { totalAppearances: 1, totalGoals: 0 }],
-    ['김진호', { totalAppearances: 323, totalGoals: 67 }],
-    ['김진혁', { totalAppearances: 3, totalGoals: 1 }],
-    ['김태종', { totalAppearances: 42, totalGoals: 36 }],
-    ['김현철', { totalAppearances: 3, totalGoals: 0 }],
-    ['김현호', { totalAppearances: 5, totalGoals: 1 }],
-    ['김형주', { totalAppearances: 2, totalGoals: 0 }],
-    ['나규병', { totalAppearances: 91, totalGoals: 10 }],
-    ['류기욱', { totalAppearances: 9, totalGoals: 2 }],
-    ['문상봉', { totalAppearances: 31, totalGoals: 2 }],
-    ['문승건', { totalAppearances: 6, totalGoals: 0 }],
-    ['민경철', { totalAppearances: 7, totalGoals: 2 }],
-    ['박대현', { totalAppearances: 1, totalGoals: 0 }],
-    ['박병걸', { totalAppearances: 6, totalGoals: 0 }],
-    ['박성준', { totalAppearances: 6, totalGoals: 1 }],
-    ['박성호', { totalAppearances: 33, totalGoals: 59 }],
-    ['박수일', { totalAppearances: 24, totalGoals: 1 }],
-    ['박용선', { totalAppearances: 1, totalGoals: 0 }],
-    ['박윤제', { totalAppearances: 55, totalGoals: 15 }],
-    ['박인수', { totalAppearances: 5, totalGoals: 0 }],
-    ['박재원', { totalAppearances: 4, totalGoals: 0 }],
-    ['박재현', { totalAppearances: 3, totalGoals: 0 }],
-    ['박제성', { totalAppearances: 1, totalGoals: 0 }],
-    ['박종훈', { totalAppearances: 1, totalGoals: 0 }],
-    ['박준수', { totalAppearances: 6, totalGoals: 1 }],
-    ['박준석', { totalAppearances: 8, totalGoals: 0 }],
-    ['박지성', { totalAppearances: 547, totalGoals: 23 }],
-    ['박진우', { totalAppearances: 2, totalGoals: 0 }],
-    ['박흥걸', { totalAppearances: 2, totalGoals: 0 }],
-    ['반기훈', { totalAppearances: 634, totalGoals: 234 }],
-    ['배병철', { totalAppearances: 1, totalGoals: 0 }],
-    ['사공훈', { totalAppearances: 4, totalGoals: 0 }],
-    ['서귀석', { totalAppearances: 25, totalGoals: 18 }],
-    ['서원덕', { totalAppearances: 238, totalGoals: 10 }],
-    ['석재호', { totalAppearances: 62, totalGoals: 6 }],
-    ['손유창', { totalAppearances: 20, totalGoals: 0 }],
-    ['손의창', { totalAppearances: 148, totalGoals: 106 }],
-    ['송문환', { totalAppearances: 24, totalGoals: 13 }],
-    ['송봉현', { totalAppearances: 8, totalGoals: 6 }],
-    ['송형돈', { totalAppearances: 3, totalGoals: 2 }],
-    ['신규환', { totalAppearances: 106, totalGoals: 27 }],
-    ['심규혁', { totalAppearances: 1, totalGoals: 1 }],
-    ['심기용', { totalAppearances: 1, totalGoals: 0 }],
-    ['안대훈', { totalAppearances: 2, totalGoals: 0 }],
-    ['안수영', { totalAppearances: 113, totalGoals: 21 }],
-    ['안영학', { totalAppearances: 7, totalGoals: 1 }],
-    ['안중오', { totalAppearances: 27, totalGoals: 14 }],
-    ['안찬식', { totalAppearances: 3, totalGoals: 0 }],
-    ['안창영', { totalAppearances: 288, totalGoals: 91 }],
-    ['안태수', { totalAppearances: 661, totalGoals: 191 }],
-    ['엄기영', { totalAppearances: 21, totalGoals: 1 }],
-    ['엄정호', { totalAppearances: 6, totalGoals: 0 }],
-    ['여상현', { totalAppearances: 6, totalGoals: 0 }],
-    ['연제승', { totalAppearances: 52, totalGoals: 5 }],
-    ['염재호', { totalAppearances: 3, totalGoals: 0 }],
-    ['오종성', { totalAppearances: 14, totalGoals: 2 }],
-    ['오지훈', { totalAppearances: 152, totalGoals: 1 }],
-    ['오진석', { totalAppearances: 271, totalGoals: 381 }],
-    ['오태균', { totalAppearances: 100, totalGoals: 24 }],
-    ['왕영훈', { totalAppearances: 1, totalGoals: 0 }],
-    ['우동진', { totalAppearances: 3, totalGoals: 0 }],
-    ['우민수', { totalAppearances: 28, totalGoals: 0 }],
-    ['우희헌', { totalAppearances: 31, totalGoals: 2 }],
-    ['유민호', { totalAppearances: 1, totalGoals: 0 }],
-    ['유승우', { totalAppearances: 13, totalGoals: 8 }],
-    ['유승우B', { totalAppearances: 1, totalGoals: 0 }],
-    ['유지현', { totalAppearances: 494, totalGoals: 44 }],
-    ['윤성훈', { totalAppearances: 5, totalGoals: 0 }],
-    ['윤성현', { totalAppearances: 2, totalGoals: 1 }],
-    ['윤유인', { totalAppearances: 1, totalGoals: 0 }],
-    ['윤재혁', { totalAppearances: 137, totalGoals: 6 }],
-    ['윤정광', { totalAppearances: 305, totalGoals: 3 }],
-    ['윤정재', { totalAppearances: 2, totalGoals: 0 }],
-    ['윤종진', { totalAppearances: 228, totalGoals: 178 }],
-    ['윤준배', { totalAppearances: 12, totalGoals: 2 }],
-    ['윤호진', { totalAppearances: 135, totalGoals: 37 }],
-    ['윤희중', { totalAppearances: 3, totalGoals: 0 }],
-    ['이가람', { totalAppearances: 2, totalGoals: 0 }],
-    ['이건우', { totalAppearances: 1, totalGoals: 0 }],
-    ['이경윤', { totalAppearances: 42, totalGoals: 5 }],
-    ['이경찬', { totalAppearances: 20, totalGoals: 2 }],
-    ['이광수', { totalAppearances: 229, totalGoals: 89 }],
-    ['이국민', { totalAppearances: 3, totalGoals: 2 }],
-    ['이근동', { totalAppearances: 23, totalGoals: 1 }],
-    ['이기룡', { totalAppearances: 2, totalGoals: 0 }],
-    ['이기쁨', { totalAppearances: 2, totalGoals: 1 }],
-    ['이동엽', { totalAppearances: 3, totalGoals: 2 }],
-    ['이두희', { totalAppearances: 6, totalGoals: 0 }],
-    ['이병선', { totalAppearances: 1, totalGoals: 0 }],
-    ['이상보', { totalAppearances: 65, totalGoals: 4 }],
-    ['이상엽', { totalAppearances: 5, totalGoals: 0 }],
-    ['이성재', { totalAppearances: 9, totalGoals: 3 }],
-    ['이성훈', { totalAppearances: 38, totalGoals: 2 }],
-    ['이양찬', { totalAppearances: 1, totalGoals: 0 }],
-    ['이윤석', { totalAppearances: 1, totalGoals: 0 }],
-    ['이욱섭', { totalAppearances: 3, totalGoals: 0 }],
-    ['이웅진', { totalAppearances: 25, totalGoals: 1 }],
-    ['이원일', { totalAppearances: 1, totalGoals: 0 }],
-    ['이원호', { totalAppearances: 17, totalGoals: 5 }],
-    ['이일용', { totalAppearances: 2, totalGoals: 0 }],
-    ['이재기', { totalAppearances: 6, totalGoals: 0 }],
-    ['이재용', { totalAppearances: 1, totalGoals: 0 }],
-    ['이재희', { totalAppearances: 55, totalGoals: 2 }],
-    ['이종욱', { totalAppearances: 5, totalGoals: 2 }],
-    ['이준성', { totalAppearances: 3, totalGoals: 2 }],
-    ['이정호', { totalAppearances: 279, totalGoals: 330 }],
-    ['이지훈', { totalAppearances: 53, totalGoals: 1 }],
-    ['이진성', { totalAppearances: 1, totalGoals: 0 }],
-    ['이진호', { totalAppearances: 12, totalGoals: 0 }],
-    ['이진희', { totalAppearances: 14, totalGoals: 0 }],
-    ['이 찬', { totalAppearances: 1, totalGoals: 1 }],
-    ['이치석', { totalAppearances: 219, totalGoals: 14 }],
-    ['이태원', { totalAppearances: 5, totalGoals: 0 }],
-    ['이항규', { totalAppearances: 1069, totalGoals: 966 }],
-    ['이현정', { totalAppearances: 37, totalGoals: 2 }],
-    ['이호영', { totalAppearances: 1, totalGoals: 0 }],
-    ['인 걸', { totalAppearances: 1, totalGoals: 1 }],
-    ['임기홍', { totalAppearances: 8, totalGoals: 0 }],
-    ['임슬기', { totalAppearances: 37, totalGoals: 2 }],
-    ['임인천', { totalAppearances: 2, totalGoals: 0 }],
-    ['임태현', { totalAppearances: 292, totalGoals: 45 }],
-    ['장문성', { totalAppearances: 1, totalGoals: 0 }],
-    ['장상우', { totalAppearances: 135, totalGoals: 34 }],
-    ['장석중', { totalAppearances: 7, totalGoals: 2 }],
-    ['장은철', { totalAppearances: 2, totalGoals: 0 }],
-    ['장재혁', { totalAppearances: 49, totalGoals: 3 }],
-    ['전윤길', { totalAppearances: 35, totalGoals: 14 }],
-    ['전재민', { totalAppearances: 3, totalGoals: 0 }],
-    ['전충원', { totalAppearances: 33, totalGoals: 0 }],
-    ['정경운', { totalAppearances: 52, totalGoals: 5 }],
-    ['정다운', { totalAppearances: 5, totalGoals: 1 }],
-    ['정민현', { totalAppearances: 2, totalGoals: 0 }],
-    ['정승훈', { totalAppearances: 14, totalGoals: 2 }],
-    ['정현준', { totalAppearances: 83, totalGoals: 0 }],
-    ['조상현', { totalAppearances: 400, totalGoals: 299 }],
-    ['조원재', { totalAppearances: 1, totalGoals: 0 }],
-    ['조인혁', { totalAppearances: 72, totalGoals: 54 }],
-    ['주  철', { totalAppearances: 3, totalGoals: 0 }],
-    ['지기남', { totalAppearances: 11, totalGoals: 0 }],
-    ['지의태', { totalAppearances: 7, totalGoals: 2 }],
-    ['지주현', { totalAppearances: 34, totalGoals: 7 }],
-    ['차경윤', { totalAppearances: 4, totalGoals: 0 }],
-    ['최광재', { totalAppearances: 5, totalGoals: 3 }],
-    ['최낙혁', { totalAppearances: 9, totalGoals: 12 }],
-    ['최성준', { totalAppearances: 2, totalGoals: 0 }],
-    ['최용신', { totalAppearances: 10, totalGoals: 1 }],
-    ['최준혁', { totalAppearances: 1, totalGoals: 0 }],
-    ['최진오', { totalAppearances: 5, totalGoals: 0 }],
-    ['최진우', { totalAppearances: 5, totalGoals: 0 }],
-    ['최태승', { totalAppearances: 16, totalGoals: 6 }],
-    ['최현철', { totalAppearances: 3, totalGoals: 0 }],
-    ['하승우', { totalAppearances: 107, totalGoals: 30 }],
-    ['하승협', { totalAppearances: 154, totalGoals: 53 }],
-    ['한승종', { totalAppearances: 42, totalGoals: 27 }],
-    ['허 승', { totalAppearances: 1, totalGoals: 0 }],
-    ['허지훈', { totalAppearances: 1, totalGoals: 0 }],
-    ['홍동현', { totalAppearances: 52, totalGoals: 27 }],
-    ['홍세철', { totalAppearances: 147, totalGoals: 22 }],
-    ['홍순욱', { totalAppearances: 2, totalGoals: 0 }],
-    ['홍우승', { totalAppearances: 1, totalGoals: 0 }],
-    ['홍제완', { totalAppearances: 34, totalGoals: 2 }],
-    ['홍종범', { totalAppearances: 12, totalGoals: 2 }],
-    ['홍태욱', { totalAppearances: 18, totalGoals: 1 }],
-    ['황  현', { totalAppearances: 1, totalGoals: 1 }]
-]);
-
-const MANUAL_ALLTIME_REGIONAL_RECORDS = [
-    { region: '전체', matches: 1233, wins: 790, draws: 119, losses: 324 },
-    { region: '강남구', matches: 75, wins: 46, draws: 5, losses: 24 },
-    { region: '강동구', matches: 48, wins: 33, draws: 6, losses: 9 },
-    { region: '강북구', matches: 27, wins: 20, draws: 2, losses: 5 },
-    { region: '강서구', matches: 76, wins: 43, draws: 12, losses: 21 },
-    { region: '관악구', matches: 68, wins: 40, draws: 8, losses: 20 },
-    { region: '광진구', matches: 53, wins: 34, draws: 4, losses: 15 },
-    { region: '구로구', matches: 39, wins: 30, draws: 5, losses: 4 },
-    { region: '금천구', matches: 18, wins: 15, draws: 0, losses: 3 },
-    { region: '노원구', matches: 100, wins: 66, draws: 10, losses: 24 },
-    { region: '도봉구', matches: 31, wins: 18, draws: 6, losses: 7 },
-    { region: '동대문구', matches: 59, wins: 35, draws: 6, losses: 18 },
-    { region: '동작구', matches: 36, wins: 26, draws: 0, losses: 10 },
-    { region: '마포구', matches: 29, wins: 23, draws: 1, losses: 5 },
-    { region: '서대문구', matches: 26, wins: 20, draws: 1, losses: 5 },
-    { region: '서초구', matches: 65, wins: 42, draws: 7, losses: 16 },
-    { region: '성동구', matches: 50, wins: 24, draws: 8, losses: 18 },
-    { region: '성북구', matches: 47, wins: 33, draws: 5, losses: 9 },
-    { region: '송파구', matches: 55, wins: 34, draws: 6, losses: 15 },
-    { region: '양천구', matches: 31, wins: 26, draws: 1, losses: 4 },
-    { region: '영등포구', matches: 57, wins: 35, draws: 5, losses: 17 },
-    { region: '용산구', matches: 17, wins: 9, draws: 1, losses: 7 },
-    { region: '은평구', matches: 15, wins: 6, draws: 0, losses: 9 },
-    { region: '종로구', matches: 16, wins: 12, draws: 3, losses: 1 },
-    { region: '중구', matches: 40, wins: 32, draws: 1, losses: 7 },
-    { region: '중랑구', matches: 50, wins: 32, draws: 4, losses: 14 },
-    { region: '고양시', matches: 14, wins: 10, draws: 1, losses: 3 },
-    { region: '광명시', matches: 16, wins: 6, draws: 2, losses: 8 },
-    { region: '구리시', matches: 3, wins: 1, draws: 0, losses: 2 },
-    { region: '군포시', matches: 1, wins: 1, draws: 0, losses: 0 },
-    { region: '김포시', matches: 1, wins: 0, draws: 0, losses: 1 },
-    { region: '남양주시', matches: 7, wins: 1, draws: 1, losses: 5 },
-    { region: '부천시', matches: 11, wins: 7, draws: 2, losses: 2 },
-    { region: '성남시', matches: 24, wins: 13, draws: 4, losses: 7 },
-    { region: '수원시', matches: 2, wins: 2, draws: 0, losses: 0 },
-    { region: '시흥시', matches: 1, wins: 1, draws: 0, losses: 0 },
-    { region: '안양시', matches: 5, wins: 2, draws: 1, losses: 2 },
-    { region: '양주시', matches: 1, wins: 1, draws: 0, losses: 0 },
-    { region: '양평군', matches: 1, wins: 0, draws: 0, losses: 1 },
-    { region: '용인시', matches: 2, wins: 1, draws: 0, losses: 1 },
-    { region: '의왕시', matches: 4, wins: 4, draws: 0, losses: 0 },
-    { region: '의정부시', matches: 6, wins: 3, draws: 1, losses: 2 },
-    { region: '파주시', matches: 0, wins: 0, draws: 0, losses: 0 },
-    { region: '평택시', matches: 1, wins: 1, draws: 0, losses: 0 },
-    { region: '하남시', matches: 5, wins: 2, draws: 0, losses: 3 }
-];
 
 const SEASON_DISPLAY_OVERRIDES = {
     '2025': {
@@ -1355,61 +968,49 @@ function initializeMap() {
 
 // --- [ 데이터 로드 함수 ] ---
 
-async function loadFromSupabase(season) {
+async function loadFromGoogleSheets(season) {
     const season2026plus = parseInt(season) >= 2026;
 
     // 1단계: 경기 ID 목록 먼저
     const matchIdList = await supabaseFetch(
-        `matches?season=eq.${season}&select=id,venue`
+        `matches?season=eq.${season}&select=id`
     );
     const matchIds = matchIdList.map(m => m.id).join(",") || "0";
-    const venueByMatchId = new Map(matchIdList.map(match => [match.id, match.venue || '']));
 
-    // 💡 오늘 날짜 구하기 (지나간 일정은 안 보이게)
-    const today = new Date().toISOString().split('T')[0];
-
-    // 2단계: 나머지 데이터 병렬 로드 (💡 schedules 통신 추가됨)
-    const [matchesRaw, playersRaw, mvpRaw, schedulesRaw] = await Promise.all([
+    // 2단계: 나머지 병렬 로드
+    const [matchesRaw, playersRaw, mvpRaw] = await Promise.all([
         supabaseFetch(
             `matches_with_result?season=eq.${season}&order=date.desc`
         ),
         season2026plus
             ? supabaseFetch(
-                    `season_player_stats?season=eq.${season}&select=name,appearances,goals,mvp&order=goals.desc`
-            )
+                `season_player_stats?season=eq.${season}&select=name,appearances,goals,mvp&order=goals.desc`
+              )
             : supabaseFetch(
                 `legacy_stats?season=eq.${season}&select=appearances,goals,mvp,players(name)&order=goals.desc`
               ),
         supabaseFetch(
             `match_mvps?select=raw_name,match_id&match_id=in.(${matchIds})`
-        ),
-        // 데이터베이스에서 다가오는 일정 가져오기
-        supabaseFetch(
-            `schedules?date=gte.${today}&order=date.asc`
         )
     ]);
 
-    // MVP 매핑
+    // MVP를 match_id 기준으로 매핑
     const mvpMap = {};
     mvpRaw.forEach(row => {
         if (!mvpMap[row.match_id]) mvpMap[row.match_id] = [];
         mvpMap[row.match_id].push(row.raw_name);
     });
 
-    const matches = matchesRaw.map(m => {
-        const storedVenue = m.venue || venueByMatchId.get(m.id) || '';
-        return {
-            date: m.date,
-            opponent: m.opponent,
-            result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
-            score: `${m.our_score}:${m.opp_score}`,
-            venue: stripRegionFromVenue(storedVenue),
-            region: normalizeRegion(m.region || inferRegionFromVenue(storedVenue)),
-            mvp: (mvpMap[m.id] || []).join(", ")
-        };
-    });
+    const matches = matchesRaw.map(m => ({
+        date: m.date,
+        opponent: m.opponent,
+        result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
+        score: `${m.our_score}:${m.opp_score}`,
+        venue: m.venue || "",
+        mvp: (mvpMap[m.id] || []).join(", ")
+    }));
 
-    // players 매핑
+    // players 포맷 변환
     const players = {};
     playersRaw.forEach(row => {
         const name = season2026plus ? row.name : row.players?.name;
@@ -1421,22 +1022,12 @@ async function loadFromSupabase(season) {
         };
     });
 
-    // 💡 schedules 포맷 변환 추가
-    const schedules = schedulesRaw.map(row => ({
-        date: row.date,
-        time: row.time || '',
-        venue: row.venue || '',
-        opponent: row.opponent,
-        address: row.address || '',
-        note: row.note || ''
-    }));
-
     return {
         season: season,
         matches: matches,
         players: players,
-        schedules: schedules, // 💡 더 이상 빈 배열([])이 아닌 진짜 데이터 연결!
-        regional: calculateRegionalStatsFromMatches(matches)
+        schedules: [],
+        regional: []
     };
 }
 // JSON 경로를 명확히 지정하여 로드
@@ -1453,14 +1044,32 @@ async function loadData() {
         }
         AppState.network.currentAbortController = new AbortController();
 
-        let data, dataSource = 'Supabase';
+        let data, dataSource = 'JSON 파일';
         const currentSeasonKey = AppState.data.currentSeason;
 
         if (seasonDataCache.has(currentSeasonKey)) {
             data = seasonDataCache.get(currentSeasonKey);
             dataSource = '캐시';
         } else {
-            data = await loadFromSupabase(currentSeasonKey);
+            const fetchJsonSeason = async () => {
+                const response = await fetch(CONFIG.DATA_PATH(currentSeasonKey), {
+                    signal: AppState.network.currentAbortController.signal,
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
+                const rawData = await response.json();
+                return validateSeasonData(rawData);
+            };
+
+            try {
+                data = await loadFromGoogleSheets(currentSeasonKey);
+                dataSource = 'Supabase';
+            } catch (sbError) {
+                logInfo('Supabase 로딩 실패, JSON 파일로 대체:', sbError.message);
+                data = await fetchJsonSeason();
+                dataSource = 'JSON 파일 (대체)';
+            }
+
             seasonDataCache.set(currentSeasonKey, data);
         }
 
@@ -1474,6 +1083,7 @@ async function loadData() {
         updateTable(AppState.data.matches, [], 'matchesList', 'matches');
         updateSchedule(data.schedules || []);
         updateRegionalTable(AppState.data.regionalStats, AppState.ui.currentRegionalFilter);
+        createRegionalHeatmap(AppState.data.regionalStats);
 
         if (data.schedules && data.schedules.length > 0) {
              loadKakaoMap();
@@ -1516,7 +1126,23 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
                 return { success: true, season: seasonKey, data: seasonDataCache.get(seasonKey) };
             }
 
-            const data = await loadFromSupabase(seasonKey);
+            const fetchJsonSeason = async () => {
+                const response = await fetch(CONFIG.DATA_PATH(seasonKey), { headers: { 'Cache-Control': 'no-cache' } });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const rawData = await response.json();
+                return validateSeasonData(rawData);
+            };
+
+            let data;
+            try {
+                data = await loadFromGoogleSheets(seasonKey);
+            } catch (sbError) {
+                logError(`시즌 ${seasonKey} Supabase 로드 실패, JSON으로 대체`, sbError);
+                data = await fetchJsonSeason();
+            }
+
             seasonDataCache.set(seasonKey, data);
             return { success: true, season: seasonKey, data };
         } catch (error) {
@@ -1531,18 +1157,16 @@ async function loadSeasonDataWithRetry(season, retries = 2) {
     return { success: false, season: seasonKey };
 }
 
+// 병렬 데이터 로딩 (전체 기록)
 // 병렬 데이터 로딩 (전체 기록) - Supabase 뷰 활용
 async function loadAllTimeSeasonsParallel() {
     showStatusMessage('역대 기록을 불러오는 중...', 'loading');
 
     try {
-        const [playerStats, allMatches, rawMatches] = await Promise.all([
+        const [playerStats, allMatches] = await Promise.all([
             supabaseFetch('alltime_player_stats?select=name,total_appearances,total_goals,total_mvp&order=total_goals.desc'),
-            supabaseFetchAll('matches_with_result?select=*&order=date.asc'),
-            supabaseFetchAll('matches?select=id,date,opponent,venue&order=date.asc')
+            supabaseFetch('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
         ]);
-        const rawVenueById = new Map(rawMatches.map(match => [match.id, match.venue || '']));
-        const rawVenueByFallbackKey = new Map(rawMatches.map(match => [`${match.date}|${match.opponent}`, match.venue || '']));
 
         const allTimeStats = {};
         playerStats.forEach(p => {
@@ -1553,33 +1177,15 @@ async function loadAllTimeSeasonsParallel() {
             };
         });
 
-        // 역대 선수 기록은 DB raw 집계 뷰를 단일 기준으로 사용한다.
-        const matchesFormatted = allMatches.map(m => {
-            const storedVenue = m.venue || rawVenueById.get(m.id) || rawVenueByFallbackKey.get(`${m.date}|${m.opponent}`) || '';
-            return {
-                season: m.season,
-                date: m.date,
-                opponent: m.opponent,
-                score: `${m.our_score}:${m.opp_score}`,
-                venue: stripRegionFromVenue(storedVenue),
-                region: normalizeRegion(m.region || inferRegionFromVenue(storedVenue)),
-                result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss'
-            };
-        });
+        const matchesFormatted = allMatches.map(m => ({
+            season: m.season,
+            date: m.date,
+            opponent: m.opponent,
+            score: `${m.our_score}:${m.opp_score}`,
+            result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss'
+        }));
 
         const teamRecords = calculateTeamRecords(matchesFormatted);
-        const calculatedRegionalRecords = calculateRegionalStatsFromMatches(matchesFormatted);
-        let debutTimeline = [];
-
-        try {
-            const lineupData = await supabaseFetchAll(
-                'match_lineups?select=players(name),matches(season)&is_mercenary=eq.false&player_id=not.is.null'
-            );
-            debutTimeline = calculateDebutTimelineFromLineups(lineupData, allTimeStats);
-        } catch (debutError) {
-            logError('데뷔년도 데이터 로드 실패:', debutError);
-            debutTimeline = [];
-        }
 
         hideStatusMessage();
         hideLoadingProgress();
@@ -1588,25 +1194,25 @@ async function loadAllTimeSeasonsParallel() {
             stats: allTimeStats,
             matches: matchesFormatted,
             records: teamRecords,
-            regional: calculatedRegionalRecords.length > 0 ? calculatedRegionalRecords : MANUAL_ALLTIME_REGIONAL_RECORDS,
-            debuts: debutTimeline
+            regional: []
         };
 
     } catch(e) {
         logError('역대 기록 로드 실패:', e);
         showStatusMessage('역대 기록을 불러올 수 없습니다.', 'error');
-        return { stats: {}, matches: [], records: null, regional: [], debuts: [] };
+        return { stats: {}, matches: [], records: null, regional: [] };
     }
 }
 
 
 // UI/Event Handler 함수
 function filterPlayers(filter) {
-    if (AppState.data.isAllTimeView) {
-        AppState.ui.currentAllTimeFilter = filter;
-    } else {
-        AppState.ui.currentFilter = filter;
-    }
+    document.body.classList.remove('psort-goals', 'psort-appearances', 'psort-mvp');
+    if (filter === 'goals') document.body.classList.add('psort-goals');
+    else if (filter === 'appearances') document.body.classList.add('psort-appearances');
+    else if (filter === 'mvp') document.body.classList.add('psort-mvp');
+
+    AppState.ui.currentFilter = filter;
 
     document.querySelectorAll('.player-filter-controls .filter-btn').forEach(button => {
         button.classList.toggle('active', button.dataset.filter === filter);
@@ -1633,10 +1239,7 @@ function filterRegional(filter) {
         : AppState.data.regionalStats;
 
     updateRegionalTable(dataSource, filter);
-
-    if (AppState.data.isAllTimeView && AppState.allTime.loaded) {
-        updateDebutTimeline(AppState.allTime.debuts);
-    }
+    createRegionalHeatmap(dataSource);
 }
 
 function filterTeamRecords(sortBy) {
@@ -1653,8 +1256,7 @@ function updateRegionalTable(regionalData = AppState.data.regionalStats, sortBy 
 
     tbody.innerHTML = '';
 
-    const heatmapData = (regionalData || []).filter(region => region.region !== '전체');
-    if (heatmapData.length === 0) {
+    if (!regionalData || regionalData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="no-data">지역별 데이터가 없습니다.</td></tr>';
         updateRegionalSortIndicators(sortBy);
         return;
@@ -1677,9 +1279,6 @@ function updateRegionalTable(regionalData = AppState.data.regionalStats, sortBy 
     });
 
     sorted.sort((a, b) => {
-        if (a.region === '전체') return -1;
-        if (b.region === '전체') return 1;
-
         switch (sortBy) {
             case 'matches':
                 return b.matches - a.matches;
@@ -1738,7 +1337,7 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
         return;
     }
 
-    const enriched = regionalData.filter(r => r.region !== '전체').map(region => ({
+    const enriched = regionalData.map(region => ({
         ...region,
         matches: Number(region.matches) || 0,
         wins: Number(region.wins) || 0,
@@ -1752,8 +1351,8 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
     };
 
     const columns = Math.min(4, enriched.length);
-    const cellWidth = 124;
-    const cellHeight = 100;
+    const cellWidth = 90;
+    const cellHeight = 70;
     const gap = 12;
     const padding = 20;
     const rows = Math.ceil(enriched.length / columns);
@@ -1784,74 +1383,6 @@ function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
         <rect x="0" y="0" width="${width}" height="${height}" fill="#f8fafc" rx="12"></rect>
         ${cells}
     `;
-}
-
-function calculateDebutTimelineFromLineups(lineupData = [], allTimeStats = {}) {
-    const debutByName = new Map();
-    const appearancesByName = new Map();
-
-    (lineupData || []).forEach(entry => {
-        const name = entry?.players?.name;
-        const season = Number(entry?.matches?.season);
-        if (!name || !Number.isFinite(season)) return;
-
-        const current = debutByName.get(name);
-        if (current === undefined || season < current) {
-            debutByName.set(name, season);
-        }
-        appearancesByName.set(name, (appearancesByName.get(name) || 0) + 1);
-    });
-
-    const grouped = new Map();
-
-    debutByName.forEach((season, name) => {
-        const totals = allTimeStats[name] || {};
-        if (!grouped.has(season)) grouped.set(season, []);
-        grouped.get(season).push({
-            name,
-            totalAppearances: Number(totals.totalAppearances) || appearancesByName.get(name) || 0,
-            totalGoals: Number(totals.totalGoals) || 0,
-            totalMvp: Number(totals.totalMvp) || 0
-        });
-    });
-
-    return Array.from(grouped.entries())
-        .map(([season, players]) => ({
-            season,
-            players: players.sort((a, b) =>
-                (b.totalAppearances - a.totalAppearances) ||
-                (b.totalGoals - a.totalGoals) ||
-                (b.totalMvp - a.totalMvp) ||
-                koreanCollator.compare(a.name, b.name)
-            )
-        }))
-        .sort((a, b) => b.season - a.season);
-}
-
-function updateDebutTimeline(debutTimeline = AppState.allTime.debuts) {
-    const container = document.getElementById('debutTimelineContainer');
-    if (!container) return;
-
-    if (!debutTimeline || debutTimeline.length === 0) {
-        container.innerHTML = '<div class="no-data">데뷔년도 데이터가 없습니다.</div>';
-        return;
-    }
-
-    container.innerHTML = debutTimeline.map(group => {
-        const playersMarkup = group.players.map(player => `
-            <div class="debut-player-chip">
-                <strong>${player.name}</strong>
-                <span>${player.totalAppearances}경기</span>
-            </div>
-        `).join('');
-
-        return `
-            <section class="debut-year-group">
-                <h4 class="debut-year-title">${group.season}년</h4>
-                <div class="debut-player-list">${playersMarkup}</div>
-            </section>
-        `;
-    }).join('');
 }
 
 function updateAllTimeRankings(allTimeStats) {
@@ -1903,11 +1434,7 @@ function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
     }
 
     const { overall, perSeason, biggestWin, toughestLoss } = teamRecords;
-    const formatNumber = (value) => Number(value || 0).toLocaleString('ko-KR');
-    const overallRecordText = `${formatNumber(overall.matches)}경기`;
-    const overallRecordDetail = `${formatNumber(overall.wins)}승 ${formatNumber(overall.draws)}무 ${formatNumber(overall.losses)}패`;
-    const overallWinRateText = `${Number(overall.winRate || 0).toFixed(1)}%`;
-    const goalRecordText = `${formatNumber(overall.goalsFor)} / ${formatNumber(overall.goalsAgainst)}`;
+    const overallRecordText = `${overall.matches}경기 (${overall.wins}승 ${overall.draws}무 ${overall.losses}패)`;
 
     const sortedPerSeason = [...perSeason];
     sortedPerSeason.sort((a, b) => {
@@ -1941,21 +1468,9 @@ function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
 
     container.innerHTML = `
         <div class="team-overview">
-            <div class="team-summary-card">
-                <div class="team-summary-label"><span class="team-summary-icon">1</span>총 경기</div>
-                <div class="team-summary-value">${overallRecordText}</div>
-                <div class="team-summary-detail">${overallRecordDetail}</div>
-            </div>
-            <div class="team-summary-card">
-                <div class="team-summary-label"><span class="team-summary-icon">2</span>통산 승률</div>
-                <div class="team-summary-value">${overallWinRateText}</div>
-                <div class="team-summary-detail">경기 결과 기준 승률</div>
-            </div>
-            <div class="team-summary-card">
-                <div class="team-summary-label"><span class="team-summary-icon">3</span>득점 / 실점</div>
-                <div class="team-summary-value">${goalRecordText}</div>
-                <div class="team-summary-detail">통산 누적 득점과 실점</div>
-            </div>
+            <div><span>총 경기</span><strong>${overallRecordText}</strong></div>
+            <div><span>통산 승률</span><strong>${overall.winRate}%</strong></div>
+            <div><span>득점 / 실점</span><strong>${overall.goalsFor} / ${overall.goalsAgainst}</strong></div>
         </div>
         <div class="team-highlights">
             <div>
@@ -1963,7 +1478,7 @@ function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
                 <strong>${biggestWin ? `${biggestWin.season} ${biggestWin.score} vs ${biggestWin.opponent}` : '-'}</strong>
             </div>
             <div>
-                <span>최다 실점 경기</span>
+                <span>최대 패배</span>
                 <strong>${toughestLoss ? `${toughestLoss.season} ${toughestLoss.score} vs ${toughestLoss.opponent}` : '-'}</strong>
             </div>
         </div>
@@ -2116,22 +1631,21 @@ async function toggleAllTimeView() {
                 AppState.allTime.matches = result.matches;
                 AppState.allTime.records = result.records;
                 AppState.allTime.regional = result.regional;
-                AppState.allTime.debuts = result.debuts;
             }
         }
 
         if (AppState.allTime.loaded) {
             updateAllTimeRankings(AppState.allTime.stats);
-            updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentAllTimeFilter);
+            updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentFilter);
             updateTeamRecords(AppState.allTime.records, AppState.ui.currentTeamSort);
             updateRegionalTable(AppState.allTime.regional, AppState.ui.currentRegionalFilter);
-            updateDebutTimeline(AppState.allTime.debuts);
+            createRegionalHeatmap(AppState.allTime.regional);
         }
     }
 
     updateStats();
     updateButtonStates();
-    filterPlayers(AppState.data.isAllTimeView ? AppState.ui.currentAllTimeFilter : AppState.ui.currentFilter);
+    filterPlayers(AppState.ui.currentFilter);
     filterRegional(AppState.ui.currentRegionalFilter);
 }
 
@@ -2149,6 +1663,8 @@ async function switchMainTab(tab) {
     }
 
     updateViewVisibility();
+
+    if (tab === 'seasons') renderSeasonTeamStats();
 }
 
 // 초기화/진입점 함수
@@ -2181,3 +1697,55 @@ window.filterRegional = filterRegional;
 window.filterTeamRecords = filterTeamRecords;
 window.switchMainTab = switchMainTab;
 window.setMatchSort = setMatchSort;
+
+
+// Seasons 탭: 시즌 팀 스탯 렌더
+async function renderSeasonTeamStats() {
+    const grid = document.getElementById('seasonTeamGrid');
+    if (!grid) return;
+    const season = AppState.data.currentSeason;
+    grid.innerHTML = '<div class="no-data">불러오는 중...</div>';
+
+    try {
+        const s2026 = parseInt(season) >= 2026;
+        const [matches, playersRaw] = await Promise.all([
+            supabaseFetch(`matches_with_result?season=eq.${season}&select=our_score,opp_score,result`),
+            s2026
+                ? supabaseFetch(`season_player_stats?season=eq.${season}&select=name,appearances,goals,mvp`)
+                : supabaseFetch(`legacy_stats?season=eq.${season}&select=appearances,goals,mvp,players(name)`)
+        ]);
+
+        const total = matches.length;
+        const w = matches.filter(m => m.result === 'W').length;
+        const d = matches.filter(m => m.result === 'D').length;
+        const l = matches.filter(m => m.result === 'L').length;
+        const gf = matches.reduce((s, m) => s + m.our_score, 0);
+        const ga = matches.reduce((s, m) => s + m.opp_score, 0);
+        const rate = total ? (w / total * 100).toFixed(1) : '0.0';
+
+        const players = playersRaw.map(p => ({
+            name: p.name ?? p.players?.name,
+            ap: p.appearances || 0, g: p.goals || 0, mvp: p.mvp || 0
+        })).filter(p => p.name);
+        const top = k => players.reduce((a, b) => (b[k] > (a?.[k] ?? -1) ? b : a), null);
+        const tg = top('g'), ta = top('ap'), tm = top('mvp');
+
+        const card = (title, value, sub) => `
+            <div class="stat-card">
+                <div class="stat-title">${title}</div>
+                <div class="stat-value">${value}</div>
+                <div class="stat-subtitle">${sub || ''}</div>
+            </div>`;
+
+        grid.innerHTML =
+            card('경기 수', total, `${w}승 ${d}무 ${l}패`) +
+            card('승률', rate + '%', '') +
+            card('득점', gf, `경기당 ${total ? (gf/total).toFixed(1) : 0}골`) +
+            card('실점', ga, `경기당 ${total ? (ga/total).toFixed(1) : 0}골`) +
+            card('최다 골', tg ? tg.name : '-', tg ? tg.g + '골' : '') +
+            card('최다 참여', ta ? ta.name : '-', ta ? ta.ap + '경기' : '') +
+            card('최다 MVP', tm && tm.mvp > 0 ? tm.name : '-', tm && tm.mvp > 0 ? tm.mvp + '회' : '');
+    } catch (e) {
+        grid.innerHTML = '<div class="no-data">팀 스탯을 불러올 수 없습니다.</div>';
+    }
+}
