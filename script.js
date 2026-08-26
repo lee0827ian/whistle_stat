@@ -1196,6 +1196,14 @@ async function loadAllTimeSeasonsParallel() {
 
         const teamRecords = calculateTeamRecords(matchesFormatted);
 
+        // 지역별 기록 (venue → 지역 매핑 뷰)
+        let regionalData = [];
+        try {
+            regionalData = await supabaseFetch(
+                'regional_stats?select=region,matches,wins,draws,losses&order=matches.desc'
+            );
+        } catch (e) { regionalData = []; }
+
         hideStatusMessage();
         hideLoadingProgress();
 
@@ -1203,7 +1211,7 @@ async function loadAllTimeSeasonsParallel() {
             stats: allTimeStats,
             matches: matchesFormatted,
             records: teamRecords,
-            regional: []
+            regional: regionalData
         };
 
     } catch(e) {

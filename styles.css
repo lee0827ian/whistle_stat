@@ -772,3 +772,27 @@ body.psort-mvp .player-support .player-chip:nth-child(3) {
     color: #DC2626;
     font-weight: 700;
 }
+
+/* ── Records 탭 보정 ── */
+/* 역대 선수/지역 테이블 내부 스크롤 복원 */
+#allTimeContent .table-container {
+    max-height: 420px;
+    overflow-y: auto;
+}
+#allTimeContent .players-table thead th,
+#allTimeContent .regional-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* 역대 팀 기록을 맨 위로 */
+body.page-mode-records #allTimeContent {
+    display: flex !important;
+    flex-direction: column;
+}
+body.page-mode-records #allTimeContent .team-records-section {
+    order: -1;
+    margin-top: 0;
+    margin-bottom: 24px;
+}
