@@ -764,7 +764,7 @@ body.page-mode-records #statsOverview { display: none; }
 }
 
 /* ── Players 정렬 기준 칩 강조 (연빨강 + 맨 앞) ── */
-body.psort-appearances .player-support .player-chip:nth-child(1),
+body.psort-attendance .player-support .player-chip:nth-child(1),
 body.psort-goals .player-support .player-chip:nth-child(2),
 body.psort-mvp .player-support .player-chip:nth-child(3) {
     order: -1;

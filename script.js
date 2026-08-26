@@ -1022,11 +1022,20 @@ async function loadFromGoogleSheets(season) {
         };
     });
 
+    // 다음 경기 일정 (오늘 이후, 가까운 순)
+    let schedules = [];
+    try {
+        const today = new Date().toISOString().slice(0, 10);
+        schedules = await supabaseFetch(
+            `schedules?date=gte.${today}&order=date.asc&select=date,time,opponent,venue,address,note`
+        );
+    } catch (e) { schedules = []; }
+
     return {
         season: season,
         matches: matches,
         players: players,
-        schedules: [],
+        schedules: schedules,
         regional: []
     };
 }
@@ -1207,9 +1216,9 @@ async function loadAllTimeSeasonsParallel() {
 
 // UI/Event Handler 함수
 function filterPlayers(filter) {
-    document.body.classList.remove('psort-goals', 'psort-appearances', 'psort-mvp');
+    document.body.classList.remove('psort-goals', 'psort-attendance', 'psort-mvp');
     if (filter === 'goals') document.body.classList.add('psort-goals');
-    else if (filter === 'appearances') document.body.classList.add('psort-appearances');
+    else if (filter === 'attendance') document.body.classList.add('psort-attendance');
     else if (filter === 'mvp') document.body.classList.add('psort-mvp');
 
     AppState.ui.currentFilter = filter;
