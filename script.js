@@ -4,6 +4,7 @@
 // 상태가 바뀌면 renderVals() → 템플릿 전체를 다시 그린다(#app).
 
 // ── 템플릿 렌더러 ──
+const SVG_NS = 'http://www.w3.org/2000/svg';
 const HOLE = /\{\{\s*([\w$.]+)\s*\}\}/g;
 const WHOLE = /^\s*\{\{\s*([\w$.]+)\s*\}\}\s*$/;
 
@@ -55,7 +56,8 @@ function renderNodes(parent, nodes, scope) {
       continue;
     }
 
-    const el = document.createElement(tag);
+    const inSvg = tag === 'svg' || parent.namespaceURI === SVG_NS;
+    const el = inSvg ? document.createElementNS(SVG_NS, node.tagName) : document.createElement(tag);
     let pendingValue;
     for (const { name, value } of Array.from(node.attributes)) {
       if (name.startsWith('hint-')) continue;
@@ -386,6 +388,7 @@ class WhistleApp {
     else regional.sort((a, b) => b.winRate - a.winRate);
 
     // 지역 그룹: 서울(구) / 경기(시·군) / 인천 / 기타 — 표·히트맵 공용
+    const GROUP_THEME = { '서울': ['#113C98', '#EEF2FB'], '경기': ['#0F766E', '#E6F4F1'], '인천': ['#7C3AED', '#F1EBFB'], '기타': ['#8A8577', '#F3F1EA'] };
     const SEOUL_GU = new Set(['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구']);
     const groupOf = r => SEOUL_GU.has(r.region) ? '서울' : r.region.startsWith('인천') ? '인천' : /(시|군)$/.test(r.region) ? '경기' : '기타';
     const regionalGroups = ['서울', '경기', '인천', '기타'].map(name => {
@@ -396,7 +399,21 @@ class WhistleApp {
         const pal = v >= 60 ? ['#CDEBD8', '#14532D'] : v >= 40 ? ['#F6ECC8', '#7C5E0B'] : ['#F6D5D5', '#8E2323'];
         return { ...r, bg: pal[0], fg: pal[1] };
       });
-      return { name, rows, heat, count: rows.length + '개 지역', summary: `${rows.length}개 지역 · ${sum.m}경기 · 승률 ${(sum.w / (sum.m || 1) * 100).toFixed(1)}%` };
+      const theme = GROUP_THEME[name];
+      const byRegion = Object.fromEntries(heat.map(r => [r.region, r]));
+      const isSeoul = name === '서울' && !!window.SEOUL_DISTRICTS;
+      const mapCells = isSeoul ? Object.entries(window.SEOUL_DISTRICTS).map(([gu, geo]) => {
+        const r = byRegion[gu];
+        const short = gu.replace(/구$/, '');
+        return {
+          path: geo.d, cx: geo.cx, cy: geo.cy, cy2: geo.cy + 10,
+          fill: r ? r.bg : '#EFEDE6', stroke: '#FFFFFF', labelColor: r ? r.fg : '#B0AB9D',
+          label: short, sub: r ? r.winRate + '%' : '-',
+          tip: r ? `${gu} · ${r.matches}경기 ${r.wins}승 ${r.draws}무 ${r.losses}패 · 승률 ${r.winRate}%` : `${gu} · 경기 없음`
+        };
+      }) : [];
+      return { name, rows, heat, mapCells, isSeoul, notSeoul: !isSeoul, color: theme[0], bg: theme[1], count: rows.length + '개 지역',
+               summary: `${rows.length}개 지역 · ${sum.m}경기 · 승률 ${(sum.w / (sum.m || 1) * 100).toFixed(1)}%` };
     }).filter(g => g.rows.length);
 
     const topOf = k => [...A.players].sort((a, b) => b[k] - a[k])[0];

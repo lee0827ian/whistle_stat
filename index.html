@@ -405,13 +405,13 @@
             <span style="font-size:11px; font-weight:800; color:#8A8577;">지역</span><span style="font-size:11px; font-weight:800; color:#8A8577;">경기수</span><span style="font-size:11px; font-weight:800; color:#8A8577;">승</span><span style="font-size:11px; font-weight:800; color:#8A8577;">무</span><span style="font-size:11px; font-weight:800; color:#8A8577;">패</span><span style="font-size:11px; font-weight:800; color:#8A8577;">승률</span>
           </div>
           <sc-for list="{{ regionalGroups }}" as="g" hint-placeholder-count="3">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; background:#EEF2FB; border-top:1px solid #E7E4DB;">
-              <span style="font-size:12px; font-weight:800; color:#113C98;">{{ g.name }}</span>
-              <span style="font-size:11px; font-weight:600; color:#7C8AAB;">{{ g.summary }}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; background:{{ g.bg }}; border-top:1px solid #E7E4DB; border-left:4px solid {{ g.color }};">
+              <span style="font-size:12px; font-weight:800; color:{{ g.color }};">{{ g.name }}</span>
+              <span style="font-size:11px; font-weight:600; color:{{ g.color }}; opacity:.75;">{{ g.summary }}</span>
             </div>
             <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="6">
               <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr; padding:9px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
-                <span style="font-weight:700;">{{ r.region }}</span><span>{{ r.matches }}</span><span>{{ r.wins }}</span><span>{{ r.draws }}</span><span>{{ r.losses }}</span><span style="font-weight:700; color:{{ r.rateColor }};">{{ r.winRate }}%</span>
+                <span style="font-weight:700; color:{{ g.color }};">{{ r.region }}</span><span>{{ r.matches }}</span><span>{{ r.wins }}</span><span>{{ r.draws }}</span><span>{{ r.losses }}</span><span style="font-weight:700; color:{{ r.rateColor }};">{{ r.winRate }}%</span>
               </div>
             </sc-for>
           </sc-for>
@@ -426,7 +426,21 @@
             </div>
           </div>
           <sc-for list="{{ regionalGroups }}" as="g" hint-placeholder-count="3">
-            <div style="font-size:11.5px; font-weight:800; color:#8A8577; margin:14px 0 6px; letter-spacing:.3px;">{{ g.name }} <span style="font-weight:600; color:#B0AB9D;">{{ g.count }}</span></div>
+            <div style="font-size:11.5px; font-weight:800; color:{{ g.color }}; margin:14px 0 6px; letter-spacing:.3px;">{{ g.name }} <span style="font-weight:600; color:#B0AB9D;">{{ g.count }}</span></div>
+            <sc-if value="{{ g.isSeoul }}" hint-placeholder-val="{{ false }}">
+              <div class="seoul-map">
+                <svg viewBox="0 0 400 340" role="img" aria-label="서울 자치구별 승률 지도">
+                  <sc-for list="{{ g.mapCells }}" as="d" hint-placeholder-count="25">
+                    <path d="{{ d.path }}" fill="{{ d.fill }}" stroke="{{ d.stroke }}" stroke-width="1.2" stroke-linejoin="round"><title>{{ d.tip }}</title></path>
+                  </sc-for>
+                  <sc-for list="{{ g.mapCells }}" as="d" hint-placeholder-count="25">
+                    <text x="{{ d.cx }}" y="{{ d.cy }}" text-anchor="middle" font-size="9.5" font-weight="800" fill="{{ d.labelColor }}" style="pointer-events:none;">{{ d.label }}</text>
+                    <text x="{{ d.cx }}" y="{{ d.cy2 }}" text-anchor="middle" font-size="8.5" font-weight="600" fill="{{ d.labelColor }}" style="pointer-events:none;">{{ d.sub }}</text>
+                  </sc-for>
+                </svg>
+              </div>
+            </sc-if>
+            <sc-if value="{{ g.notSeoul }}" hint-placeholder-val="{{ true }}">
             <div class="g-heat">
               <sc-for list="{{ g.heat }}" as="c" hint-placeholder-count="6">
                 <div style="background:{{ c.bg }}; border-radius:8px; padding:8px 10px; min-width:0;">
@@ -435,6 +449,7 @@
                 </div>
               </sc-for>
             </div>
+            </sc-if>
           </sc-for>
         </div>
       </div>
@@ -453,6 +468,7 @@
 </div>
 </template>
 
+<script src="./seoul_districts.js" defer></script>
 <script src="./script.js" defer></script>
 </body>
 </html>
