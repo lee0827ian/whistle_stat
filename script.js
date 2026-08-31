@@ -74,6 +74,10 @@ function renderNodes(parent, nodes, scope) {
   }
 }
 
+const KAKAO_MAP_API_KEY = '47eed652b004605d8a8e3e39df268f24'; // JS 키(도메인 제한: fcwhistle.vercel.app · github.io 등록)
+const DEFAULT_LAT = 37.656, DEFAULT_LNG = 127.065; // 성불빌라 부근(지오코딩 실패 시)
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 // ── 앱 로직 (디자인 원본 그대로) ──
 class WhistleApp {
   props = { koreanTabs: false, recentCount: 3 };
@@ -497,6 +501,57 @@ Object.assign(WhistleApp.prototype, {
     if (this.componentDidMount) this.componentDidMount();
   },
 
+  // ── 카카오지도: 일정 카드에 표시되는 주소(다음 경기 구장, 없으면 성불빌라)를 지오코딩해 마커 표시 ──
+  loadKakao() {
+    if (this._kakaoReady) return this._kakaoReady;
+    this._kakaoReady = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
+      s.onload = () => window.kakao.maps.load(resolve);
+      s.onerror = () => reject(new Error('kakao sdk load failed'));
+      document.head.appendChild(s);
+    });
+    return this._kakaoReady;
+  },
+
+  afterRender() {
+    const slot = document.getElementById('venueMap');
+    if (!slot) return;
+    const address = slot.dataset.address || '';
+    const name = slot.dataset.name || '구장';
+    if (!this._mapEl) {
+      this._mapEl = document.createElement('div');
+      this._mapEl.style.cssText = 'width:100%; height:100%; min-height:240px;';
+    }
+    slot.appendChild(this._mapEl);
+    this.loadKakao().then(() => {
+      const km = window.kakao.maps;
+      if (!this._map) {
+        this._map = new km.Map(this._mapEl, { center: new km.LatLng(DEFAULT_LAT, DEFAULT_LNG), level: 4 });
+        this._marker = new km.Marker({ map: this._map });
+        this._info = new km.InfoWindow({});
+        this._geocoder = new km.services.Geocoder();
+      }
+      this._map.relayout();
+      if (this._mapAddress === address) { this._map.setCenter(this._marker.getPosition()); return; }
+      this._mapAddress = address;
+      const place = (pos) => {
+        this._map.setCenter(pos);
+        this._marker.setPosition(pos);
+        this._info.setContent(`<div style="padding:4px 8px; font-size:12px; font-weight:700; color:#113C98; white-space:nowrap;">${escapeHtml(name)}</div>`);
+        this._info.open(this._map, this._marker);
+      };
+      if (!address) { place(new km.LatLng(DEFAULT_LAT, DEFAULT_LNG)); return; }
+      this._geocoder.addressSearch(address, (result, status) => {
+        if (this._mapAddress !== address) return;
+        const ok = status === km.services.Status.OK && result.length > 0;
+        place(ok ? new km.LatLng(result[0].y, result[0].x) : new km.LatLng(DEFAULT_LAT, DEFAULT_LNG));
+      });
+    }).catch(() => {
+      slot.innerHTML = '<div style="padding:16px; font-size:12px; color:#B0AB9D;">지도를 불러올 수 없습니다.</div>';
+    });
+  },
+
   render() {
     if (this._rendering) { this._dirty = true; return; }
     this._rendering = true;
@@ -505,6 +560,7 @@ Object.assign(WhistleApp.prototype, {
       const frag = document.createDocumentFragment();
       renderNodes(frag, this.template.childNodes, vals);
       this.root.replaceChildren(frag);
+      this.afterRender();
     } finally {
       this._rendering = false;
     }
