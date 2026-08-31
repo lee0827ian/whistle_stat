@@ -1,1768 +1,517 @@
-// ── Supabase 설정 ──
-const SUPABASE_URL = "https://sgzanwxgdcyojcoskseo.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4";
+// WHISTLE FC STAT — script.js
+// Claude Design "Whistle STAT.dc.html"의 로직(WhistleApp)을 그대로 옮기고,
+// 디자인 컴포넌트 템플릿({{ }} / <sc-for> / <sc-if> / on*)을 해석하는 소형 렌더러를 붙였다.
+// 상태가 바뀌면 renderVals() → 템플릿 전체를 다시 그린다(#app).
 
-async function supabaseFetch(path) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-        headers: {
-            "apikey": SUPABASE_ANON_KEY,
-            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-        }
-    });
-    if (!res.ok) throw new Error(`Supabase 오류: ${res.status}`);
+// ── 템플릿 렌더러 ──
+const HOLE = /\{\{\s*([\w$.]+)\s*\}\}/g;
+const WHOLE = /^\s*\{\{\s*([\w$.]+)\s*\}\}\s*$/;
+
+function lookup(scope, path) {
+  if (path === 'true') return true;
+  if (path === 'false') return false;
+  if (path === 'null') return null;
+  let cur = scope;
+  for (const key of path.split('.')) {
+    if (cur == null) return undefined;
+    cur = cur[key];
+  }
+  return cur;
+}
+
+function interpolate(str, scope) {
+  return str.replace(HOLE, (_, path) => {
+    const v = lookup(scope, path);
+    return v == null ? '' : String(v);
+  });
+}
+
+function pathOf(attr) {
+  return (attr || '').replace(/[{}\s]/g, '');
+}
+
+function renderNodes(parent, nodes, scope) {
+  for (const node of nodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      parent.appendChild(document.createTextNode(node.nodeValue.includes('{{') ? interpolate(node.nodeValue, scope) : node.nodeValue));
+      continue;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) continue;
+    const tag = node.tagName.toLowerCase();
+
+    if (tag === 'sc-for') {
+      const list = lookup(scope, pathOf(node.getAttribute('list'))) || [];
+      const as = node.getAttribute('as') || 'item';
+      list.forEach((item, index) => {
+        const inner = Object.create(scope);
+        inner[as] = item;
+        inner.$index = index;
+        renderNodes(parent, node.childNodes, inner);
+      });
+      continue;
+    }
+    if (tag === 'sc-if') {
+      if (lookup(scope, pathOf(node.getAttribute('value')))) renderNodes(parent, node.childNodes, scope);
+      continue;
+    }
+
+    const el = document.createElement(tag);
+    let pendingValue;
+    for (const { name, value } of Array.from(node.attributes)) {
+      if (name.startsWith('hint-')) continue;
+      const whole = WHOLE.exec(value);
+      if (name.startsWith('on') && whole) {
+        const fn = lookup(scope, whole[1]);
+        if (typeof fn === 'function') el.addEventListener(name.slice(2), fn);
+        continue;
+      }
+      if (name === 'value' && whole) { pendingValue = lookup(scope, whole[1]); continue; }
+      el.setAttribute(name, value.includes('{{') ? interpolate(value, scope) : value);
+    }
+    renderNodes(el, node.childNodes, scope);
+    if (pendingValue !== undefined) el.value = pendingValue;
+    parent.appendChild(el);
+  }
+}
+
+// ── 앱 로직 (디자인 원본 그대로) ──
+class WhistleApp {
+  props = { koreanTabs: false, recentCount: 3 };
+
+  state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null };
+
+  async supa(path) {
+    const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
+    const KEY = 'sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4';
+    const res = await fetch(URL + '/rest/v1/' + path, { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } });
+    if (!res.ok) throw new Error('Supabase ' + res.status);
     return res.json();
-}
+  }
 
-// 연결 테스트 (콘솔에서 확인용)
-supabaseFetch("matches?season=eq.2026&order=date.asc")
-    .then(data => console.log("✅ Supabase 연결 성공:", data.length, "경기"))
-    .catch(err => console.error("❌ 연결 실패:", err));
-
-// 전역 상태 관리
-const AppState = {
-    map: {
-        scriptLoaded: false,
-        initialized: false,
-        lastAddress: null,
-        isLoading: false
-    },
-    network: {
-        currentAbortController: null
-    },
-    ui: {
-        currentFilter: 'all',
-        currentRegionalFilter: 'winrate',
-        currentTeamSort: 'season',
-        currentMainTab: 'home',
-        currentMatchSort: 'desc'
-    },
-    data: {
-        currentSeason: '2026',
-        isAllTimeView: false,
-        matches: [],
-        playerStats: {},
-        regionalStats: []
-    },
-    charts: {
-        winRateTrendChart: null
-    },
-    allTime: {
-        loaded: false,
-        loadingPromise: null,
-        stats: {},
-        matches: [],
-        records: null,
-        regional: []
+  async supaAll(path, pageSize = 1000) {
+    const rows = [];
+    const sep = path.includes('?') ? '&' : '?';
+    for (let offset = 0; ; offset += pageSize) {
+      const batch = await this.supa(`${path}${sep}limit=${pageSize}&offset=${offset}`);
+      rows.push(...batch);
+      if (batch.length < pageSize) return rows;
     }
-};
-
-// 설정
-const CONFIG = {
-    AVAILABLE_SEASONS: ['2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
-    DEFAULT_SEASON: '2026',
-    KAKAO_MAP_API_KEY: '47eed652b004605d8a8e3e39df268f24',
-    BASE_PATH: './',
-    DATA_PATH: (season) => `${CONFIG.BASE_PATH}${season}_data.json`,
-    VENUE: {
-        name: '성불빌라',
-        address: '서울 노원구 동일로231가길 7',
-        info: '전화번호: 031-790-2022, 주차 아무데나'
-    },
-    PARALLEL_LOADING: {
-        BATCH_SIZE: 5,
-        MAX_CONCURRENT: 3
-    }
-};
-
-const SEASON_DISPLAY_OVERRIDES = {
-    '2025': {
-        summary: {
-            matches: 46,
-            wins: 23,
-            draws: 3,
-            losses: 20,
-            goalsFor: 216
-        },
-        mvp: {
-            name: '신규환',
-            count: 7,
-            value: 7,
-            appearances: 36
-        }
-    }
-};
-
-// 구글 시트 설정
-const GOOGLE_SHEETS_CONFIG = {
-    SHEET_ID: '13UOlG3FdqufeoW2uV3x7L4KFMOo9YrwrjkrExXSVGIg',
-    SEASONS: {
-        '2026': {
-            matches: '1013896035',
-            players: '882762798',
-            schedule: '1750685299',
-            regional: '1050217492'
-        }
-    }
-};
-
-const isGoogleSheetSeason = (season) => true; // 모든 시즌 Supabase로 처리
-
-// 유틸리티
-const koreanCollator = new Intl.Collator('ko', { numeric: true });
-const seasonDataCache = new Map();
-
-// 로깅 시스템
-const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-function logError(message, error) {
-    if (isDevelopment) {
-        console.error(message, error);
-    }
-}
-
-function logInfo(message, data) {
-    if (isDevelopment) {
-        console.log(message, data);
-    }
-}
-
-// 상태 메시지 관리
-function showStatusMessage(message, type = 'loading') {
-    const statusElement = document.getElementById('statusMessage');
-    if (statusElement) {
-        statusElement.textContent = message;
-        statusElement.className = `status-message status-${type}`;
-        statusElement.style.display = 'block';
-    }
-}
-
-function hideStatusMessage() {
-    const statusElement = document.getElementById('statusMessage');
-    if (statusElement) {
-        statusElement.style.display = 'none';
-    }
-}
-
-function showLoadingProgress(current, total, message = '') {
-    const progressContainer = document.getElementById('loadingProgress');
-    const progressBar = document.getElementById('loadingProgressBar');
-    const statsElement = document.getElementById('loadingStats');
-
-    if (progressContainer && progressBar) {
-        progressContainer.style.display = 'block';
-        const percentage = Math.round((current / total) * 100);
-        progressBar.style.width = `${percentage}%`;
-
-        if (message && statsElement) {
-            statsElement.textContent = `${message} (${current}/${total})`;
-            statsElement.style.display = 'block';
-        }
-    }
-}
-
-function hideLoadingProgress() {
-    const progressContainer = document.getElementById('loadingProgress');
-    const statsElement = document.getElementById('loadingStats');
-    
-    if (progressContainer) progressContainer.style.display = 'none';
-    if (statsElement) statsElement.style.display = 'none';
-}
-
-// CSV 파싱
-function parseCSV(csvText) {
-    const lines = csvText.trim().split('\n');
-    const headers = lines[0].split(',').map(h => h.trim());
-    const data = [];
-
-    for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        
-        if (values[0] && !values[0].includes('🔽') && !values[0].includes('새') && !values[0].includes('예시:')) {
-            const row = {};
-            headers.forEach((header, index) => {
-                row[header] = values[index] || '';
-            });
-            data.push(row);
-        }
-    }
-    
-    return data;
-}
-
-function sanitizeTableData(value) {
-    if (value === null || value === undefined) return '';
-    if (typeof value === 'number') return value.toString();
-    return String(value).replace(/<[^>]*>/g, '').trim();
-}
-
-function parseScore(scoreText = '0:0') {
-    if (typeof scoreText !== 'string') return { goalsFor: 0, goalsAgainst: 0 };
-    const [forStr, againstStr] = scoreText.split(':').map(part => parseInt(part, 10));
-    return {
-        goalsFor: Number.isFinite(forStr) ? forStr : 0,
-        goalsAgainst: Number.isFinite(againstStr) ? againstStr : 0
-    };
-}
-
-function extractMatchStats(match) {
-    const { goalsFor, goalsAgainst } = parseScore(match?.score);
-    return {
-        goalsFor,
-        goalsAgainst,
-        goalDiff: goalsFor - goalsAgainst
-    };
-}
-
-function calculateMatchStats(matches = []) {
-    return matches.reduce((acc, match) => {
-        const { goalsFor, goalsAgainst } = extractMatchStats(match);
-
-        acc.total += 1;
-        acc.goalsFor += goalsFor;
-        acc.goalsAgainst += goalsAgainst;
-
-        if (match.result === 'win') {
-            acc.win += 1;
-        } else if (match.result === 'draw') {
-            acc.draw += 1;
-        } else {
-            acc.loss += 1;
-        }
-
-        return acc;
-    }, { total: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0 });
-}
-
-function validateSeasonData(rawData) {
-    if (!rawData || typeof rawData !== 'object') {
-        throw new Error('잘못된 시즌 데이터입니다.');
-    }
-
-    const matches = Array.isArray(rawData.matches) ? rawData.matches
-        .filter(match => match && match.date && match.opponent)
-        .map(match => ({
-            date: sanitizeTableData(match.date),
-            opponent: sanitizeTableData(match.opponent),
-            result: ['win', 'draw', 'loss'].includes(match.result) ? match.result : 'draw',
-            score: sanitizeTableData(match.score || '0:0'),
-            mvp: sanitizeTableData(match.mvp || '')
-        })) : [];
-
-    const playersRaw = rawData.players && typeof rawData.players === 'object' ? rawData.players : {};
-    const players = {};
-    Object.entries(playersRaw).forEach(([name, stats]) => {
-        if (!name) return;
-        players[sanitizeTableData(name)] = {
-            appearances: Number(stats?.appearances) || 0,
-            goals: Number(stats?.goals) || 0,
-            mvp: Number(stats?.mvp) || 0
-        };
-    });
-
-    const regionalRaw = Array.isArray(rawData.regional) ? rawData.regional : [];
-    const regional = regionalRaw
-        .filter(row => row && row.region)
-        .map(row => ({
-            region: sanitizeTableData(row.region),
-            matches: Number(row.matches) || 0,
-            wins: Number(row.wins) || 0,
-            draws: Number(row.draws) || 0,
-            losses: Number(row.losses) || 0
-        }));
-
-    const schedules = Array.isArray(rawData.schedules) ? rawData.schedules : [];
-
-    return {
-        season: sanitizeTableData(rawData.season || ''),
-        matches,
-        players,
-        schedules,
-        regional
-    };
-}
-
-// --- [ 데이터 처리/가공 관련 함수 ] ---
-
-// 선수 통계에서 MVP를 계산하는 함수
-function calculateSeasonMvp(playerStats) {
-    if (!playerStats || Object.keys(playerStats).length === 0) {
-        return null;
-    }
-
-    const playersArray = Object.entries(playerStats)
-        .map(([name, stats]) => ({
-            name,
-            appearances: stats.totalAppearances ?? stats.appearances ?? 0,
-            goals: stats.totalGoals ?? stats.goals ?? 0,
-            mvp: stats.totalMvp ?? stats.mvp ?? 0
-        }))
-        .filter(player => player.appearances > 0);
-
-    if (playersArray.length === 0) {
-        return null;
-    }
-
-    playersArray.sort((a, b) => {
-        if (b.mvp !== a.mvp) return b.mvp - a.mvp;
-        if (b.appearances !== a.appearances) return b.appearances - a.appearances;
-        return koreanCollator.compare(a.name, b.name);
-    });
-
-    return playersArray[0];
-}
-
-function validateMatches(matchesData) {
-    // ... (matchesData 유효성 검사 로직)
-    return matchesData
-        .filter(row => row['날짜'] && row['상대팀'])
-        .map(row => ({
-            date: sanitizeTableData(row['날짜']),
-            opponent: sanitizeTableData(row['상대팀']),
-            result: row['결과'],
-            score: row['스코어'],
-            mvp: sanitizeTableData(row['MVP'] || '')
-        }));
-}
-
-function processSheetData(matchesData, playersData, scheduleData, regionalData, season) {
-    // ... (데이터 처리 로직)
-    const matches = validateMatches(matchesData)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    const players = {};
-    playersData
-        .filter(row => row['이름'])
-        .forEach(row => {
-            players[row['이름']] = {
-                appearances: parseInt(row['출장']) || 0,
-                goals: parseInt(row['골']) || 0,
-                mvp: parseInt(row['MVP']) || 0
-            };
-        });
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const schedules = scheduleData
-        .filter(row => {
-            if (!row['날짜'] || !row['상대팀']) return false;
-            
-            const matchDate = new Date(row['날짜']);
-            if (isNaN(matchDate.getTime())) return false;
-            
-            matchDate.setHours(0, 0, 0, 0);
-            return matchDate >= today;
-        })
-        .map(row => ({
-            date: row['날짜'],
-            time: row['시간'] || '',
-            venue: row['구장명'] || '',
-            opponent: row['상대팀'],
-            address: row['구장주소'] || '',
-            note: row['비고'] || ''
-        }))
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const regional = regionalData
-        .filter(row => row['지역'])
-        .map(row => ({
-            region: row['지역'],
-            matches: parseInt(row['경기수']) || 0,
-            wins: parseInt(row['승']) || 0,
-            draws: parseInt(row['무']) || 0,
-            losses: parseInt(row['패']) || 0
-        }));
-
-    logInfo(`구글 시트에서 ${season} 데이터 로드 완료`, { 
-        경기수: matches.length, 
-        선수수: Object.keys(players).length, 
-        일정수: schedules.length, 
-        지역수: regional.length 
-    });
-
-    return {
-        season: season,
-        matches: matches,
-        players: players,
-        schedules: schedules,
-        regional: regional
-    };
-}
-
-function calculateTeamRecords(allMatches = []) {
-    if (!Array.isArray(allMatches) || allMatches.length === 0) {
-        return null;
-    }
-
-    const overall = {
-        matches: 0,
-        wins: 0,
-        draws: 0,
-        losses: 0,
-        goalsFor: 0,
-        goalsAgainst: 0
-    };
-    const perSeason = {};
-    let biggestWin = null;
-    let toughestLoss = null;
-
-    allMatches.forEach(match => {
-        const seasonKey = match.season || AppState.data.currentSeason;
-        const seasonStats = perSeason[seasonKey] || { matches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 };
-
-        const { goalsFor, goalsAgainst, goalDiff } = extractMatchStats(match);
-
-        seasonStats.matches += 1;
-        overall.matches += 1;
-        seasonStats.goalsFor += goalsFor;
-        seasonStats.goalsAgainst += goalsAgainst;
-        overall.goalsFor += goalsFor;
-        overall.goalsAgainst += goalsAgainst;
-
-        if (match.result === 'win') {
-            seasonStats.wins += 1;
-            overall.wins += 1;
-        } else if (match.result === 'draw') {
-            seasonStats.draws += 1;
-            overall.draws += 1;
-        } else {
-            seasonStats.losses += 1;
-            overall.losses += 1;
-        }
-
-        perSeason[seasonKey] = seasonStats;
-
-        if (!biggestWin || goalDiff > biggestWin.diff) {
-            biggestWin = {
-                diff: goalDiff,
-                opponent: match.opponent,
-                score: match.score,
-                season: seasonKey,
-                date: match.date
-            };
-        }
-        if (!toughestLoss || goalDiff < toughestLoss.diff) {
-            toughestLoss = {
-                diff: goalDiff,
-                opponent: match.opponent,
-                score: match.score,
-                season: seasonKey,
-                date: match.date
-            };
-        }
-    });
-
-    const perSeasonArray = Object.entries(perSeason)
-        .map(([season, stats]) => ({
-            season,
-            ...stats,
-            winRate: stats.matches ? ((stats.wins / stats.matches) * 100).toFixed(1) : '0.0'
-        }))
-        .sort((a, b) => b.season.localeCompare(a.season));
-
-    const overallWinRate = overall.matches ? ((overall.wins / overall.matches) * 100).toFixed(1) : '0.0';
-
-    return {
-        overall: { ...overall, winRate: overallWinRate },
-        perSeason: perSeasonArray,
-        biggestWin,
-        toughestLoss
-    };
-}
-
-// --- [ UI 렌더링 함수 ] ---
-
-// 시즌 요약 카드 UI를 업데이트하는 함수 (에러 해결을 위해 정의 순서 올림)
-function renderSeasonStatCards() {
-    const statsOverview = document.querySelector('.stats-overview');
-    if (!statsOverview) return;
-
-    statsOverview.innerHTML = `
-        <div class="stat-card">
-            <div class="stat-title" id="matchesCardTitle">경기 수</div>
-            <div class="stat-value" id="totalMatches">0</div>
-            <div class="stat-subtitle">총 경기</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title" id="winRateCardTitle">승률</div>
-            <div class="stat-value" id="winRate">0%</div>
-            <div class="stat-subtitle" id="winRateSubtitle">0승 0무 0패</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title" id="goalsCardTitle">득점</div>
-            <div class="stat-value" id="totalGoals">0</div>
-            <div class="stat-subtitle" id="goalsPerMatch">경기당 0골</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title" id="mvpCardTitle">시즌 MVP</div>
-            <div class="stat-value" id="seasonMvp">-</div>
-            <div class="stat-subtitle" id="mvpStats">MVP 0회</div>
-        </div>
-    `;
-}
-
-
-// 메인 통계 값 (숫자)을 업데이트하는 함수 (loadData가 호출하므로 정의 순서 올림)
-function updateStats() {
-    const matchesCardTitle = document.getElementById('matchesCardTitle');
-    const winRateCardTitle = document.getElementById('winRateCardTitle');
-    const goalsCardTitle = document.getElementById('goalsCardTitle');
-    const mvpCardTitle = document.getElementById('mvpCardTitle');
-
-    const isAllTimeView = AppState.data.isAllTimeView && AppState.allTime.loaded && AppState.allTime.records?.overall;
-
-    if (matchesCardTitle) matchesCardTitle.textContent = isAllTimeView ? '역대 경기 수' : '경기 수';
-    if (winRateCardTitle) winRateCardTitle.textContent = isAllTimeView ? '역대 승률' : '승률';
-    if (goalsCardTitle) goalsCardTitle.textContent = isAllTimeView ? '역대 득점' : '득점';
-    if (mvpCardTitle) mvpCardTitle.textContent = isAllTimeView ? '역대 MVP' : '시즌 MVP';
-
-    if (isAllTimeView) {
-        const overall = AppState.allTime.records.overall;
-        const totalMatches = overall.matches || 0;
-        const wins = overall.wins || 0;
-        const draws = overall.draws || 0;
-        const losses = overall.losses || 0;
-        const totalGoalsFor = overall.goalsFor || 0;
-        const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : '0.0';
-        const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : '0.0';
-
-        const mvpPlayer = calculateSeasonMvp(AppState.allTime.stats);
-        const mvpName = mvpPlayer ? mvpPlayer.name : '-';
-        const mvpCount = mvpPlayer ? mvpPlayer.mvp : 0;
-        const mvpAppearances = mvpPlayer ? mvpPlayer.appearances : 0;
-
-        document.getElementById('totalMatches').textContent = totalMatches.toString();
-        document.getElementById('winRate').textContent = `${winRate}%`;
-        document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
-        document.getElementById('totalGoals').textContent = totalGoalsFor.toString();
-        document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
-        document.getElementById('seasonMvp').textContent = mvpName;
-        document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
-        return;
-    }
-
-    if (AppState.data.matches.length === 0) {
-        if (mvpHint) mvpHint.style.display = 'none';
-
-        document.getElementById('totalMatches').textContent = '0';
-        document.getElementById('winRate').textContent = '0%';
-        document.getElementById('winRateSubtitle').textContent = '0승 0무 0패';
-        document.getElementById('totalGoals').textContent = '0';
-        document.getElementById('goalsPerMatch').textContent = '경기당 0골';
-        document.getElementById('seasonMvp').textContent = '-';
-        document.getElementById('mvpStats').textContent = 'MVP 0회';
-        return;
-    }
-
-    const override = SEASON_DISPLAY_OVERRIDES[AppState.data.currentSeason];
-    const hasMatchData = AppState.data.matches.length > 0;
-    const hasPlayerData = Object.keys(AppState.data.playerStats || {}).length > 0;
-    const matchStats = hasMatchData ? calculateMatchStats(AppState.data.matches) : null;
-
-    const totalMatches = matchStats?.total ?? override?.summary?.matches ?? 0;
-    const wins = matchStats?.win ?? override?.summary?.wins ?? 0;
-    const draws = matchStats?.draw ?? override?.summary?.draws ?? 0;
-    const losses = matchStats?.loss ?? override?.summary?.losses ?? 0;
-    const totalGoalsFor = matchStats?.goalsFor ?? override?.summary?.goalsFor ?? 0;
-
-    const winRate = totalMatches > 0 ? (wins / totalMatches * 100).toFixed(1) : 0;
-    const goalsPerMatch = totalMatches > 0 ? (totalGoalsFor / totalMatches).toFixed(1) : 0;
-
-    const seasonMvpPlayer = hasPlayerData
-        ? calculateSeasonMvp(AppState.data.playerStats)
-        : override?.mvp;
-    const mvpName = seasonMvpPlayer ? seasonMvpPlayer.name : '-';
-    const mvpCount = seasonMvpPlayer ? seasonMvpPlayer.count ?? seasonMvpPlayer.mvp : 0;
-    const mvpAppearances = seasonMvpPlayer ? seasonMvpPlayer.appearances : 0;
-
-
-    document.getElementById('totalMatches').textContent = totalMatches.toString();
-    document.getElementById('winRate').textContent = winRate + '%';
-    document.getElementById('winRateSubtitle').textContent = `${wins}승 ${draws}무 ${losses}패`;
-    document.getElementById('totalGoals').textContent = totalGoalsFor.toString();
-    document.getElementById('goalsPerMatch').textContent = `경기당 ${goalsPerMatch}골`;
-    document.getElementById('seasonMvp').textContent = mvpName;
-    document.getElementById('mvpStats').textContent = mvpCount > 0 ? `MVP ${mvpCount}회 (출전 ${mvpAppearances}회)` : 'MVP 0회';
-}
-
-// 테이블 업데이트 (부분 생략)
-function updateMatchesTable(matches = AppState.data.matches) {
-    const matchList = document.getElementById('matchesList');
-    if (!matchList) return;
-
-    matchList.innerHTML = '';
-
-    if (!matches || matches.length === 0) {
-        matchList.innerHTML = '<div class="no-data">경기 데이터가 없습니다.</div>';
-        return;
-    }
-
-    const withMeta = matches.map((match, index) => ({
-        ...match,
-        originalIndex: index,
-        timestamp: new Date(match.date).getTime()
-    }));
-
-    const chronological = [...withMeta].sort((a, b) => {
-        const timeA = Number.isFinite(a.timestamp) ? a.timestamp : 0;
-        const timeB = Number.isFinite(b.timestamp) ? b.timestamp : 0;
-        return timeA - timeB || a.originalIndex - b.originalIndex;
-    });
-
-    const roundKeyMap = new Map();
-    chronological.forEach((match, index) => {
-        const key = `${match.date}|${match.opponent}|${match.score}|${match.mvp}|${match.originalIndex}`;
-        roundKeyMap.set(key, index + 1);
-    });
-
-    const isAsc = AppState.ui.currentMatchSort === 'asc';
-    const displayMatches = [...withMeta].sort((a, b) => {
-        const timeA = Number.isFinite(a.timestamp) ? a.timestamp : 0;
-        const timeB = Number.isFinite(b.timestamp) ? b.timestamp : 0;
-        return isAsc ? (timeA - timeB || a.originalIndex - b.originalIndex) : (timeB - timeA || b.originalIndex - a.originalIndex);
-    });
-
-    document.querySelectorAll('.match-sort-controls .filter-btn').forEach(button => {
-        button.classList.toggle('active', button.dataset.matchSort === AppState.ui.currentMatchSort);
-    });
-
-    displayMatches.forEach(match => {
-        const roundKey = `${match.date}|${match.opponent}|${match.score}|${match.mvp}|${match.originalIndex}`;
-        const round = roundKeyMap.get(roundKey) || 1;
-        const card = document.createElement('article');
-        card.className = `match-archive-item ${match.result}-item`;
-        card.dataset.matchDate = match.date;
-        card.innerHTML = `
-            <div class="match-archive-top">
-                <span class="match-date">${match.date}</span>
-                <span class="match-competition">WHISTLE LEAGUE</span>
-            </div>
-            <div class="match-archive-main match-archive-grid">
-                <div class="match-opponent-wrap">
-                    <div class="match-opponent">${match.opponent}</div>
-                    <div class="match-context">HOME · WHISTLE${match.venue ? ' · ' + match.venue : ''}</div>
-                </div>
-                <div class="match-score-wrap">
-                    <div class="match-score">${match.score}</div>
-                    <span class="result-badge result-${match.result}">
-                        ${match.result === 'win' ? '승' : match.result === 'draw' ? '무' : '패'}
-                    </span>
-                </div>
-            </div>
-            <div class="match-archive-meta">
-                <span class="match-meta-chip">MVP ${match.mvp ? match.mvp : '-'}</span>
-                <span class="match-toggle-detail" style="cursor:pointer;color:#0097A7;font-size:12px;font-weight:600">▼ 상세보기</span>
-            </div>
-            <div class="match-detail" id="detail-${match.date}-${round}">
-                <div class="detail-loading">불러오는 중...</div>
-            </div>
-        `;
-        card.querySelector('.match-toggle-detail').addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const detailArea = card.querySelector('.match-detail');
-            const btn = card.querySelector('.match-toggle-detail');
-            const isOpen = detailArea.classList.contains('open');
-            if (isOpen) {
-                detailArea.classList.remove('open');
-                btn.textContent = '▼ 상세보기';
-                return;
-            }
-            detailArea.classList.add('open');
-            btn.textContent = '▲ 닫기';
-            if (detailArea.dataset.loaded) return;
-            detailArea.dataset.loaded = 'true';
-            try {
-                const matchRes = await supabaseFetch(`matches?date=eq.${match.date}&opponent=eq.${encodeURIComponent(match.opponent)}&select=id`);
-                if (!matchRes || matchRes.length === 0) { detailArea.innerHTML = '<div class="detail-loading">데이터 없음</div>'; return; }
-                const matchId = matchRes[0].id;
-                const [lineups, goals] = await Promise.all([
-                    supabaseFetch(`match_lineups?match_id=eq.${matchId}&select=is_mercenary,players(name)&order=is_mercenary.asc`),
-                    supabaseFetch(`match_goals?match_id=eq.${matchId}&select=is_mercenary,players(name)`)
-                ]);
-                const regular = lineups.filter(l => !l.is_mercenary && l.players).map(l => l.players.name);
-                const mercCount = lineups.filter(l => l.is_mercenary).length;
-                const goalMap = {};
-                goals.forEach(g => { const n = g.players ? g.players.name : '용병'; goalMap[n] = (goalMap[n] || 0) + 1; });
-                detailArea.innerHTML = `
-                    ${regular.length > 0 ? `<div class="match-detail-section">
-                        <div class="match-detail-label">출전 선수 (${regular.length}명${mercCount > 0 ? ' + 용병 ' + mercCount + '명' : ''})</div>
-                        <div class="match-detail-players">${regular.map(n => `<span class="detail-player-chip">${n}</span>`).join('')}${mercCount > 0 ? `<span class="detail-player-chip" style="background:#F3F4F6;color:#6B7280">용병 ${mercCount}명</span>` : ''}</div>
-                    </div>` : '<div class="detail-loading">출전 명단 없음 (레거시 데이터)</div>'}
-                    ${Object.keys(goalMap).length > 0 ? `<div class="match-detail-section">
-                        <div class="match-detail-label">득점</div>
-                        <div class="match-detail-players">${Object.entries(goalMap).map(([n,c]) => `<span class="detail-goal-chip">${n}${c > 1 ? ' ' + c + '골' : ''}</span>`).join('')}</div>
-                    </div>` : ''}
-                `;
-            } catch(e) { detailArea.innerHTML = '<div class="detail-loading">불러오기 실패</div>'; }
-        });
-        matchList.appendChild(card);
-    });
-}
-
-function updatePlayersTable(playerStats = AppState.data.playerStats, sortBy = AppState.ui.currentFilter) {
-    const listContainer = document.getElementById('playersRankList');
-    if (!listContainer) return;
-
-    listContainer.innerHTML = '';
-
-    if (!playerStats || Object.keys(playerStats).length === 0) {
-        listContainer.innerHTML = '<div class="no-data">선수 데이터가 없습니다.</div>';
-        return;
-    }
-
-    let playersArray = Object.entries(playerStats)
-        .map(([name, stats]) => ({ name, ...stats }))
-        .filter(player => player.appearances > 0);
-
-    switch (sortBy) {
-        case 'goals':
-            playersArray.sort((a, b) => b.goals - a.goals || b.appearances - a.appearances || koreanCollator.compare(a.name, b.name));
-            break;
-        case 'attendance':
-            playersArray.sort((a, b) => b.appearances - a.appearances || b.goals - a.goals || koreanCollator.compare(a.name, b.name));
-            break;
-        case 'mvp':
-            playersArray.sort((a, b) => b.mvp - a.mvp || b.goals - a.goals || koreanCollator.compare(a.name, b.name));
-            break;
-        default:
-            playersArray.sort((a, b) => koreanCollator.compare(a.name, b.name));
-    }
-
-    const totalMatches = AppState.data.matches.length;
-
-    playersArray.forEach((player, index) => {
-        const attendanceRate = totalMatches > 0 ? Math.round((player.appearances / totalMatches) * 100) : 0;
-
-        const card = document.createElement('article');
-        card.className = 'player-rank-item';
-        card.innerHTML = `
-            <div class="player-rank-order">${index + 1}</div>
-            <div class="player-rank-main player-zone-left">
-                <div class="player-name">${player.name}</div>
-                <div class="player-support">
-                    <span class="player-chip">출전 ${player.appearances}</span>
-                    <span class="player-chip">골 ${player.goals}</span>
-                    <span class="player-chip">MVP ${player.mvp}회</span>
-                </div>
-            </div>
-            <div class="player-rank-meta player-zone-center">
-                <span class="player-chip">포지션 미등록</span>
-                <span class="player-chip">경기 ${AppState.data.matches.length || 0}</span>
-            </div>
-            <div class="player-rank-stats player-zone-right">
-                <span class="attendance-rate ${
-                attendanceRate >= 70 ? 'rate-high' :
-                attendanceRate >= 40 ? 'rate-medium' : 'rate-low'
-            }">참석률 ${attendanceRate}%</span>
-                <span class="mvp-badge">MVP ${player.mvp}회</span>
-            </div>
-        `;
-        listContainer.appendChild(card);
-    });
-}
-
-function setMatchSort(sortOrder) {
-    AppState.ui.currentMatchSort = sortOrder;
-    updateMatchesTable(AppState.data.matches);
-}
-
-function updateTable(data, matches, tableBodyId, type) {
-    if (type === 'players') {
-        updatePlayersTable(data, AppState.ui.currentFilter);
-    } else if (type === 'matches') {
-        updateMatchesTable(data, document.getElementById(tableBodyId));
-    }
-}
-
-// 일정 및 지도 관련 함수
-function updateSchedule(schedules = []) {
-    const scheduleContainer = document.querySelector('.schedule-container');
-    const venueInfo = document.querySelector('.venue-info');
-    if (!scheduleContainer || !venueInfo) return;
-
-    const hasSchedules = Array.isArray(schedules) && schedules.length > 0;
-    scheduleContainer.innerHTML = '<h3 style="color: #1e40af; margin-bottom: 15px;">다음 경기 일정</h3>';
-
-    if (!hasSchedules) {
-        scheduleContainer.innerHTML += '<div class="no-data">등록된 다음 경기 일정이 없습니다.</div>';
-    } else {
-        const list = document.createElement('ul');
-        list.className = 'schedule-list';
-        schedules.slice(0, 3).forEach(schedule => {
-            const item = document.createElement('li');
-            item.innerHTML = `
-                <strong>${sanitizeTableData(schedule.date)} ${schedule.time ? '(' + sanitizeTableData(schedule.time) + ')' : ''}</strong><br>
-                ${sanitizeTableData(schedule.opponent)}전 - ${sanitizeTableData(schedule.venue || '미정')}
-            `;
-            list.appendChild(item);
-        });
-        scheduleContainer.appendChild(list);
-    }
-
-    const fallbackVenue = {
-        name: (CONFIG.VENUE && CONFIG.VENUE.name) || '성불빌라',
-        address: (CONFIG.VENUE && CONFIG.VENUE.address) || '서울 노원구 동일로231가길 75',
-        info: (CONFIG.VENUE && CONFIG.VENUE.info) || '전화번호: 031-790-2022, 주차 편함'
-    };
-
-    const nextVenue = hasSchedules
-        ? (schedules.find(schedule => schedule.address) || schedules[0])
-        : null;
-
-    const updatedVenue = {
-        name: sanitizeTableData((nextVenue && (nextVenue.venue || nextVenue.name)) || fallbackVenue.name),
-        address: sanitizeTableData((nextVenue && nextVenue.address) || fallbackVenue.address),
-        info: sanitizeTableData((nextVenue && (nextVenue.note || nextVenue.info)) || fallbackVenue.info)
-    };
-
-    CONFIG.VENUE = {
-        name: updatedVenue.name || fallbackVenue.name,
-        address: updatedVenue.address || fallbackVenue.address,
-        info: updatedVenue.info || fallbackVenue.info
-    };
-
-    if (CONFIG.VENUE.address && CONFIG.VENUE.address !== AppState.map.lastAddress) {
-        AppState.map.initialized = false;
-    }
-
-    venueInfo.innerHTML = `
-        <div class="venue-name">${CONFIG.VENUE.name}</div>
-        <div class="venue-address">📍 ${CONFIG.VENUE.address}</div>
-        <div class="venue-phone">📞 ${CONFIG.VENUE.info}</div>
-    `;
-
-    loadKakaoMap();
-}
-
-function loadKakaoMap() {
-    const mapPlaceholder = document.getElementById('map-placeholder');
-    if (!mapPlaceholder) return;
-
-    if (!CONFIG.VENUE.address) {
-        mapPlaceholder.innerHTML = '<div class="map-placeholder">주소 정보가 없어 지도를 표시할 수 없습니다.</div>';
-        return;
-    }
-
-    const existingScript = document.getElementById('kakao-maps-sdk');
-    if (existingScript) {
-        if (AppState.map.scriptLoaded) {
-            initializeMap();
-        } else if (!AppState.map.isLoading) {
-            AppState.map.isLoading = true;
-            existingScript.addEventListener('load', () => {
-                AppState.map.scriptLoaded = true;
-                AppState.map.isLoading = false;
-                kakao.maps.load(initializeMap);
-            }, { once: true });
-            existingScript.addEventListener('error', () => {
-                AppState.map.isLoading = false;
-                logError('카카오맵 API 로드 실패');
-                mapPlaceholder.innerHTML = `
-                    <div class="map-placeholder">
-                        🗺️<br>
-                        ${CONFIG.VENUE.name}<br>
-                        <small>지도를 불러올 수 없습니다.</small>
-                    </div>
-                `;
-            }, { once: true });
-        }
-        return;
-    }
-
-    if (AppState.map.scriptLoaded) {
-        initializeMap();
-        return;
-    }
-
-    if (AppState.map.isLoading) {
-        return;
-    }
-
-    AppState.map.isLoading = true;
-
-    const script = document.createElement('script');
-    script.id = 'kakao-maps-sdk';
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CONFIG.KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
-    script.onload = function () {
-        AppState.map.scriptLoaded = true;
-        AppState.map.isLoading = false;
-        kakao.maps.load(initializeMap);
-    };
-    script.onerror = function () {
-        AppState.map.isLoading = false;
-        logError('카카오맵 API 로드 실패');
-        mapPlaceholder.innerHTML = `
-            <div class="map-placeholder">
-                🗺️<br>
-                ${CONFIG.VENUE.name}<br>
-                <small>지도를 불러올 수 없습니다.</small>
-            </div>
-        `;
-    };
-
-    document.head.appendChild(script);
-}
-
-function initializeMap() {
-    const mapPlaceholder = document.getElementById('map-placeholder');
-    if (!mapPlaceholder) return;
-
-    const searchAddress = CONFIG.VENUE.address;
-    if (!searchAddress) {
-        mapPlaceholder.innerHTML = '<div class="map-placeholder">주소 정보가 없어 지도를 표시할 수 없습니다.</div>';
-        return;
-    }
-
-    if (AppState.map.initialized && AppState.map.lastAddress === searchAddress) {
-        return;
-    }
-
-    if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.services) {
-        logError('카카오맵 SDK가 초기화되지 않았습니다.');
-        mapPlaceholder.innerHTML = '<div class="map-placeholder">지도를 불러올 수 없습니다.</div>';
-        return;
-    }
-
-    mapPlaceholder.innerHTML = '<div id="map" style="width:100%;height:300px;border-radius:8px;border:2px solid #1e40af;"></div>';
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
-
-    const defaultCenter = new kakao.maps.LatLng(37.4656, 127.0347);
-    const map = new kakao.maps.Map(mapContainer, {
-        center: defaultCenter,
-        level: 3
-    });
-
-    const geocoder = new kakao.maps.services.Geocoder();
-    geocoder.addressSearch(searchAddress, function (result, status) {
-        if (status === kakao.maps.services.Status.OK && result.length > 0) {
-            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-            map.setCenter(coords);
-
-            const marker = new kakao.maps.Marker({
-                map,
-                position: coords
-            });
-
-            const infowindow = new kakao.maps.InfoWindow({
-                content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
-            });
-            infowindow.open(map, marker);
-        } else {
-            logInfo(`주소 검색 실패: ${searchAddress}. 기본 위치로 설정.`);
-            const marker = new kakao.maps.Marker({
-                map,
-                position: defaultCenter
-            });
-
-            const infowindow = new kakao.maps.InfoWindow({
-                content: `<div style="padding:5px;font-size:12px;text-align:center;">${CONFIG.VENUE.name || '구장'}</div>`
-            });
-            infowindow.open(map, marker);
-        }
-
-        AppState.map.initialized = true;
-        AppState.map.lastAddress = searchAddress;
-    });
-}
-
-// --- [ 데이터 로드 함수 ] ---
-
-async function loadFromGoogleSheets(season) {
-    const season2026plus = parseInt(season) >= 2026;
-
-    // 1단계: 경기 ID 목록 먼저
-    const matchIdList = await supabaseFetch(
-        `matches?season=eq.${season}&select=id`
-    );
-    const matchIds = matchIdList.map(m => m.id).join(",") || "0";
-
-    // 2단계: 나머지 병렬 로드
-    const [matchesRaw, playersRaw, mvpRaw] = await Promise.all([
-        supabaseFetch(
-            `matches_with_result?season=eq.${season}&order=date.desc`
-        ),
-        season2026plus
-            ? supabaseFetch(
-                `season_player_stats?season=eq.${season}&select=name,appearances,goals,mvp&order=goals.desc`
-              )
-            : supabaseFetch(
-                `legacy_stats?season=eq.${season}&select=appearances,goals,mvp,players(name)&order=goals.desc`
-              ),
-        supabaseFetch(
-            `match_mvps?select=raw_name,match_id&match_id=in.(${matchIds})`
-        )
-    ]);
-
-    // MVP를 match_id 기준으로 매핑
-    const mvpMap = {};
-    mvpRaw.forEach(row => {
-        if (!mvpMap[row.match_id]) mvpMap[row.match_id] = [];
-        mvpMap[row.match_id].push(row.raw_name);
-    });
-
-    const matches = matchesRaw.map(m => ({
-        date: m.date,
-        opponent: m.opponent,
-        result: m.result === "W" ? "win" : m.result === "D" ? "draw" : "loss",
-        score: `${m.our_score}:${m.opp_score}`,
-        venue: m.venue || "",
-        mvp: (mvpMap[m.id] || []).join(", ")
-    }));
-
-    // players 포맷 변환
-    const players = {};
-    playersRaw.forEach(row => {
-        const name = season2026plus ? row.name : row.players?.name;
-        if (!name) return;
-        players[name] = {
-            appearances: row.appearances || 0,
-            goals: row.goals || 0,
-            mvp: row.mvp || 0
-        };
-    });
-
-    // 다음 경기 일정 (오늘 이후, 가까운 순)
-    let schedules = [];
+  }
+
+  db(year) {
+    this._db = this._db || {};
+    if (this._db[year]) return this._db[year];
+    this._db[year] = { matches: [], players: [], total: 0, loading: true };
+    this.loadSeason(year);
+    return this._db[year];
+  }
+
+  async loadSeason(y) {
     try {
-        const today = new Date().toISOString().slice(0, 10);
-        schedules = await supabaseFetch(
-            `schedules?date=gte.${today}&order=date.asc&select=date,time,opponent,venue,address,note`
-        );
-    } catch (e) { schedules = []; }
-
-    return {
-        season: season,
-        matches: matches,
-        players: players,
-        schedules: schedules,
-        regional: []
-    };
-}
-// JSON 경로를 명확히 지정하여 로드
-async function loadData() {
-    AppState.data.matches = [];
-    AppState.data.playerStats = {};
-    AppState.data.regionalStats = [];
-
-    try {
-        showStatusMessage(`${AppState.data.currentSeason} 시즌 데이터를 불러오는 중...`, 'loading');
-        
-        if (AppState.network.currentAbortController) {
-            AppState.network.currentAbortController.abort();
-        }
-        AppState.network.currentAbortController = new AbortController();
-
-        let data, dataSource = 'JSON 파일';
-        const currentSeasonKey = AppState.data.currentSeason;
-
-        if (seasonDataCache.has(currentSeasonKey)) {
-            data = seasonDataCache.get(currentSeasonKey);
-            dataSource = '캐시';
-        } else {
-            const fetchJsonSeason = async () => {
-                const response = await fetch(CONFIG.DATA_PATH(currentSeasonKey), {
-                    signal: AppState.network.currentAbortController.signal,
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}: 파일을 찾을 수 없습니다.`);
-                const rawData = await response.json();
-                return validateSeasonData(rawData);
-            };
-
-            try {
-                data = await loadFromGoogleSheets(currentSeasonKey);
-                dataSource = 'Supabase';
-            } catch (sbError) {
-                logInfo('Supabase 로딩 실패, JSON 파일로 대체:', sbError.message);
-                data = await fetchJsonSeason();
-                dataSource = 'JSON 파일 (대체)';
-            }
-
-            seasonDataCache.set(currentSeasonKey, data);
-        }
-
-        // 데이터 할당 후 즉시 통계 카드 업데이트
-        AppState.data.matches = data.matches || [];
-        AppState.data.playerStats = data.players || {};
-        AppState.data.regionalStats = data.regional || [];
-        updateStats(); // 이 함수가 위에 정의되어 있으므로 이제 안전함
-
-        updateTable(AppState.data.playerStats, AppState.data.matches, 'playersRankList', 'players');
-        updateTable(AppState.data.matches, [], 'matchesList', 'matches');
-        updateSchedule(data.schedules || []);
-        updateRegionalTable(AppState.data.regionalStats, AppState.ui.currentRegionalFilter);
-        createRegionalHeatmap(AppState.data.regionalStats);
-
-        if (data.schedules && data.schedules.length > 0) {
-             loadKakaoMap();
-        }
-
-        hideStatusMessage();
-        logInfo(`${AppState.data.currentSeason} 시즌 데이터 로드 완료 (${dataSource})`, {
-            경기수: AppState.data.matches.length,
-            선수수: Object.keys(AppState.data.playerStats).length
-        });
-
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            logInfo('데이터 로딩이 취소되었습니다.');
-            return;
-        }
-
-        logError('데이터 로딩 실패:', error);
-        showStatusMessage(`${AppState.data.currentSeason} 시즌 데이터를 불러올 수 없습니다.`, 'error');
-        
-        // 기본값으로 UI 업데이트
-        updateStats();
-        const playersRankList = document.getElementById('playersRankList');
-        const matchesList = document.getElementById('matchesList');
-
-        if (playersRankList) {
-            playersRankList.innerHTML = '<div class="no-data">데이터를 불러올 수 없습니다.</div>';
-        }
-        if (matchesList) {
-            matchesList.innerHTML = '<div class="no-data">데이터를 불러올 수 없습니다.</div>';
-        }
-    }
-}
-
-async function loadSeasonDataWithRetry(season, retries = 2) {
-    const seasonKey = season.toString();
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-            if (seasonDataCache.has(seasonKey)) {
-                return { success: true, season: seasonKey, data: seasonDataCache.get(seasonKey) };
-            }
-
-            const fetchJsonSeason = async () => {
-                const response = await fetch(CONFIG.DATA_PATH(seasonKey), { headers: { 'Cache-Control': 'no-cache' } });
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                const rawData = await response.json();
-                return validateSeasonData(rawData);
-            };
-
-            let data;
-            try {
-                data = await loadFromGoogleSheets(seasonKey);
-            } catch (sbError) {
-                logError(`시즌 ${seasonKey} Supabase 로드 실패, JSON으로 대체`, sbError);
-                data = await fetchJsonSeason();
-            }
-
-            seasonDataCache.set(seasonKey, data);
-            return { success: true, season: seasonKey, data };
-        } catch (error) {
-            logError(`시즌 ${seasonKey} 데이터 로드 실패 (시도 ${attempt + 1})`, error);
-            if (attempt === retries) {
-                return { success: false, season: seasonKey, error };
-            }
-            await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
-        }
-    }
-
-    return { success: false, season: seasonKey };
-}
-
-// 병렬 데이터 로딩 (전체 기록)
-// 병렬 데이터 로딩 (전체 기록) - Supabase 뷰 활용
-async function loadAllTimeSeasonsParallel() {
-    showStatusMessage('역대 기록을 불러오는 중...', 'loading');
-
-    try {
-        const [playerStats, allMatches] = await Promise.all([
-            supabaseFetch('alltime_player_stats?select=name,total_appearances,total_goals,total_mvp&order=total_goals.desc'),
-            supabaseFetch('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc')
-        ]);
-
-        const allTimeStats = {};
-        playerStats.forEach(p => {
-            allTimeStats[p.name] = {
-                totalAppearances: p.total_appearances || 0,
-                totalGoals: p.total_goals || 0,
-                totalMvp: p.total_mvp || 0
-            };
-        });
-
-        const matchesFormatted = allMatches.map(m => ({
-            season: m.season,
-            date: m.date,
-            opponent: m.opponent,
-            score: `${m.our_score}:${m.opp_score}`,
-            result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss'
-        }));
-
-        const teamRecords = calculateTeamRecords(matchesFormatted);
-
-        // 지역별 기록 (venue → 지역 매핑 뷰)
-        let regionalData = [];
-        try {
-            regionalData = await supabaseFetch(
-                'regional_stats?select=region,matches,wins,draws,losses&order=matches.desc'
-            );
-        } catch (e) { regionalData = []; }
-
-        hideStatusMessage();
-        hideLoadingProgress();
-
-        return {
-            stats: allTimeStats,
-            matches: matchesFormatted,
-            records: teamRecords,
-            regional: regionalData
-        };
-
-    } catch(e) {
-        logError('역대 기록 로드 실패:', e);
-        showStatusMessage('역대 기록을 불러올 수 없습니다.', 'error');
-        return { stats: {}, matches: [], records: null, regional: [] };
-    }
-}
-
-
-// UI/Event Handler 함수
-function filterPlayers(filter) {
-    document.body.classList.remove('psort-goals', 'psort-attendance', 'psort-mvp');
-    if (filter === 'goals') document.body.classList.add('psort-goals');
-    else if (filter === 'attendance') document.body.classList.add('psort-attendance');
-    else if (filter === 'mvp') document.body.classList.add('psort-mvp');
-
-    AppState.ui.currentFilter = filter;
-
-    document.querySelectorAll('.player-filter-controls .filter-btn').forEach(button => {
-        button.classList.toggle('active', button.dataset.filter === filter);
-    });
-
-    if (AppState.data.isAllTimeView) {
-        if (AppState.allTime.loaded) {
-            updateAllTimeTable(AppState.allTime.stats, filter);
-        }
-    } else {
-        updatePlayersTable(AppState.data.playerStats, filter);
-    }
-}
-
-function filterRegional(filter) {
-    AppState.ui.currentRegionalFilter = filter;
-
-    document.querySelectorAll('.regional-filter-controls .filter-btn').forEach(button => {
-        button.classList.toggle('active', button.dataset.filter === filter);
-    });
-
-    const dataSource = AppState.data.isAllTimeView && AppState.allTime.loaded
-        ? AppState.allTime.regional
-        : AppState.data.regionalStats;
-
-    updateRegionalTable(dataSource, filter);
-    createRegionalHeatmap(dataSource);
-}
-
-function filterTeamRecords(sortBy) {
-    AppState.ui.currentTeamSort = sortBy;
-
-    if (AppState.data.isAllTimeView && AppState.allTime.loaded) {
-        updateTeamRecords(AppState.allTime.records, sortBy);
-    }
-}
-
-function updateRegionalTable(regionalData = AppState.data.regionalStats, sortBy = AppState.ui.currentRegionalFilter) {
-    const tbody = document.getElementById('regionalTableBody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-
-    if (!regionalData || regionalData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data">지역별 데이터가 없습니다.</td></tr>';
-        updateRegionalSortIndicators(sortBy);
-        return;
-    }
-
-    const sorted = [...regionalData].map(region => {
-        const matches = Number(region.matches) || 0;
-        const wins = Number(region.wins) || 0;
-        const draws = Number(region.draws) || 0;
-        const losses = Number(region.losses) || 0;
-        const winRate = matches ? (wins / matches) * 100 : 0;
-        return {
-            ...region,
-            matches,
-            wins,
-            draws,
-            losses,
-            winRate
-        };
-    });
-
-    sorted.sort((a, b) => {
-        switch (sortBy) {
-            case 'matches':
-                return b.matches - a.matches;
-            case 'wins':
-                return b.wins - a.wins;
-            case 'draws':
-                return b.draws - a.draws;
-            case 'losses':
-                return b.losses - a.losses;
-            case 'name':
-                return koreanCollator.compare(a.region, b.region);
-            case 'winrate':
-            default:
-                return b.winRate - a.winRate;
-        }
-    });
-
-    sorted.forEach(region => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${region.region}</td>
-            <td>${region.matches}</td>
-            <td>${region.wins}</td>
-            <td>${region.draws ?? 0}</td>
-            <td>${region.losses ?? 0}</td>
-            <td>${region.winRate.toFixed(1)}%</td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    updateRegionalSortIndicators(sortBy);
-}
-
-function updateRegionalSortIndicators(activeSort) {
-    const indicators = {
-        name: document.getElementById('regionNameSort'),
-        matches: document.getElementById('regionMatchesSort'),
-        wins: document.getElementById('regionWinsSort'),
-        draws: document.getElementById('regionDrawsSort'),
-        losses: document.getElementById('regionLossesSort'),
-        winrate: document.getElementById('regionWinrateSort')
-    };
-
-    Object.entries(indicators).forEach(([key, element]) => {
-        if (!element) return;
-        element.textContent = key === activeSort ? '↓' : '';
-    });
-}
-
-function createRegionalHeatmap(regionalData = AppState.data.regionalStats) {
-    const mapElement = document.getElementById('seoulMap');
-    if (!mapElement) return;
-
-    if (!regionalData || regionalData.length === 0) {
-        mapElement.innerHTML = '<text x="20" y="40" fill="#6b7280">지역 데이터가 없습니다.</text>';
-        return;
-    }
-
-    const enriched = regionalData.map(region => ({
-        ...region,
-        matches: Number(region.matches) || 0,
-        wins: Number(region.wins) || 0,
-        winRate: region.matches ? (region.wins / region.matches) * 100 : 0
-    }));
-
-    const getColorByWinRate = (winRate) => {
-        if (winRate >= 60) return '#10b981';
-        if (winRate >= 40) return '#f59e0b';
-        return '#ef4444';
-    };
-
-    const columns = Math.min(4, enriched.length);
-    const cellWidth = 90;
-    const cellHeight = 70;
-    const gap = 12;
-    const padding = 20;
-    const rows = Math.ceil(enriched.length / columns);
-    const width = columns * cellWidth + (columns - 1) * gap + padding * 2;
-    const height = rows * cellHeight + (rows - 1) * gap + padding * 2;
-
-    mapElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-    const cells = enriched.map((region, index) => {
-        const col = index % columns;
-        const row = Math.floor(index / columns);
-        const x = padding + col * (cellWidth + gap);
-        const y = padding + row * (cellHeight + gap);
-
-        const fillColor = getColorByWinRate(region.winRate);
-
-        return `
-            <g transform="translate(${x}, ${y})">
-                <rect width="${cellWidth}" height="${cellHeight}" rx="10" fill="${fillColor}" opacity="0.9"></rect>
-                <text x="10" y="22" fill="#0f172a" font-size="13" font-weight="bold">${region.region}</text>
-                <text x="10" y="42" fill="#0f172a" font-size="12">승률 ${region.winRate.toFixed(1)}%</text>
-                <text x="10" y="60" fill="#111827" font-size="11">${region.matches}경기 · ${region.wins}승</text>
-            </g>
-        `;
-    }).join('');
-
-    mapElement.innerHTML = `
-        <rect x="0" y="0" width="${width}" height="${height}" fill="#f8fafc" rx="12"></rect>
-        ${cells}
-    `;
-}
-
-function updateAllTimeRankings(allTimeStats) {
-    const highlightsContainer = document.getElementById('allTimeHighlights');
-    if (!highlightsContainer) return;
-
-    if (!allTimeStats || Object.keys(allTimeStats).length === 0) {
-        highlightsContainer.innerHTML = '<div class="no-data">역대 선수 데이터가 없습니다.</div>';
-        return;
-    }
-
-    const playersArray = Object.entries(allTimeStats).map(([name, stats]) => ({
-        name,
-        appearances: stats.totalAppearances ?? stats.appearances ?? 0,
-        goals: stats.totalGoals ?? stats.goals ?? 0,
-        mvp: stats.totalMvp ?? stats.mvp ?? 0
-    }));
-
-    if (playersArray.length === 0) {
-        highlightsContainer.innerHTML = '<div class="no-data">역대 선수 데이터가 없습니다.</div>';
-        return;
-    }
-
-    const topGoals = [...playersArray].sort((a, b) => b.goals - a.goals)[0];
-    const topAppearances = [...playersArray].sort((a, b) => b.appearances - a.appearances)[0];
-    const topMvp = [...playersArray].sort((a, b) => b.mvp - a.mvp)[0];
-
-    const highlights = [
-        { title: '최다 득점', value: `${topGoals.name} (${topGoals.goals}골)` },
-        { title: '최다 출장', value: `${topAppearances.name} (${topAppearances.appearances}경기)` },
-        { title: '최다 MVP', value: `${topMvp.name} (${topMvp.mvp}회)` }
-    ];
-
-    highlightsContainer.innerHTML = highlights.map(highlight => `
-        <div class="highlight-card">
-            <div class="highlight-title">${highlight.title}</div>
-            <div class="highlight-value">${highlight.value}</div>
-        </div>
-    `).join('');
-}
-
-function updateTeamRecords(teamRecords, sortBy = AppState.ui.currentTeamSort) {
-    const container = document.getElementById('teamRecordsContainer');
-    if (!container) return;
-
-    if (!teamRecords) {
-        container.innerHTML = '<div class="no-data">팀 기록을 계산할 데이터가 없습니다.</div>';
-        return;
-    }
-
-    const { overall, perSeason, biggestWin, toughestLoss } = teamRecords;
-    const overallRecordText = `${overall.matches}경기 (${overall.wins}승 ${overall.draws}무 ${overall.losses}패)`;
-
-    const sortedPerSeason = [...perSeason];
-    sortedPerSeason.sort((a, b) => {
-        switch (sortBy) {
-            case 'matches':
-                return b.matches - a.matches || b.winRate - a.winRate;
-            case 'wins':
-                return b.wins - a.wins || b.winRate - a.winRate;
-            case 'winrate':
-                return b.winRate - a.winRate || b.matches - a.matches;
-            case 'losses':
-                return b.losses - a.losses || b.matches - a.matches;
-            case 'draws':
-                return b.draws - a.draws || b.matches - a.matches;
-            case 'season':
-            default:
-                return b.season.localeCompare(a.season);
-        }
-    });
-
-    const seasonRows = sortedPerSeason.length > 0 ? sortedPerSeason.map(stats => `
-        <tr>
-            <td>${stats.season}</td>
-            <td>${stats.matches}</td>
-            <td>${stats.wins}</td>
-            <td>${stats.draws}</td>
-            <td>${stats.losses}</td>
-            <td>${stats.winRate}%</td>
-        </tr>
-    `).join('') : '<tr><td colspan="6" class="no-data">시즌별 기록이 없습니다.</td></tr>';
-
-    container.innerHTML = `
-        <div class="team-overview">
-            <div><span>총 경기</span><strong>${overallRecordText}</strong></div>
-            <div><span>통산 승률</span><strong>${overall.winRate}%</strong></div>
-            <div><span>득점 / 실점</span><strong>${overall.goalsFor} / ${overall.goalsAgainst}</strong></div>
-        </div>
-        <div class="team-highlights">
-            <div>
-                <span>최대 승리</span>
-                <strong>${biggestWin ? `${biggestWin.season} ${biggestWin.score} vs ${biggestWin.opponent}` : '-'}</strong>
-            </div>
-            <div>
-                <span>최대 패배</span>
-                <strong>${toughestLoss ? `${toughestLoss.season} ${toughestLoss.score} vs ${toughestLoss.opponent}` : '-'}</strong>
-            </div>
-        </div>
-        <div class="filter-controls team-sort-controls">
-            <button class="filter-btn ${sortBy === 'season' ? 'active' : ''}" onclick="filterTeamRecords('season')">시즌 순</button>
-            <button class="filter-btn ${sortBy === 'winrate' ? 'active' : ''}" onclick="filterTeamRecords('winrate')">승률 순</button>
-            <button class="filter-btn ${sortBy === 'wins' ? 'active' : ''}" onclick="filterTeamRecords('wins')">승수 순</button>
-            <button class="filter-btn ${sortBy === 'matches' ? 'active' : ''}" onclick="filterTeamRecords('matches')">경기수 순</button>
-        </div>
-        <div class="table-container">
-            <table class="players-table">
-                <thead>
-                    <tr>
-                        <th>시즌</th>
-                        <th>경기수</th>
-                        <th>승</th>
-                        <th>무</th>
-                        <th>패</th>
-                        <th>승률</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${seasonRows}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function updateAllTimeTable(allTimeStats, sortBy = 'goals') {
-    const tbody = document.getElementById('allTimePlayersTableBody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-
-    if (!allTimeStats || Object.keys(allTimeStats).length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="no-data">역대 선수 데이터가 없습니다.</td></tr>';
-        return;
-    }
-
-    let playersArray = Object.entries(allTimeStats).map(([name, stats]) => ({
-        name,
-        appearances: stats.totalAppearances ?? stats.appearances ?? 0,
-        goals: stats.totalGoals ?? stats.goals ?? 0,
-        mvp: stats.totalMvp ?? stats.mvp ?? 0
-    }));
-
-    switch (sortBy) {
-        case 'attendance':
-            playersArray.sort((a, b) => b.appearances - a.appearances || b.goals - a.goals || koreanCollator.compare(a.name, b.name));
-            break;
-        case 'mvp':
-            playersArray.sort((a, b) => b.mvp - a.mvp || b.appearances - a.appearances || koreanCollator.compare(a.name, b.name));
-            break;
-        case 'goals':
-            playersArray.sort((a, b) => b.goals - a.goals || b.appearances - a.appearances || koreanCollator.compare(a.name, b.name));
-            break;
-        default:
-            playersArray.sort((a, b) => koreanCollator.compare(a.name, b.name));
-    }
-
-    playersArray.forEach(player => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${player.name}</td>
-            <td>${player.appearances}</td>
-            <td>${player.goals}</td>
-            <td>${player.mvp}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-function updateButtonStates() {
-    const allTimeButton = document.getElementById('allTimeButton');
-    if (allTimeButton) {
-        allTimeButton.classList.toggle('active', AppState.data.isAllTimeView);
-        allTimeButton.innerHTML = AppState.data.isAllTimeView ? '🔙 시즌 보기' : '📊 역대 기록';
-        allTimeButton.setAttribute('aria-pressed', AppState.data.isAllTimeView.toString());
-        allTimeButton.setAttribute('aria-label', AppState.data.isAllTimeView ? '시즌 보기로 전환' : '역대 기록 보기');
-    }
-}
-
-function updateViewVisibility() {
-    document.body.classList.remove(
-        'page-mode-home',
-        'page-mode-seasons',
-        'page-mode-matches',
-        'page-mode-players',
-        'page-mode-records'
-    );
-    document.body.classList.add(`page-mode-${AppState.ui.currentMainTab}`);
-
-    document.querySelectorAll('.top-tab').forEach(button => {
-        button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
-    });
-    document.querySelectorAll('.bottom-tab').forEach(button => {
-        button.classList.toggle('active', button.dataset.tab === AppState.ui.currentMainTab);
-    });
-}
-
-function onSeasonSelectClick() {
-    if (AppState.data.isAllTimeView) {
-        AppState.data.isAllTimeView = false;
-        updateViewVisibility();
-        updateButtonStates();
-    }
-}
-
-function changeSeason() {
-    const select = document.getElementById('seasonSelect');
-    if (!select) return;
-
-    const selectedSeason = select.value;
-    if (selectedSeason === AppState.data.currentSeason && !AppState.data.isAllTimeView) {
-        return;
-    }
-
-    AppState.data.currentSeason = selectedSeason;
-    AppState.data.isAllTimeView = false;
-
-    updateViewVisibility();
-
-    updateButtonStates();
-    loadData();
-}
-
-async function toggleAllTimeView() {
-    AppState.data.isAllTimeView = !AppState.data.isAllTimeView;
-    updateViewVisibility();
-
-    if (AppState.data.isAllTimeView) {
-
-        if (!AppState.allTime.loaded) {
-            const allTimeTableBody = document.getElementById('allTimePlayersTableBody');
-            if (allTimeTableBody) {
-                allTimeTableBody.innerHTML = '<tr><td colspan="4" class="no-data">역대 기록을 불러오는 중...</td></tr>';
-            }
-
-            if (!AppState.allTime.loadingPromise) {
-                AppState.allTime.loadingPromise = loadAllTimeSeasonsParallel().finally(() => {
-                    AppState.allTime.loadingPromise = null;
-                });
-            }
-
-            const result = await AppState.allTime.loadingPromise;
-            if (result) {
-                AppState.allTime.loaded = true;
-                AppState.allTime.stats = result.stats;
-                AppState.allTime.matches = result.matches;
-                AppState.allTime.records = result.records;
-                AppState.allTime.regional = result.regional;
-            }
-        }
-
-        if (AppState.allTime.loaded) {
-            updateAllTimeRankings(AppState.allTime.stats);
-            updateAllTimeTable(AppState.allTime.stats, AppState.ui.currentFilter);
-            updateTeamRecords(AppState.allTime.records, AppState.ui.currentTeamSort);
-            updateRegionalTable(AppState.allTime.regional, AppState.ui.currentRegionalFilter);
-            createRegionalHeatmap(AppState.allTime.regional);
-        }
-    }
-
-    updateStats();
-    updateButtonStates();
-    filterPlayers(AppState.ui.currentFilter);
-    filterRegional(AppState.ui.currentRegionalFilter);
-}
-
-async function switchMainTab(tab) {
-    AppState.ui.currentMainTab = tab;
-
-    if (tab === 'records') {
-        if (!AppState.data.isAllTimeView) {
-            await toggleAllTimeView();
-            return;
-        }
-    } else if (AppState.data.isAllTimeView) {
-        await toggleAllTimeView();
-        return;
-    }
-
-    updateViewVisibility();
-
-    if (tab === 'seasons') renderSeasonTeamStats();
-}
-
-// 초기화/진입점 함수
-function initializeApp() {
-    AppState.data.currentSeason = CONFIG.DEFAULT_SEASON;
-    AppState.ui.currentMainTab = 'home';
-    
-    // 초기 로드 시 시즌 통계 카드 구조를 먼저 그림
-    renderSeasonStatCards();
-
-    updateButtonStates();
-    updateViewVisibility();
-
-    // 초기 데이터 로드
-    loadData().catch(error => {
-        logError('초기 데이터 로드 실패:', error);
-    });
-}
-
-
-// 페이지 로드 시 초기화 (DOMContentLoaded가defer속성으로 인해 안정적으로 실행)
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-// 전역 함수 노출 (HTML에서 호출 가능하도록 window 객체에 등록)
-window.changeSeason = changeSeason;
-window.toggleAllTimeView = toggleAllTimeView;
-window.onSeasonSelectClick = onSeasonSelectClick;
-window.filterPlayers = filterPlayers;
-window.filterRegional = filterRegional;
-window.filterTeamRecords = filterTeamRecords;
-window.switchMainTab = switchMainTab;
-window.setMatchSort = setMatchSort;
-
-
-// Seasons 탭: 시즌 팀 스탯 렌더
-async function renderSeasonTeamStats() {
-    const grid = document.getElementById('seasonTeamGrid');
-    if (!grid) return;
-    const season = AppState.data.currentSeason;
-    grid.innerHTML = '<div class="no-data">불러오는 중...</div>';
-
-    try {
-        const s2026 = parseInt(season) >= 2026;
-        const [matches, playersRaw] = await Promise.all([
-            supabaseFetch(`matches_with_result?season=eq.${season}&select=our_score,opp_score,result`),
-            s2026
-                ? supabaseFetch(`season_player_stats?season=eq.${season}&select=name,appearances,goals,mvp`)
-                : supabaseFetch(`legacy_stats?season=eq.${season}&select=appearances,goals,mvp,players(name)`)
-        ]);
-
-        const total = matches.length;
-        const w = matches.filter(m => m.result === 'W').length;
-        const d = matches.filter(m => m.result === 'D').length;
-        const l = matches.filter(m => m.result === 'L').length;
-        const gf = matches.reduce((s, m) => s + m.our_score, 0);
-        const ga = matches.reduce((s, m) => s + m.opp_score, 0);
-        const rate = total ? (w / total * 100).toFixed(1) : '0.0';
-
-        const players = playersRaw.map(p => ({
-            name: p.name ?? p.players?.name,
-            ap: p.appearances || 0, g: p.goals || 0, mvp: p.mvp || 0
-        })).filter(p => p.name);
-        const top = k => players.reduce((a, b) => (b[k] > (a?.[k] ?? -1) ? b : a), null);
-        const tg = top('g'), ta = top('ap'), tm = top('mvp');
-
-        const card = (title, value, sub) => `
-            <div class="stat-card">
-                <div class="stat-title">${title}</div>
-                <div class="stat-value">${value}</div>
-                <div class="stat-subtitle">${sub || ''}</div>
-            </div>`;
-
-        grid.innerHTML =
-            card('경기 수', total, `${w}승 ${d}무 ${l}패`) +
-            card('승률', rate + '%', '') +
-            card('득점', gf, `경기당 ${total ? (gf/total).toFixed(1) : 0}골`) +
-            card('실점', ga, `경기당 ${total ? (ga/total).toFixed(1) : 0}골`) +
-            card('최다 골', tg ? tg.name : '-', tg ? tg.g + '골' : '') +
-            card('최다 참여', ta ? ta.name : '-', ta ? ta.ap + '경기' : '') +
-            card('최다 MVP', tm && tm.mvp > 0 ? tm.name : '-', tm && tm.mvp > 0 ? tm.mvp + '회' : '');
+      const s2026 = y >= 2026;
+      const [matchesRaw, playersRaw] = await Promise.all([
+        this.supa(`matches_with_result?season=eq.${y}&order=date.desc`),
+        s2026
+          ? this.supa(`season_player_stats?season=eq.${y}&select=name,appearances,goals,mvp&order=goals.desc`)
+          : this.supa(`legacy_stats?season=eq.${y}&select=appearances,goals,mvp,players(name)&order=goals.desc`)
+      ]);
+      const ids = matchesRaw.map(m => m.id).join(',') || '0';
+      let mvpRaw = [];
+      try { mvpRaw = await this.supa(`match_mvps?select=raw_name,match_id&match_id=in.(${ids})`); } catch (e) {}
+      const mvpMap = {};
+      mvpRaw.forEach(r => { (mvpMap[r.match_id] = mvpMap[r.match_id] || []).push(r.raw_name); });
+      const matches = matchesRaw.map(m => ({
+        id: m.id, date: m.date, opponent: m.opponent,
+        gf: m.our_score, ga: m.opp_score, score: m.our_score + ':' + m.opp_score,
+        result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss',
+        mvp: (mvpMap[m.id] || []).join(', ') || '-'
+      }));
+      const players = playersRaw.map(r => ({
+        name: s2026 ? r.name : (r.players && r.players.name),
+        ap: r.appearances || 0, goals: r.goals || 0, mvp: r.mvp || 0
+      })).filter(p => p.name);
+      this._db[y] = { matches, players, total: matches.length, loading: false };
     } catch (e) {
-        grid.innerHTML = '<div class="no-data">팀 스탯을 불러올 수 없습니다.</div>';
+      this._db[y] = { matches: [], players: [], total: 0, error: true };
     }
+    this.setState({ tick: Date.now() });
+  }
+
+  loadDetail(m) {
+    this._details = this._details || {};
+    if (this._details[m.id]) return;
+    this._details[m.id] = { loading: true, lineup: [], goalChips: [] };
+    Promise.all([
+      this.supa(`match_lineups?match_id=eq.${m.id}&select=is_mercenary,players(name)&order=is_mercenary.asc`),
+      this.supa(`match_goals?match_id=eq.${m.id}&select=is_mercenary,players(name)`)
+    ]).then(([lineups, goals]) => {
+      const lineup = lineups.filter(l => !l.is_mercenary && l.players).map(l => l.players.name);
+      const merc = lineups.filter(l => l.is_mercenary).length;
+      const gm = {};
+      goals.forEach(g => { const n = g.players ? g.players.name : '용병'; gm[n] = (gm[n] || 0) + 1; });
+      this._details[m.id] = { lineup, merc, goalChips: Object.entries(gm).map(([n, c]) => c > 1 ? n + ' ' + c + '골' : n) };
+      this.setState({ tick: Date.now() });
+    }).catch(() => {
+      this._details[m.id] = { error: true, lineup: [], goalChips: [] };
+      this.setState({ tick: Date.now() });
+    });
+  }
+
+  async loadSchedules() {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      this._sched = await this.supa(`schedules?date=gte.${today}&order=date.asc&select=date,time,opponent,venue,address,note`);
+    } catch (e) { this._sched = []; }
+    this.setState({ tick: Date.now() });
+  }
+
+  componentDidMount() { this.loadSchedules(); }
+
+  async loadNorwich() {
+    try {
+      const get = u => fetch(u).then(r => r.json());
+      let view = [], league = '';
+      for (const lg of ['eng.2', 'eng.1']) {
+        try {
+          const j = await get(`https://site.api.espn.com/apis/v2/sports/soccer/${lg}/standings`);
+          const entries = (j.children && j.children[0] && j.children[0].standings && j.children[0].standings.entries) || [];
+          const stat = (e, n) => { const s = e.stats.find(x => x.name === n); return s ? s.displayValue : '-'; };
+          const rows = entries.map(e => ({
+            rank: Number(stat(e, 'rank')), team: e.team.displayName,
+            played: stat(e, 'gamesPlayed'), pts: stat(e, 'points'),
+            isNor: (e.team.displayName || '').includes('Norwich')
+          })).sort((a, b) => a.rank - b.rank);
+          const idx = rows.findIndex(r => r.isNor);
+          if (idx > -1) {
+            view = rows.slice(Math.max(0, idx - 2), idx + 3);
+            league = (j.children[0].name || '') + ' · ' + rows.length + '팀 중 ' + rows[idx].rank + '위';
+            break;
+          }
+        } catch (e) {}
+      }
+      let lastRows = [];
+      try {
+        const j2 = await get('https://site.api.espn.com/apis/site/v2/sports/soccer/eng.2/teams/381/schedule');
+        const done = (j2.events || []).filter(e => e.competitions && e.competitions[0] && e.competitions[0].status.type.completed);
+        lastRows = done.slice(-5).reverse().map(e => {
+          const c = e.competitions[0];
+          const us = c.competitors.find(x => (x.team.displayName || '').includes('Norwich'));
+          const them = c.competitors.find(x => x !== us);
+          const ug = Number(us.score && us.score.displayValue || 0);
+          const tg = Number(them.score && them.score.displayValue || 0);
+          return {
+            date: (e.date || '').slice(5, 10).replace('-', '.'),
+            opp: them.team.displayName, score: ug + ':' + tg,
+            ha: us.homeAway === 'home' ? '홈' : '원정',
+            res: ug > tg ? 'win' : ug === tg ? 'draw' : 'loss'
+          };
+        });
+      } catch (e) {}
+      this._nor = { view, lastRows, league, error: !view.length && !lastRows.length };
+    } catch (e) { this._nor = { view: [], lastRows: [], error: true }; }
+    this.setState({ tick: Date.now() });
+  }
+
+  schedVals() {
+    const sched = this._sched || [];
+    const nv = sched.find(s => s.address) || sched[0];
+    return {
+      schedules: sched.slice(0, 3).map(s => ({ dateShort: Number(s.date.slice(5, 7)) + '/' + Number(s.date.slice(8, 10)), time: s.time || '', opponent: s.opponent, venue: s.venue || '미정' })),
+      venueName: (nv && nv.venue) || '성불빌라',
+      venueAddr: (nv && nv.address) || '서울 노원구 동일로231가길 7',
+      venueInfo: (nv && nv.note) || '전화번호: 031-790-2022, 주차 아무데나'
+    };
+  }
+
+  allTime() {
+    if (this._all) return this._all;
+    if (!this._allLoading) { this._allLoading = true; this.loadAll(); }
+    return { overall: { matches: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0 }, perSeason: [], players: [], regional: [], bigWin: '-', bigLoss: '-', loading: true };
+  }
+
+  async loadAll() {
+    try {
+      const [playerStats, allMatches, regional, legacySeasons, newSeasons] = await Promise.all([
+        this.supaAll('alltime_player_stats?select=*&order=total_goals.desc'),
+        this.supaAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc'),
+        this.supa('regional_stats?select=region,matches,wins,draws,losses&order=matches.desc').catch(() => []),
+        this.supaAll('legacy_stats?select=season,players(name)').catch(() => []),
+        this.supaAll('season_player_stats?select=season,name').catch(() => [])
+      ]);
+      const debut = {};
+      legacySeasons.forEach(r => { const n = r.players && r.players.name; if (n && (!debut[n] || r.season < debut[n])) debut[n] = r.season; });
+      newSeasons.forEach(r => { if (r.name && (!debut[r.name] || r.season < debut[r.name])) debut[r.name] = r.season; });
+      const players = playerStats.map(p => ({
+        name: p.name, ap: p.total_appearances || 0, goals: p.total_goals || 0, mvp: p.total_mvp || 0,
+        debut: p.debut_season || p.first_season || debut[p.name] || '-'
+      }));
+      const overall = { matches: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0 };
+      const per = {};
+      let bigWin = null, bigLoss = null;
+      allMatches.forEach(m => {
+        const res = m.result === 'W' ? 'wins' : m.result === 'D' ? 'draws' : 'losses';
+        const s = per[m.season] = per[m.season] || { season: String(m.season), matches: 0, wins: 0, draws: 0, losses: 0 };
+        s.matches++; s[res]++;
+        overall.matches++; overall[res]++; overall.gf += m.our_score; overall.ga += m.opp_score;
+        const diff = m.our_score - m.opp_score;
+        const txt = `${m.season} ${m.our_score}:${m.opp_score} vs ${m.opponent}`;
+        if (!bigWin || diff > bigWin.diff) bigWin = { diff, txt };
+        if (!bigLoss || diff < bigLoss.diff) bigLoss = { diff, txt };
+      });
+      const perSeason = Object.values(per).map(s => ({ ...s, winRate: (s.wins / (s.matches || 1) * 100).toFixed(1) }));
+      this._all = { overall, perSeason, players, regional, bigWin: bigWin ? bigWin.txt : '-', bigLoss: bigLoss ? bigLoss.txt : '-' };
+    } catch (e) {
+      this._all = { overall: { matches: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0 }, perSeason: [], players: [], regional: [], bigWin: '-', bigLoss: '-', error: true };
+    }
+    this.setState({ tick: Date.now() });
+  }
+
+  renderVals() {
+    const koreanTabs = this.props.koreanTabs ?? false;
+    const recentCount = this.props.recentCount ?? 3;
+    const st = this.state;
+    const d = this.db(Number(st.season));
+    const resPal = { win: ['#E4F5EA', '#15803D'], draw: ['#FAF3DC', '#A5841B'], loss: ['#FBE9E9', '#C0392B'] };
+    const resLabel = { win: '승', draw: '무', loss: '패' };
+    const rateColor = v => v >= 60 ? '#15803D' : v >= 40 ? '#A5841B' : '#C0392B';
+    const chip = (on, label, onClick) => ({ label, onClick, bg: on ? '#113C98' : '#FFFFFF', color: on ? '#FFFFFF' : '#8A8577', bd: on ? '#113C98' : '#E7E4DB' });
+    const deco = m => ({ ...m, resLabel: resLabel[m.result], resBg: resPal[m.result][0], resColor: resPal[m.result][1] });
+
+    const wins = d.matches.filter(m => m.result === 'win').length;
+    const draws = d.matches.filter(m => m.result === 'draw').length;
+    const losses = d.matches.length - wins - draws;
+    const gf = d.matches.reduce((s, m) => s + m.gf, 0);
+    const ga = d.matches.reduce((s, m) => s + m.ga, 0);
+    const mvpP = [...d.players].sort((a, b) => b.mvp - a.mvp || b.ap - a.ap)[0];
+
+    const sortedMatches = [...d.matches].sort((a, b) => st.matchSort === 'asc' ? (a.date < b.date ? -1 : 1) : (a.date < b.date ? 1 : -1));
+    const matchList = sortedMatches.map(m => {
+      const det = (this._details || {})[m.id];
+      const lineup = det ? det.lineup : [];
+      const goalChips = det ? det.goalChips : [];
+      return {
+        ...deco(m), lineup, goalChips,
+        lineupLabel: lineup.length ? `출전 선수 (${lineup.length}명${det.merc ? ' + 용병 ' + det.merc + '명' : ''})` : '',
+        goalLabel: goalChips.length ? '득점' : '',
+        detailNote: !det ? '' : det.loading ? '불러오는 중...' : det.error ? '불러오기 실패' : !lineup.length ? '출전 명단 없음 (레거시 데이터)' : '',
+        detailDisplay: st.openMatch === m.id ? 'block' : 'none',
+        toggleLabel: st.openMatch === m.id ? '▲ 닫기' : '▼ 상세보기',
+        onToggle: () => { this.loadDetail(m); this.setState(s => ({ openMatch: s.openMatch === m.id ? null : m.id })); }
+      };
+    });
+
+    const collator = new Intl.Collator('ko');
+    let pl = [...d.players];
+    if (st.playerFilter === 'goals') pl.sort((a, b) => b.goals - a.goals || b.ap - a.ap);
+    else if (st.playerFilter === 'attendance') pl.sort((a, b) => b.ap - a.ap || b.goals - a.goals);
+    else if (st.playerFilter === 'mvp') pl.sort((a, b) => b.mvp - a.mvp || b.goals - a.goals);
+    else pl.sort((a, b) => collator.compare(a.name, b.name));
+    const playerList = pl.map((p, i) => {
+      const rate = Math.round(p.ap / (d.total || 1) * 100);
+      const rk = i === 0 ? ['#F0D281', '#113C98'] : i === 1 ? ['#D9D9D9', '#374151'] : i === 2 ? ['#CD9B6A', '#5B3A1E'] : ['#F3F1EA', '#8A8577'];
+      const rc = rate >= 70 ? ['#E4F5EA', '#15803D'] : rate >= 40 ? ['#FAF3DC', '#A5841B'] : ['#FBE9E9', '#C0392B'];
+      const chips = [
+        { key: 'attendance', label: '출전 ' + p.ap, bg: '#F3F1EA', color: '#8A8577', weight: 500 },
+        { key: 'goals', label: '골 ' + p.goals, bg: '#EEF2FB', color: '#113C98', weight: 700 },
+        { key: 'mvp', label: 'MVP ' + p.mvp + '회', bg: '#FAF3DC', color: '#A5841B', weight: 500 }
+      ];
+      const ai = chips.findIndex(c => c.key === st.playerFilter);
+      if (ai > -1) {
+        const [act] = chips.splice(ai, 1);
+        chips.unshift({ ...act, bg: '#FEE2E2', color: '#DC2626', weight: 700 });
+      }
+      const badge = st.playerFilter === 'goals' ? { badgeLabel: p.goals + '골', badgeBg: '#EEF2FB', badgeColor: '#113C98' }
+        : st.playerFilter === 'mvp' ? { badgeLabel: 'MVP ' + p.mvp + '회', badgeBg: '#FAF3DC', badgeColor: '#A5841B' }
+        : { badgeLabel: '참석률 ' + rate + '%', badgeBg: rc[0], badgeColor: rc[1] };
+      return { ...p, rate, rank: i + 1, rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: chips, ...badge };
+    });
+
+    const tops = k => [...d.players].sort((a, b) => b[k] - a[k])[0];
+    const tg = tops('goals'), ta = tops('ap'), tm = tops('mvp');
+    const seasonCards = [
+      { title: '경기 수', value: d.matches.length, sub: `${wins}승 ${draws}무 ${losses}패`, accent: '#113C98' },
+      { title: '승률', value: (wins / (d.matches.length || 1) * 100).toFixed(1) + '%', sub: st.season + ' 시즌', accent: '#113C98' },
+      { title: '득점', value: gf, sub: `경기당 ${(gf / (d.matches.length || 1)).toFixed(1)}골`, accent: '#113C98' },
+      { title: '실점', value: ga, sub: `경기당 ${(ga / (d.matches.length || 1)).toFixed(1)}골`, accent: '#113C98' }
+    ];
+    const seasonBest = [
+      { icon: '골', title: '최다 골', name: tg ? tg.name : '-', sub: tg ? tg.goals + '골' : '' },
+      { icon: '출', title: '최다 참여', name: ta ? ta.name : '-', sub: ta ? ta.ap + '경기' : '' },
+      { icon: 'M', title: '최다 MVP', name: tm && tm.mvp > 0 ? tm.name : '-', sub: tm && tm.mvp > 0 ? tm.mvp + '회' : '' }
+    ];
+    const formPal = { win: ['#2E7D4F', '#FFFFFF'], draw: ['#E0B94B', '#5B4708'], loss: ['#C0392B', '#FFFFFF'] };
+    const formList = [...d.matches].sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 5).reverse()
+      .map(m => ({ label: resLabel[m.result], bg: formPal[m.result][0], fg: formPal[m.result][1] }));
+    const monthlyMap = {};
+    d.matches.forEach(m => {
+      const mo = Number(m.date.slice(5, 7));
+      const e = monthlyMap[mo] = monthlyMap[mo] || { gf: 0, ga: 0 };
+      e.gf += m.gf; e.ga += m.ga;
+    });
+    const moKeys = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const moMax = Math.max(1, ...moKeys.map(k => monthlyMap[k] ? Math.max(monthlyMap[k].gf, monthlyMap[k].ga) : 0));
+    const monthly = moKeys.map(k => {
+      const e = monthlyMap[k] || { gf: 0, ga: 0 };
+      return {
+        label: k + '월', gf: e.gf, ga: e.ga,
+        gfH: Math.max(3, Math.round(e.gf / moMax * 80)) + 'px',
+        gaH: Math.max(3, Math.round(e.ga / moMax * 80)) + 'px',
+        tipDisplay: st.hoverMonth === k ? 'block' : 'none',
+        onEnter: () => this.setState({ hoverMonth: k }),
+        onLeave: () => this.setState(s => s.hoverMonth === k ? { hoverMonth: null } : null)
+      };
+    });
+
+    const A = this.allTime();
+    const bestRate = Math.max(...A.perSeason.map(s => Number(s.winRate)));
+    const trendBars = [...A.perSeason].sort((a, b) => a.season.localeCompare(b.season)).map(s => ({
+      label: "'" + s.season.slice(2),
+      h: Math.max(4, Math.round(Number(s.winRate) / 100 * 74)) + 'px',
+      bg: Number(s.winRate) === bestRate ? '#C9A227' : '#113C98'
+    }));
+    const seasonRows = [...A.perSeason];
+    if (st.teamSort === 'winrate') seasonRows.sort((a, b) => b.winRate - a.winRate);
+    else if (st.teamSort === 'wins') seasonRows.sort((a, b) => b.wins - a.wins);
+    else if (st.teamSort === 'matches') seasonRows.sort((a, b) => b.matches - a.matches);
+    else seasonRows.sort((a, b) => b.season.localeCompare(a.season));
+
+    let regional = A.regional.map(x => ({ ...x, winRate: (x.wins / (x.matches || 1) * 100).toFixed(1) }));
+    if (st.regionalSort === 'matches') regional.sort((a, b) => b.matches - a.matches);
+    else if (st.regionalSort === 'wins') regional.sort((a, b) => b.wins - a.wins);
+    else if (st.regionalSort === 'name') regional.sort((a, b) => collator.compare(a.region, b.region));
+    else regional.sort((a, b) => b.winRate - a.winRate);
+
+    const topOf = k => [...A.players].sort((a, b) => b[k] - a[k])[0];
+    const hg = topOf('goals'), hap = topOf('ap'), hm = topOf('mvp');
+
+    const tabDefs = [['Home', '홈', 'home'], ['Seasons', '시즌', 'seasons'], ['Matches', '경기', 'matches'], ['Players', '선수', 'players'], ['Records', '기록', 'records']];
+    const mkTabs = pos => tabDefs.map(([en, kr, key]) => {
+      const on = st.tab === key;
+      const label = koreanTabs ? kr : en;
+      const onClick = () => this.setState({ tab: key, openMatch: null });
+      return pos === 'top'
+        ? { label, onClick, color: on ? '#113C98' : '#CBD8F5', bg: on ? '#F6F5F1' : 'rgba(255,255,255,.06)' }
+        : { label, onClick, color: on ? '#113C98' : '#B0AB9D', bd: on ? '#113C98' : 'transparent' };
+    });
+
+    const allOn = st.tab === 'records';
+    const nor = this._nor || {};
+    return {
+      vNorwich: !!st.norwich,
+      norLeague: nor.league || 'NORWICH CITY',
+      norStatus: nor.loading ? '노리치 데이터를 불러오는 중...' : nor.error ? '지금은 노리치 데이터를 불러올 수 없습니다.' : '',
+      norRows: (nor.view || []).map(r => ({ ...r, bg: r.isNor ? '#00A650' : 'transparent', fg: r.isNor ? '#FFFFFF' : '#1A1A1A', weight: r.isNor ? 800 : 600 })),
+      norLast: (nor.lastRows || []).map(e => ({ ...e, resLabel: resLabel[e.res], resBg: resPal[e.res][0], resColor: resPal[e.res][1] })),
+      onNorClose: () => this.setState({ norwich: false }),
+      onLogo: () => {
+        const now = Date.now();
+        this._clicks = (this._lastClick && now - this._lastClick < 1500) ? (this._clicks || 0) + 1 : 1;
+        this._lastClick = now;
+        if (this._clicks >= 3) {
+          this._clicks = 0;
+          if (!this._nor) { this._nor = { loading: true }; this.loadNorwich(); }
+          this.setState(s => ({ norwich: !s.norwich }));
+        }
+      },
+      season: st.season,
+      onSeason: e => this.setState({ season: e.target.value, tab: st.tab === 'records' ? 'home' : st.tab, openMatch: null }),
+      allBtnLabel: allOn ? '시즌 보기' : '역대 기록',
+      allBtnBg: allOn ? '#F0D281' : 'transparent', allBtnColor: allOn ? '#113C98' : '#CBD8F5', allBtnBd: allOn ? '#F0D281' : '#4C6CC0',
+      onAllTime: () => this.setState({ tab: allOn ? 'home' : 'records' }),
+      tabsTop: mkTabs('top'), tabsBottom: mkTabs('bottom'),
+      vHome: st.tab === 'home', vSeasons: st.tab === 'seasons', vMatches: st.tab === 'matches', vPlayers: st.tab === 'players', vRecords: st.tab === 'records',
+      stTotal: d.matches.length, stRate: (wins / (d.matches.length || 1) * 100).toFixed(1), stRecord: `${wins}승 ${draws}무 ${losses}패`,
+      stGoals: gf, stGpm: (gf / (d.matches.length || 1)).toFixed(1),
+      mvpName: mvpP ? mvpP.name : '-', mvpSub: mvpP ? `MVP ${mvpP.mvp}회 · 출전 ${mvpP.ap}회` : 'MVP 0회',
+      recentMatches: sortedMatches.slice(0, recentCount).map(deco),
+      ...this.schedVals(),
+      ...(() => {
+        const now = new Date();
+        const y = Number(st.season);
+        const pct = y < now.getFullYear() ? 100 : y > now.getFullYear() ? 0
+          : Math.min(100, Math.round((now - new Date(y, 0, 1)) / (new Date(y, 11, 31) - new Date(y, 0, 1)) * 100));
+        const found = new Date(2000, 4, 9);
+        const foundDays = Math.floor((now - found) / 86400000);
+        let foundYears = now.getFullYear() - 2000;
+        if (now < new Date(now.getFullYear(), 4, 9)) foundYears--;
+        return {
+          progPct: pct + '%', progLabel: pct + '%',
+          progSub: st.season + ' 시즌 · ' + d.matches.length + '경기 소화',
+          foundYears, foundDays: foundDays.toLocaleString()
+        };
+      })(),
+      hasStatus: !!(d.loading || d.error || (st.tab === 'records' && A.loading)),
+      statusMsg: d.error ? st.season + ' 시즌 데이터를 불러올 수 없습니다.' : (st.tab === 'records' && A.loading) ? '역대 기록을 불러오는 중...' : st.season + ' 시즌 데이터를 불러오는 중...',
+      seasonCards, seasonBest, formList, monthly, trendBars,
+      stGa: ga,
+      wdlWin: (wins / (d.matches.length || 1) * 100).toFixed(1) + '%', wdlDraw: (draws / (d.matches.length || 1) * 100).toFixed(1) + '%', wdlLoss: (losses / (d.matches.length || 1) * 100).toFixed(1) + '%',
+      wdlWinN: wins, wdlDrawN: draws, wdlLossN: losses,
+      matchChips: [chip(st.matchSort === 'desc', '날짜 내림차순', () => this.setState({ matchSort: 'desc' })), chip(st.matchSort === 'asc', '날짜 오름차순', () => this.setState({ matchSort: 'asc' }))],
+      matchList,
+      playerChips: [['all', '전체'], ['goals', '골 순'], ['attendance', '참석 순'], ['mvp', 'MVP 횟수']].map(([k, l]) => chip(st.playerFilter === k, l, () => this.setState({ playerFilter: k }))),
+      playerList,
+      ovMatches: A.overall.matches, ovRecord: `${A.overall.wins}승 ${A.overall.draws}무 ${A.overall.losses}패`,
+      ovRate: (A.overall.wins / (A.overall.matches || 1) * 100).toFixed(1), ovGf: A.overall.gf, ovGa: A.overall.ga,
+      bigWin: A.bigWin, bigLoss: A.bigLoss,
+      teamChips: [['season', '시즌 순'], ['winrate', '승률 순'], ['wins', '승수 순'], ['matches', '경기수 순']].map(([k, l]) => chip(st.teamSort === k, l, () => this.setState({ teamSort: k }))),
+      seasonRows: seasonRows.map(r => ({ ...r, rateColor: rateColor(Number(r.winRate)) })),
+      highlights: [
+        { icon: '골', title: '최다 득점', name: hg ? hg.name : '-', sub: hg ? hg.goals + '골' : '' },
+        { icon: '출', title: '최다 출장', name: hap ? hap.name : '-', sub: hap ? hap.ap + '경기' : '' },
+        { icon: 'M', title: '최다 MVP', name: hm ? hm.name : '-', sub: hm ? hm.mvp + '회' : '' }
+      ],
+      allPlayers: [...A.players].sort((a, b) => b.goals - a.goals).map((p, i) => ({
+        ...p, debut: p.debut || '-', rank: i + 1,
+        rankBg: i === 0 ? '#F0D281' : i === 1 ? '#D9D9D9' : i === 2 ? '#CD9B6A' : '#F3F1EA',
+        rankColor: i === 0 ? '#113C98' : i === 1 ? '#374151' : i === 2 ? '#5B3A1E' : '#8A8577'
+      })),
+      regionalChips: [['matches', '경기수 순'], ['winrate', '승률 순'], ['wins', '승수 순'], ['name', '지역명 순']].map(([k, l]) => chip(st.regionalSort === k, l, () => this.setState({ regionalSort: k }))),
+      regionalRows: regional.map(r => ({ ...r, rateColor: rateColor(Number(r.winRate)) })),
+      heatCells: regional.map(r => {
+        const v = Number(r.winRate);
+        const pal = v >= 60 ? ['#CDEBD8', '#14532D'] : v >= 40 ? ['#F6ECC8', '#7C5E0B'] : ['#F6D5D5', '#8E2323'];
+        return { ...r, bg: pal[0], fg: pal[1] };
+      })
+    };
+  }
 }
+
+// ── 상태 관리 / 마운트 ──
+Object.assign(WhistleApp.prototype, {
+  setState(update) {
+    const patch = typeof update === 'function' ? update(this.state) : update;
+    if (!patch) return;
+    const next = { ...this.state, ...patch };
+    const keys = new Set([...Object.keys(this.state), ...Object.keys(next)]);
+    let changed = false;
+    for (const k of keys) if (this.state[k] !== next[k]) { changed = true; break; }
+    if (!changed) return;
+    this.state = next;
+    this.render();
+  },
+
+  mount(rootEl, templateEl) {
+    this.root = rootEl;
+    this.template = templateEl.content;
+    this.render();
+    if (this.componentDidMount) this.componentDidMount();
+  },
+
+  render() {
+    if (this._rendering) { this._dirty = true; return; }
+    this._rendering = true;
+    try {
+      const vals = this.renderVals();
+      const frag = document.createDocumentFragment();
+      renderNodes(frag, this.template.childNodes, vals);
+      this.root.replaceChildren(frag);
+    } finally {
+      this._rendering = false;
+    }
+    if (this._dirty) { this._dirty = false; this.render(); }
+  }
+});
+
+const whistleApp = new WhistleApp();
+whistleApp.mount(document.getElementById('app'), document.getElementById('dc-template'));
+window.whistleApp = whistleApp;
