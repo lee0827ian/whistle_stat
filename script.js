@@ -385,6 +385,20 @@ class WhistleApp {
     else if (st.regionalSort === 'name') regional.sort((a, b) => collator.compare(a.region, b.region));
     else regional.sort((a, b) => b.winRate - a.winRate);
 
+    // 지역 그룹: 서울(구) / 경기(시·군) / 인천 / 기타 — 표·히트맵 공용
+    const SEOUL_GU = new Set(['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구']);
+    const groupOf = r => SEOUL_GU.has(r.region) ? '서울' : r.region.startsWith('인천') ? '인천' : /(시|군)$/.test(r.region) ? '경기' : '기타';
+    const regionalGroups = ['서울', '경기', '인천', '기타'].map(name => {
+      const rows = regional.filter(r => groupOf(r) === name).map(r => ({ ...r, rateColor: rateColor(Number(r.winRate)) }));
+      const sum = rows.reduce((s, r) => ({ m: s.m + r.matches, w: s.w + r.wins }), { m: 0, w: 0 });
+      const heat = rows.map(r => {
+        const v = Number(r.winRate);
+        const pal = v >= 60 ? ['#CDEBD8', '#14532D'] : v >= 40 ? ['#F6ECC8', '#7C5E0B'] : ['#F6D5D5', '#8E2323'];
+        return { ...r, bg: pal[0], fg: pal[1] };
+      });
+      return { name, rows, heat, count: rows.length + '개 지역', summary: `${rows.length}개 지역 · ${sum.m}경기 · 승률 ${(sum.w / (sum.m || 1) * 100).toFixed(1)}%` };
+    }).filter(g => g.rows.length);
+
     const topOf = k => [...A.players].sort((a, b) => b[k] - a[k])[0];
     const hg = topOf('goals'), hap = topOf('ap'), hm = topOf('mvp');
 
@@ -470,12 +484,7 @@ class WhistleApp {
         rankColor: i === 0 ? '#113C98' : i === 1 ? '#374151' : i === 2 ? '#5B3A1E' : '#8A8577'
       })),
       regionalChips: [['matches', '경기수 순'], ['winrate', '승률 순'], ['wins', '승수 순'], ['name', '지역명 순']].map(([k, l]) => chip(st.regionalSort === k, l, () => this.setState({ regionalSort: k }))),
-      regionalRows: regional.map(r => ({ ...r, rateColor: rateColor(Number(r.winRate)) })),
-      heatCells: regional.map(r => {
-        const v = Number(r.winRate);
-        const pal = v >= 60 ? ['#CDEBD8', '#14532D'] : v >= 40 ? ['#F6ECC8', '#7C5E0B'] : ['#F6D5D5', '#8E2323'];
-        return { ...r, bg: pal[0], fg: pal[1] };
-      })
+      regionalGroups: regionalGroups
     };
   }
 }

@@ -25,11 +25,13 @@ select:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 .g-4     { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .g-3     { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .g-2     { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.g-heat  { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 
 /* ── 모바일 ── */
 @media (max-width: 640px) {
   .g-nor, .g-home, .g-sched, .g-3 { grid-template-columns: 1fr; }
   .g-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g-heat { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hero { flex-wrap: wrap; }
   .g-sched #venueMap, .g-sched #venueMap > div { min-height: 200px !important; }
 }

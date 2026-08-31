@@ -395,37 +395,47 @@
         </div>
 
         <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">지역별 경기 기록</div>
-        <div style="display:flex; gap:6px; margin-bottom:12px;">
+        <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
           <sc-for list="{{ regionalChips }}" as="ch" hint-placeholder-count="4">
             <div onClick="{{ ch.onClick }}" style="background:{{ ch.bg }}; border:1px solid {{ ch.bd }}; color:{{ ch.color }}; font-size:12px; font-weight:700; padding:6px 14px; border-radius:16px; cursor:pointer;">{{ ch.label }}</div>
           </sc-for>
         </div>
-        <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; overflow:hidden; margin-bottom:12px;">
-          <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr; padding:10px 16px; background:#F6F5F1;">
+        <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; overflow:hidden; margin-bottom:12px; max-height:420px; overflow-y:auto;">
+          <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr; padding:10px 16px; background:#F6F5F1; position:sticky; top:0; z-index:1;">
             <span style="font-size:11px; font-weight:800; color:#8A8577;">지역</span><span style="font-size:11px; font-weight:800; color:#8A8577;">경기수</span><span style="font-size:11px; font-weight:800; color:#8A8577;">승</span><span style="font-size:11px; font-weight:800; color:#8A8577;">무</span><span style="font-size:11px; font-weight:800; color:#8A8577;">패</span><span style="font-size:11px; font-weight:800; color:#8A8577;">승률</span>
           </div>
-          <sc-for list="{{ regionalRows }}" as="r" hint-placeholder-count="6">
-            <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr; padding:10px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
-              <span style="font-weight:700;">{{ r.region }}</span><span>{{ r.matches }}</span><span>{{ r.wins }}</span><span>{{ r.draws }}</span><span>{{ r.losses }}</span><span style="font-weight:700; color:{{ r.rateColor }};">{{ r.winRate }}%</span>
+          <sc-for list="{{ regionalGroups }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px; background:#EEF2FB; border-top:1px solid #E7E4DB;">
+              <span style="font-size:12px; font-weight:800; color:#113C98;">{{ g.name }}</span>
+              <span style="font-size:11px; font-weight:600; color:#7C8AAB;">{{ g.summary }}</span>
             </div>
+            <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="6">
+              <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr; padding:9px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
+                <span style="font-weight:700;">{{ r.region }}</span><span>{{ r.matches }}</span><span>{{ r.wins }}</span><span>{{ r.draws }}</span><span>{{ r.losses }}</span><span style="font-weight:700; color:{{ r.rateColor }};">{{ r.winRate }}%</span>
+              </div>
+            </sc-for>
           </sc-for>
         </div>
         <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:16px;">
-          <div style="font-size:13.5px; font-weight:800; margin-bottom:12px;">지역별 승률 히트맵</div>
-          <div class="g-3">
-            <sc-for list="{{ heatCells }}" as="c" hint-placeholder-count="6">
-              <div style="background:{{ c.bg }}; border-radius:10px; padding:12px 14px;">
-                <div style="font-size:13px; font-weight:800; color:{{ c.fg }};">{{ c.region }}</div>
-                <div style="font-size:12px; color:{{ c.fg }}; margin-top:4px;">승률 {{ c.winRate }}%</div>
-                <div style="font-size:11px; color:{{ c.fg }}; opacity:.75; margin-top:2px;">{{ c.matches }}경기 · {{ c.wins }}승</div>
-              </div>
-            </sc-for>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:13.5px; font-weight:800;">지역별 승률 히트맵</div>
+            <div style="display:flex; gap:12px; font-size:11px; color:#8A8577;">
+              <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:3px; background:#CDEBD8; display:inline-block;"></span>60% 이상</span>
+              <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:3px; background:#F6ECC8; display:inline-block;"></span>40–60%</span>
+              <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:3px; background:#F6D5D5; display:inline-block;"></span>40% 미만</span>
+            </div>
           </div>
-          <div style="display:flex; gap:16px; margin-top:12px; font-size:12px; color:#8A8577;">
-            <span style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; border-radius:3px; background:#CDEBD8; display:inline-block;"></span>60% 이상</span>
-            <span style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; border-radius:3px; background:#F6ECC8; display:inline-block;"></span>40–60%</span>
-            <span style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:12px; border-radius:3px; background:#F6D5D5; display:inline-block;"></span>40% 미만</span>
-          </div>
+          <sc-for list="{{ regionalGroups }}" as="g" hint-placeholder-count="3">
+            <div style="font-size:11.5px; font-weight:800; color:#8A8577; margin:14px 0 6px; letter-spacing:.3px;">{{ g.name }} <span style="font-weight:600; color:#B0AB9D;">{{ g.count }}</span></div>
+            <div class="g-heat">
+              <sc-for list="{{ g.heat }}" as="c" hint-placeholder-count="6">
+                <div style="background:{{ c.bg }}; border-radius:8px; padding:8px 10px; min-width:0;">
+                  <div style="font-size:12px; font-weight:800; color:{{ c.fg }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ c.region }}</div>
+                  <div style="font-size:11px; color:{{ c.fg }}; margin-top:2px; font-variant-numeric:tabular-nums;">{{ c.winRate }}% · {{ c.matches }}경기</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
         </div>
       </div>
     </sc-if>
