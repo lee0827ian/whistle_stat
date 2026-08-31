@@ -404,7 +404,7 @@ class WhistleApp {
       const isSeoul = name === '서울' && !!window.SEOUL_DISTRICTS;
       // 서울 지도: 선택 구(hover/터치) — 기본값은 최다 경기 구
       const defaultGu = isSeoul ? [...heat].sort((a, b) => b.matches - a.matches)[0]?.region : null;
-      const selGu = isSeoul ? (st.seoulGu && byRegion[st.seoulGu] ? st.seoulGu : defaultGu) : null;
+      const selGu = !isSeoul ? null : st.seoulGu === null ? null : (st.seoulGu && byRegion[st.seoulGu] ? st.seoulGu : defaultGu);
       const mapCells = isSeoul ? Object.entries(window.SEOUL_DISTRICTS).map(([gu, geo]) => {
         const r = byRegion[gu];
         const short = gu.replace(/구$/, '');
@@ -421,7 +421,8 @@ class WhistleApp {
       const sel = selR ? { gu: selGu, winRate: selR.winRate, matches: selR.matches, record: `${selR.wins}승 ${selR.draws}무 ${selR.losses}패`, bg: selR.bg, fg: selR.fg,
                            rank: [...heat].sort((a, b) => b.winRate - a.winRate).findIndex(r => r.region === selGu) + 1, total: heat.length }
                        : { gu: '-', winRate: '-', matches: 0, record: '', bg: '#F3F1EA', fg: '#8A8577', rank: 0, total: heat.length };
-      return { name, rows, heat, mapCells, sel, isSeoul, notSeoul: !isSeoul, color: theme[0], bg: theme[1], count: rows.length + '개 지역',
+      const onMapBlank = () => this.setState({ seoulGu: null });
+      return { name, rows, heat, mapCells, sel, hasSel: !!selR, selVis: selR ? 'visible' : 'hidden', onMapBlank, isSeoul, notSeoul: !isSeoul, color: theme[0], bg: theme[1], count: rows.length + '개 지역',
                summary: `${rows.length}개 지역 · ${sum.m}경기 · 승률 ${(sum.w / (sum.m || 1) * 100).toFixed(1)}%` };
     }).filter(g => g.rows.length);
 
