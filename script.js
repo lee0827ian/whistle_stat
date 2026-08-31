@@ -80,6 +80,12 @@ const KAKAO_MAP_API_KEY = '47eed652b004605d8a8e3e39df268f24'; // JS 키(도메�
 const DEFAULT_LAT = 37.656, DEFAULT_LNG = 127.065; // 성불빌라 부근(지오코딩 실패 시)
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// 기록 확인 중인 경기(날짜 → 사유): 경기 카드 상대명 옆에 ** 표시. 확정되면 여기서 지운다.
+const MATCH_FLAGS = {
+  '2026-03-29': '득점자 1골 미확인(카페 원문 득점 합계 불일치)',
+  '2026-05-09': '득점자 1골 미확인(카페 원문 득점 합계 불일치)'
+};
+
 // ── 앱 로직 (디자인 원본 그대로) ──
 class WhistleApp {
   props = { koreanTabs: false, recentCount: 3 };
@@ -281,7 +287,7 @@ class WhistleApp {
     const resLabel = { win: '승', draw: '무', loss: '패' };
     const rateColor = v => v >= 60 ? '#15803D' : v >= 40 ? '#A5841B' : '#C0392B';
     const chip = (on, label, onClick) => ({ label, onClick, bg: on ? '#113C98' : '#FFFFFF', color: on ? '#FFFFFF' : '#8A8577', bd: on ? '#113C98' : '#E7E4DB' });
-    const deco = m => ({ ...m, resLabel: resLabel[m.result], resBg: resPal[m.result][0], resColor: resPal[m.result][1] });
+    const deco = m => ({ ...m, resLabel: resLabel[m.result], resBg: resPal[m.result][0], resColor: resPal[m.result][1], flag: MATCH_FLAGS[m.date] ? '**' : '', flagTip: MATCH_FLAGS[m.date] || '' });
 
     const wins = d.matches.filter(m => m.result === 'win').length;
     const draws = d.matches.filter(m => m.result === 'draw').length;
@@ -493,6 +499,7 @@ class WhistleApp {
       wdlWinN: wins, wdlDrawN: draws, wdlLossN: losses,
       matchChips: [chip(st.matchSort === 'desc', '날짜 내림차순', () => this.setState({ matchSort: 'desc' })), chip(st.matchSort === 'asc', '날짜 오름차순', () => this.setState({ matchSort: 'asc' }))],
       matchList,
+      hasFlag: sortedMatches.some(m => MATCH_FLAGS[m.date]),
       playerChips: [['all', '전체'], ['goals', '골 순'], ['attendance', '참석 순'], ['mvp', 'MVP 횟수']].map(([k, l]) => chip(st.playerFilter === k, l, () => this.setState({ playerFilter: k }))),
       playerList,
       ovMatches: A.overall.matches, ovRecord: `${A.overall.wins}승 ${A.overall.draws}무 ${A.overall.losses}패`,
