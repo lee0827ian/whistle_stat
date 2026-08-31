@@ -16,6 +16,10 @@ a { color: #113C98; text-decoration: none; }
 a:hover { color: #0C53C2; }
 
 select { -webkit-appearance: none; appearance: none; }
+
+/* 로고 3연타(히든 모드): 넓은 탭 영역 + 더블탭 확대·텍스트 선택 방지 */
+.brand { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.brand img { pointer-events: none; }
 select:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 
 /* ── 레이아웃 그리드 (디자인 원본 값) ── */

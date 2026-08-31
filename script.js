@@ -449,7 +449,7 @@ class WhistleApp {
       onNorClose: () => this.setState({ norwich: false }),
       onLogo: () => {
         const now = Date.now();
-        this._clicks = (this._lastClick && now - this._lastClick < 1500) ? (this._clicks || 0) + 1 : 1;
+        this._clicks = (this._lastClick && now - this._lastClick < 2000) ? (this._clicks || 0) + 1 : 1;
         this._lastClick = now;
         if (this._clicks >= 3) {
           this._clicks = 0;

@@ -21,10 +21,12 @@
   <div data-screen-label="헤더" style="position:sticky; top:0; z-index:100; background:#113C98; box-shadow:0 2px 12px rgba(17,30,60,.18);">
     <div style="max-width:960px; margin:0 auto; padding:16px 20px 0;">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <img src="whistle_logo.svg" alt="WHISTLE" onClick="{{ onLogo }}" style="width:44px; height:44px; border-radius:10px; border:2px solid #F0D281; cursor:pointer;">
-        <div style="flex:1; min-width:160px;">
-          <div style="font-family:'Oswald','Pretendard'; font-size:20px; font-weight:700; color:#FFFFFF; letter-spacing:2.5px;">WHISTLE FC</div>
-          <div style="font-size:11px; color:#9FB4E4; letter-spacing:.5px;">휘슬의 축구 발자취</div>
+        <div class="brand" onClick="{{ onLogo }}" style="flex:1; min-width:200px; display:flex; align-items:center; gap:12px; padding:6px 10px 6px 0; margin:-6px 0; cursor:pointer;">
+          <img src="whistle_logo.svg" alt="WHISTLE" style="width:44px; height:44px; border-radius:10px; border:2px solid #F0D281; display:block;">
+          <div style="min-width:0;">
+            <div style="font-family:'Oswald','Pretendard'; font-size:20px; font-weight:700; color:#FFFFFF; letter-spacing:2.5px;">WHISTLE FC</div>
+            <div style="font-size:11px; color:#9FB4E4; letter-spacing:.5px;">휘슬의 축구 발자취</div>
+          </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <select value="{{ season }}" onChange="{{ onSeason }}" style="background:#F0D281; color:#113C98; font-size:13px; font-weight:800; padding:7px 12px; border-radius:18px; border:none; cursor:pointer; font-family:'Pretendard'; outline:none;">
