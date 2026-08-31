@@ -26,6 +26,7 @@ select:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 .g-3     { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .g-2     { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .g-heat  { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.trend-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
 .seoul-map { max-width: 620px; margin: 0 auto; }
 .seoul-map svg { width: 100%; height: auto; display: block; font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; }
 .seoul-map path { transition: opacity .15s; cursor: default; }

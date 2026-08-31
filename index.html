@@ -345,13 +345,15 @@
             <span style="font-size:13px; font-weight:800;">시즌별 승률 추이</span>
             <span style="font-size:11px; color:#B0AB9D;">2000 → 2026 · 금색 = 최고 승률 시즌</span>
           </div>
-          <div style="display:flex; align-items:flex-end; gap:3px; height:90px;">
+          <div class="trend-scroll">
+          <div style="display:flex; align-items:flex-end; gap:3px; height:90px; min-width:640px;">
             <sc-for list="{{ trendBars }}" as="tb" hint-placeholder-count="27">
               <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
                 <div style="width:100%; height:{{ tb.h }}; background:{{ tb.bg }}; border-radius:3px 3px 0 0;"></div>
-                <div style="font-size:8.5px; color:#B0AB9D;">{{ tb.label }}</div>
+                <div style="font-size:9px; color:#B0AB9D;">{{ tb.label }}</div>
               </div>
             </sc-for>
+          </div>
           </div>
         </div>
         <div style="display:flex; gap:6px; margin-bottom:12px;">

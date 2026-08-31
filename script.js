@@ -423,7 +423,7 @@ class WhistleApp {
     const mkTabs = pos => tabDefs.map(([en, kr, key]) => {
       const on = st.tab === key;
       const label = koreanTabs ? kr : en;
-      const onClick = () => this.setState({ tab: key, openMatch: null });
+      const onClick = () => { this.setState({ tab: key, openMatch: null }); window.scrollTo({ top: 0 }); };
       return pos === 'top'
         ? { label, onClick, color: on ? '#113C98' : '#CBD8F5', bg: on ? '#F6F5F1' : 'rgba(255,255,255,.06)' }
         : { label, onClick, color: on ? '#113C98' : '#B0AB9D', bd: on ? '#113C98' : 'transparent' };
@@ -452,7 +452,7 @@ class WhistleApp {
       onSeason: e => this.setState({ season: e.target.value, tab: st.tab === 'records' ? 'home' : st.tab, openMatch: null }),
       allBtnLabel: allOn ? '시즌 보기' : '역대 기록',
       allBtnBg: allOn ? '#F0D281' : 'transparent', allBtnColor: allOn ? '#113C98' : '#CBD8F5', allBtnBd: allOn ? '#F0D281' : '#4C6CC0',
-      onAllTime: () => this.setState({ tab: allOn ? 'home' : 'records' }),
+      onAllTime: () => { this.setState({ tab: allOn ? 'home' : 'records' }); window.scrollTo({ top: 0 }); },
       tabsTop: mkTabs('top'), tabsBottom: mkTabs('bottom'),
       vHome: st.tab === 'home', vSeasons: st.tab === 'seasons', vMatches: st.tab === 'matches', vPlayers: st.tab === 'players', vRecords: st.tab === 'records',
       stTotal: d.matches.length, stRate: (wins / (d.matches.length || 1) * 100).toFixed(1), stRecord: `${wins}승 ${draws}무 ${losses}패`,
