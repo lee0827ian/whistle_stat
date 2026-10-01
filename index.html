@@ -110,14 +110,17 @@
                 <div style="font-size:22px; font-weight:800; color:#FFFFFF; margin-top:4px;">vs {{ next.opponent }}</div>
                 <div style="font-size:12.5px; color:#CBD8F5; margin-top:8px;">{{ next.venue }}</div>
                 <sc-if value="{{ next.hasMap }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-size:12.5px; color:#9FB4E4; margin-top:2px;">{{ next.addressDot }}<a href="{{ next.mapUrl }}" target="_blank" rel="noopener" style="color:#F0D281; font-weight:700;">지도 보기</a></div>
+                  <div style="font-size:12.5px; color:#9FB4E4; margin-top:2px;">{{ next.addressDot }}<sc-if value="{{ next.mapLink }}" hint-placeholder-val="{{ true }}"><a href="{{ next.mapUrl }}" target="_blank" rel="noopener" style="color:#F0D281; font-weight:700;">지도 보기</a></sc-if><sc-if value="{{ next.mapToggle }}" hint-placeholder-val="{{ false }}"><span onClick="{{ next.toggleMap }}" style="display:inline-block; padding:6px 0; color:#F0D281; font-weight:700; cursor:pointer;">{{ next.mapToggleLabel }}</span></sc-if></div>
                 </sc-if>
                 <sc-if value="{{ next.note }}" hint-placeholder-val="{{ false }}">
                   <div style="font-size:12.5px; color:#9FB4E4; margin-top:6px;">{{ next.note }}</div>
                 </sc-if>
               </div>
-              <sc-if value="{{ next.hasMap }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ next.showMap }}" hint-placeholder-val="{{ true }}">
                 <div id="venueMap" class="venue-map" data-address="{{ next.address }}" data-name="{{ next.name }}"></div>
+              </sc-if>
+              <sc-if value="{{ next.mapOpenLink }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ next.mapUrl }}" target="_blank" rel="noopener" style="flex-basis:100%; text-align:right; margin-top:-4px; font-size:12.5px; font-weight:700; color:#F0D281;">카카오맵에서 열기</a>
               </sc-if>
             </div>
             <sc-if value="{{ rsvpOn }}" hint-placeholder-val="{{ true }}">
@@ -204,6 +207,10 @@
               <span style="color:#113C98; font-weight:700;">| 최소 {{ minPlayers }}명</span>
             </div>
 
+            <sc-if value="{{ listToggle }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ toggleList }}" style="margin-top:14px; min-height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:#F6F5F1; font-size:13.5px; font-weight:800; color:#113C98; cursor:pointer;">{{ listToggleLabel }}</div>
+            </sc-if>
+            <sc-if value="{{ showGroups }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px; padding-top:14px; border-top:1px solid #F0EEE7;">
               <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
                 <div style="display:grid; grid-template-columns:{{ ui.groupCols }}; gap:{{ ui.groupGap }}; align-items:start;">
@@ -219,6 +226,7 @@
                 </div>
               </sc-for>
             </div>
+            </sc-if>
           </div>
         </sc-if>
 

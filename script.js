@@ -93,7 +93,7 @@ class WhistleApp {
 
   state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null,
             me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false,
-            isMobile: window.innerWidth < 640 };
+            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: false };
 
   async supa(path, opt) {
     const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
@@ -303,6 +303,11 @@ class WhistleApp {
       addressDot: s.address ? s.address + ' · ' : '',
       address: s.address || '', name: s.venue || '',
       hasMap: !!where, mapUrl: 'https://map.kakao.com/link/search/' + encodeURIComponent(where),
+      // 모바일은 지도를 접어 두고 '지도 보기'로 펼친다. 데스크톱은 항상 보이고 '지도 보기'는 카카오맵 링크
+      mapLink: !!where && !this.state.isMobile, mapToggle: !!where && this.state.isMobile,
+      showMap: !!where && (!this.state.isMobile || this.state.mapOpen), mapOpenLink: !!where && this.state.isMobile && this.state.mapOpen,
+      mapToggleLabel: this.state.mapOpen ? '지도 접기 \u25B4' : '지도 보기 \u25BE',
+      toggleMap: () => this.setState(s => ({ mapOpen: !s.mapOpen })),
       note: s.note || ''
     };
     if (!this._rsvp) return { ...off, hasNext: true, next };
@@ -378,6 +383,10 @@ class WhistleApp {
       guestPlus: () => { if (myGuests < MAX_GUESTS) this.saveRsvp({ guests: myGuests + 1 }); },
       guestMinus: () => { if (myGuests > 0) this.saveRsvp({ guests: myGuests - 1 }); },
       lastUpdate, cnt, quorum, groups,
+      // 모바일은 이름 명단을 접어 두고 버튼으로 펼친다
+      listToggle: st.isMobile, showGroups: !st.isMobile || st.listOpen,
+      listToggleLabel: st.listOpen ? '명단 접기 \u25B4' : '명단 보기 \u25BE',
+      toggleList: () => this.setState(s => ({ listOpen: !s.listOpen })),
       bar: { attend: pct(cnt.attend), guests: pct(guests), maybe: pct(cnt.maybe), absent: pct(cnt.absent), minPos: 'calc(' + Math.min(100, MIN_PLAYERS / whole * 100).toFixed(1) + '% - 1px)' },
       pickerOpen: st.pickerOpen,
       pickList: all.map(p => ({
