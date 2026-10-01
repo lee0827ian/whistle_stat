@@ -14,7 +14,7 @@ create table if not exists public.rsvp_managers (
 
 insert into public.rsvp_managers (player_id)
 select id from public.players
-where name in ('박지성', '이항규', '이정호') and number is not null
+where name in ('박지성', '이항규', '이정호', '김영주') and number is not null
 on conflict do nothing;
 
 -- ── 참석 투표: 경기 × 선수당 한 행 ──
