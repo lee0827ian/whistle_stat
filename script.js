@@ -190,18 +190,18 @@ class WhistleApp {
     const seq = this._rsvpSeq || 0;
     try {
       if (first) {
-        // 선수 전체(이름 검색 대상)와 올해 출전자(화면에 기본으로 보이는 명단)
-        const season = Number(next.date.slice(0, 4));
-        const played = y => this.supaAll(`match_lineups?select=player_id,matches!inner(season)&matches.season=eq.${y}&player_id=not.is.null&order=id.asc`);
-        const [roster, mgr, cur] = await Promise.all([
+        // 선수 전체(이름 검색 대상)와 기본 명단(화면에 먼저 보이는 사람).
+        // 기본 명단 = 최근 3시즌에 2번 이상 출전한 선수. 예: 2026년 경기면 2024~2026년 합계
+        const since = Number(next.date.slice(0, 4)) - 2;
+        const [roster, mgr, played] = await Promise.all([
           this.supaAll('players?select=id,name,number&order=id.asc'),
           this.supa('rsvp_managers?select=player_id'),
-          played(season)
+          this.supaAll(`match_lineups?select=player_id,matches!inner(season)&matches.season=gte.${since}&player_id=not.is.null&order=id.asc`)
         ]);
-        // 시즌 초라 올해 출전자가 아직 없으면 지난 시즌 출전자를 기본 명단으로 쓴다
-        const core = cur.length ? cur : await played(season - 1);
         this._roster = roster;
-        this._core = new Set(core.map(l => l.player_id));
+        const apps = {};
+        played.forEach(l => { apps[l.player_id] = (apps[l.player_id] || 0) + 1; });
+        this._core = new Set(Object.keys(apps).filter(id => apps[id] >= 2).map(Number));
         this._mgr = mgr.map(m => m.player_id);
       }
       const rows = await this.supa(`schedule_rsvps?schedule_id=eq.${next.id}&select=player_id,status,guests,updated_at`);
@@ -315,7 +315,7 @@ class WhistleApp {
     const statusOf = p => (rowOf[p.id] && rowOf[p.id].status) || null;
     const guestsOf = p => (rowOf[p.id] && rowOf[p.id].guests) || 0;
     const me = all.find(p => p.id === st.me) || null;
-    // 화면에 보이는 명단 = 올해 출전자 + 이미 응답한 사람 + 나. 그 밖의 선수는 이름 검색으로 고른다.
+    // 화면에 보이는 명단 = 기본 명단 + 이미 응답한 사람 + 나. 그 밖의 선수는 이름 검색으로 고른다.
     const roster = all.filter(p => this._core.has(p.id) || rowOf[p.id] || p === me);
     const shown = new Set(roster);
     const keyOf = p => p.name.replace(/\s/g, '');
