@@ -79,6 +79,10 @@ function renderNodes(parent, nodes, scope) {
 const KAKAO_MAP_API_KEY = '47eed652b004605d8a8e3e39df268f24'; // JS 키(도메인 제한: fcwhistle.vercel.app · github.io 등록)
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MIN_PLAYERS = 11;  // 경기 성립 최소 인원
+// 시상식 전까지 홈에서 시즌 MVP(배너의 시즌 MVP 줄 · 최다 MVP 카드)를 가릴 시즌. 공개하면 목록에서 뺀다.
+// 가릴 때는 실제 이름·횟수 대신 자리 표시 글자를 흐리게 그려서, 홈 화면에는 실제 값이 들어가지 않는다.
+const MVP_HIDDEN_SEASONS = [2026];
+const MVP_BLUR = 'display:inline-block; filter:blur(6px); user-select:none; pointer-events:none;';
 const MAX_GUESTS = 10;   // 한 사람이 올릴 수 있는 용병 수 상한(DB 제약과 같은 값)
 // 기기 시간대 기준 오늘 날짜(YYYY-MM-DD). toISOString()은 UTC라 한국 오전 9시 전에는 어제가 된다.
 const localDate = () => { const n = new Date(); return new Date(n - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
@@ -93,7 +97,7 @@ class WhistleApp {
 
   state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null,
             me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false,
-            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: false, voteOpen: false };
+            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: null, voteOpen: false };
 
   async supa(path, opt) {
     const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
@@ -374,13 +378,15 @@ class WhistleApp {
       };
     });
 
-    const folded = !!me && st.isMobile && !!myStatus && !st.voteOpen;
+    const folded = !!me && !!myStatus && !st.voteOpen;
+    // 명단: 직접 여닫은 적이 없으면(null) 모바일은 접고, PC는 내가 응답한 뒤에 접는다
+    const listOpen = st.listOpen != null ? st.listOpen : (!st.isMobile && !myStatus);
     return {
       noNext: false, hasNext: true, next, rsvpOn: true, minPlayers: MIN_PLAYERS,
       noIdentity: !me, hasIdentity: !!me, myName: me && me.name, rsvpButtons,
-      // 모바일: 응답한 뒤에는 내 참석 여부를 한 줄로 접는다. '변경'을 누르면 다시 펼친다
+      // 응답한 뒤에는 내 참석 여부를 한 줄로 접는다. '변경'을 누르면 다시 펼친다
       voteFolded: folded, voteExpanded: !!me && !folded,
-      voteCanFold: !!me && st.isMobile && !!myStatus && st.voteOpen, voteNoFold: !(st.isMobile && !!myStatus && st.voteOpen),
+      voteCanFold: !!me && !!myStatus && st.voteOpen, voteNoFold: !(!!myStatus && st.voteOpen),
       voteFoldLabel: '접기 \u25B4',
       my: myStatus ? { label: label[myStatus], mark: mark[myStatus], bg: pal[myStatus][2], fg: pal[myStatus][3] } : null,
       openVote: () => this.setState({ voteOpen: true }), closeVote: () => this.setState({ voteOpen: false }),
@@ -390,10 +396,10 @@ class WhistleApp {
       guestPlus: () => { if (myGuests < MAX_GUESTS) this.saveRsvp({ guests: myGuests + 1 }); },
       guestMinus: () => { if (myGuests > 0) this.saveRsvp({ guests: myGuests - 1 }); },
       lastUpdate, cnt, quorum, groups,
-      // 모바일은 이름 명단을 접어 두고 버튼으로 펼친다
-      listToggle: st.isMobile, showGroups: !st.isMobile || st.listOpen,
-      listToggleLabel: st.listOpen ? '명단 접기 \u25B4' : '명단 보기 \u25BE',
-      toggleList: () => this.setState(s => ({ listOpen: !s.listOpen })),
+      // 이름 명단은 버튼으로 여닫는다
+      listToggle: true, showGroups: listOpen,
+      listToggleLabel: listOpen ? '명단 접기 \u25B4' : '명단 보기 \u25BE',
+      toggleList: () => this.setState({ listOpen: !listOpen }),
       bar: { attend: pct(cnt.attend), guests: pct(guests), maybe: pct(cnt.maybe), absent: pct(cnt.absent), minPos: 'calc(' + Math.min(100, MIN_PLAYERS / whole * 100).toFixed(1) + '% - 1px)' },
       pickerOpen: st.pickerOpen,
       pickList: all.map(p => ({
@@ -529,6 +535,7 @@ class WhistleApp {
       { title: '득점', value: gf, sub: `경기당 ${(gf / (d.matches.length || 1)).toFixed(1)}골`, accent: '#113C98' },
       { title: '실점', value: ga, sub: `경기당 ${(ga / (d.matches.length || 1)).toFixed(1)}골`, accent: '#113C98' }
     ];
+    const mvpHidden = MVP_HIDDEN_SEASONS.includes(Number(st.season));
     const seasonBest = [
       { icon: '골', title: '최다 골', name: tg ? tg.name : '-', sub: tg ? tg.goals + '골' : '' },
       { icon: '출', title: '최다 참여', name: ta ? ta.name : '-', sub: ta ? ta.ap + '경기' : '' },
@@ -656,7 +663,10 @@ class WhistleApp {
       vHome: st.tab === 'home', vSeasons: st.tab === 'seasons', vMatches: st.tab === 'matches', vPlayers: st.tab === 'players', vRecords: st.tab === 'records',
       stTotal: d.matches.length, stRate: (wins / (d.matches.length || 1) * 100).toFixed(1), stRecord: `${wins}승 ${draws}무 ${losses}패`,
       stGoals: gf, stGpm: (gf / (d.matches.length || 1)).toFixed(1),
-      mvpName: mvpP ? mvpP.name : '-', mvpSub: mvpP ? `MVP ${mvpP.mvp}회 · 출전 ${mvpP.ap}회` : 'MVP 0회',
+      mvpName: mvpHidden ? '수상자' : mvpP ? mvpP.name : '-',
+      mvpSub: mvpHidden ? 'MVP 0회' : mvpP ? `MVP ${mvpP.mvp}회 · 출전 ${mvpP.ap}회` : 'MVP 0회',
+      mvpBlur: mvpHidden ? MVP_BLUR : '',
+      homeBest: seasonBest.map(b => b.title === '최다 MVP' && mvpHidden ? { ...b, name: '수상자', sub: '0회', blur: MVP_BLUR, note: '시상식에서 공개' } : b),
       recentMatches: sortedMatches.slice(0, recentCount).map(deco),
       // 화면 폭별 여백·헤더(모바일은 상단 탭을 숨기고 하단 탭만 쓴다)
       ui: st.isMobile
