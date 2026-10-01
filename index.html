@@ -87,9 +87,146 @@
 
     <sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
       <div data-screen-label="Home" style="display:flex; flex-direction:column;">
-        <div class="hero" style="background:#113C98; border-radius:14px; padding:20px 24px; display:flex; align-items:center; gap:20px;">
+
+        <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">다가오는 경기</div>
+
+        <sc-if value="{{ noNext }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:22px 18px; text-align:center;">
+            <div style="font-size:14px; font-weight:800;">등록된 다음 경기가 없습니다</div>
+            <div style="font-size:11.5px; color:#8A8577; margin-top:4px;">일정이 등록되면 여기에서 참석 투표를 할 수 있어요.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#113C98; border-radius:14px; overflow:hidden; box-shadow:0 3px 12px rgba(17,30,60,.18);">
+            <div style="padding:20px 24px 18px; display:flex; flex-wrap:wrap; align-items:center; gap:18px 24px;">
+              <div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
+                <div style="background:#F0D281; color:#113C98; font-family:'Oswald','Pretendard'; font-size:13px; font-weight:700; letter-spacing:1px; padding:3px 10px; border-radius:8px;">{{ next.dday }}</div>
+                <div style="font-family:'Oswald','Pretendard'; font-size:44px; font-weight:700; color:#F0D281; line-height:1;">{{ next.dateShort }}</div>
+                <div style="font-size:12px; color:#9FB4E4;">{{ next.when }}</div>
+              </div>
+              <div style="flex:1; min-width:220px;">
+                <div style="font-size:10.5px; font-weight:800; color:#F0D281; letter-spacing:1.5px;">WHISTLE LEAGUE</div>
+                <div style="font-size:22px; font-weight:800; color:#FFFFFF; margin-top:4px;">vs {{ next.opponent }}</div>
+                <div style="font-size:12.5px; color:#CBD8F5; margin-top:8px;">{{ next.venue }}</div>
+                <sc-if value="{{ next.hasMap }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:11.5px; color:#9FB4E4; margin-top:2px;">{{ next.addressDot }}<a href="{{ next.mapUrl }}" target="_blank" rel="noopener" style="color:#F0D281; font-weight:700;">지도 보기</a></div>
+                </sc-if>
+                <sc-if value="{{ next.note }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11.5px; color:#9FB4E4; margin-top:6px;">{{ next.note }}</div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ next.hasMap }}" hint-placeholder-val="{{ true }}">
+                <div id="venueMap" class="venue-map" data-address="{{ next.address }}" data-name="{{ next.name }}"></div>
+              </sc-if>
+            </div>
+            <sc-if value="{{ rsvpOn }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#FFFFFF; padding:16px 20px 18px;">
+                <sc-if value="{{ noIdentity }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:200px;">
+                      <div style="font-size:13px; font-weight:800;">내 참석 여부</div>
+                      <div style="font-size:11.5px; color:#8A8577; margin-top:3px;">처음 한 번만 명단에서 내 이름을 골라주세요. 이 기기에 저장돼요.</div>
+                    </div>
+                    <div onClick="{{ openPicker }}" style="min-height:48px; padding:0 22px; display:flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; font-size:14.5px; font-weight:800; background:#113C98; color:#FFFFFF;">내 이름 선택하기</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ hasIdentity }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                    <span style="font-size:13px; font-weight:800;">{{ myName }}님 참석 여부 <span onClick="{{ openPicker }}" style="font-size:11.5px; font-weight:700; color:#113C98; margin-left:6px; cursor:pointer;">본인 변경</span></span>
+                    <span style="font-size:11.5px; color:#8A8577;">경기 당일까지 변경 가능</span>
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
+                    <sc-for list="{{ rsvpButtons }}" as="b" hint-placeholder-count="3">
+                      <div onClick="{{ b.onClick }}" style="min-height:48px; display:flex; align-items:center; justify-content:center; gap:7px; border-radius:12px; cursor:pointer; font-size:14.5px; font-weight:800; background:{{ b.bg }}; color:{{ b.color }}; border:1.5px solid {{ b.bd }}; transition:background .15s, color .15s;">
+                        <span style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; background:{{ b.dotBg }}; color:{{ b.dotFg }};">{{ b.mark }}</span>{{ b.label }}
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="font-size:11.5px; color:{{ myNoteColor }}; margin-top:10px; font-weight:600;">{{ myNote }}</div>
+                  <sc-if value="{{ isManager }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid #F0EEE7;">
+                      <div style="flex:1; min-width:180px;">
+                        <div style="font-size:13px; font-weight:800;">용병 추가</div>
+                        <div style="font-size:11.5px; color:#8A8577; margin-top:3px;">내가 데려오는 용병 인원이에요. 참석 인원에 합산돼요.</div>
+                      </div>
+                      <div style="display:flex; align-items:center; gap:10px;">
+                        <div onClick="{{ guestMinus }}" style="width:44px; height:44px; border-radius:12px; border:1.5px solid #E7E4DB; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#113C98; cursor:pointer;">&minus;</div>
+                        <div style="min-width:30px; text-align:center; font-family:'Oswald','Pretendard'; font-size:24px; font-weight:700; color:#113C98;">{{ myGuests }}</div>
+                        <div onClick="{{ guestPlus }}" style="width:44px; height:44px; border-radius:12px; border:1.5px solid #113C98; background:#113C98; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#FFFFFF; cursor:pointer;">+</div>
+                      </div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ rsvpOn }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:16px 18px; margin-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:13px; font-weight:800;">실시간 참석 현황</span>
+                <span style="display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; color:#15803D; background:#E4F5EA; padding:3px 8px; border-radius:8px; letter-spacing:.5px;"><span class="live-dot"></span>LIVE</span>
+              </div>
+              <span style="font-size:11.5px; color:#8A8577;">{{ lastUpdate }}</span>
+            </div>
+
+            <div style="display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-top:14px;">
+              <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+                <span style="font-family:'Oswald','Pretendard'; font-size:44px; font-weight:700; color:#113C98; line-height:1;">{{ cnt.head }}</span>
+                <span style="font-size:14px; font-weight:800; color:#113C98;">명 참석</span>
+                <span style="font-size:12px; color:#B0AB9D;">{{ cnt.sub }}</span>
+              </div>
+              <div style="margin-left:auto; font-size:12px; font-weight:800; padding:5px 11px; border-radius:10px; background:{{ quorum.bg }}; color:{{ quorum.fg }};">{{ quorum.label }}</div>
+            </div>
+
+            <div style="position:relative; margin-top:12px;">
+              <div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:#F3F1EA;">
+                <div style="width:{{ bar.attend }}; background:#2E7D4F; transition:width .4s;"></div>
+                <div style="width:{{ bar.guests }}; background:#3A66C9; transition:width .4s;"></div>
+                <div style="width:{{ bar.maybe }}; background:#E0B94B; transition:width .4s;"></div>
+                <div style="width:{{ bar.absent }}; background:#C0392B; transition:width .4s;"></div>
+              </div>
+              <div style="position:absolute; top:-4px; bottom:-4px; left:{{ bar.minPos }}; width:2px; background:#113C98; border-radius:1px;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:9px; font-size:12px; color:#8A8577;">
+              <div style="display:flex; gap:14px; flex-wrap:wrap;">
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#2E7D4F; display:inline-block;"></span>참석 {{ cnt.attend }}</span>
+                <sc-if value="{{ cnt.guests }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#3A66C9; display:inline-block;"></span>용병 {{ cnt.guests }}</span>
+                </sc-if>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#E0B94B; display:inline-block;"></span>미정 {{ cnt.maybe }}</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#C0392B; display:inline-block;"></span>불참 {{ cnt.absent }}</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#F3F1EA; border:1px solid #E7E4DB; display:inline-block;"></span>미응답 {{ cnt.none }}</span>
+              </div>
+              <span style="color:#113C98; font-weight:700;">| 최소 {{ minPlayers }}명</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px; padding-top:14px; border-top:1px solid #F0EEE7;">
+              <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+                <div style="display:grid; grid-template-columns:52px minmax(0,1fr); gap:10px; align-items:start;">
+                  <span style="font-size:11px; font-weight:800; color:{{ g.color }}; padding-top:4px;">{{ g.label }} {{ g.n }}</span>
+                  <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                    <sc-for list="{{ g.names }}" as="p" hint-placeholder-count="6">
+                      <span style="font-size:12px; padding:3px 10px; border-radius:10px; background:{{ p.bg }}; color:{{ p.fg }}; font-weight:{{ p.weight }}; border:1px solid {{ p.bd }};">{{ p.name }}</span>
+                    </sc-for>
+                    <sc-if value="{{ g.empty }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:12px; color:#B0AB9D; padding:3px 0;">없음</span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:26px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">시즌 기록</div>
+
+        <div class="hero" style="background:#113C98; border-radius:14px; padding:20px 24px; display:flex; flex-wrap:wrap; align-items:center; gap:16px 20px;">
           <div style="font-family:'Oswald','Pretendard'; font-size:44px; font-weight:700; color:#F0D281; line-height:1;">{{ season }}</div>
-          <div style="flex:1;">
+          <div style="flex:1; min-width:180px;">
             <div style="font-size:15px; font-weight:800; color:#FFFFFF;">{{ stRecord }}</div>
             <div style="font-size:12px; color:#9FB4E4; margin-top:3px;">승률 {{ stRate }}% · 득점 {{ stGoals }} · 실점 {{ stGa }}</div>
             <div style="font-size:12px; color:#F0D281; margin-top:3px; font-weight:700;">시즌 MVP {{ mvpName }} · {{ mvpSub }}</div>
@@ -102,24 +239,32 @@
           </div>
         </div>
 
-        <div class="g-home" style="margin-top:10px;">
-          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:16px 18px;">
-            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
-              <span style="font-size:13px; font-weight:800;">시즌 진행률</span>
-              <span style="font-size:12px; font-weight:700; color:#113C98;">{{ progLabel }}</span>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-top:10px;">
+          <sc-for list="{{ seasonCards }}" as="c" hint-placeholder-count="4">
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-top:3px solid {{ c.accent }}; border-radius:14px; padding:14px 12px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:#8A8577;">{{ c.title }}</div>
+              <div style="font-family:'Oswald','Pretendard'; font-size:24px; font-weight:700; color:#113C98; margin:6px 0 3px;">{{ c.value }}</div>
+              <div style="font-size:11px; color:#B0AB9D;">{{ c.sub }}</div>
             </div>
-            <div style="height:12px; border-radius:6px; background:#EEF2FB; overflow:hidden;">
-              <div style="height:100%; width:{{ progPct }}; background:linear-gradient(90deg,#113C98,#3A66C9); border-radius:6px;"></div>
-            </div>
-            <div style="font-size:11px; color:#B0AB9D; margin-top:8px;">{{ progSub }}</div>
-          </div>
-          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:16px 18px; text-align:center;">
-            <div style="font-size:10.5px; font-weight:700; color:#C9A227; letter-spacing:1px;">SINCE 2000. 5. 9</div>
-            <div style="font-family:'Oswald','Pretendard'; font-size:22px; font-weight:700; color:#113C98; margin:8px 0 2px;">창단 {{ foundYears }}주년</div>
-          </div>
+          </sc-for>
         </div>
 
-        <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:26px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">최근 경기</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-top:10px;">
+          <sc-for list="{{ seasonBest }}" as="b" hint-placeholder-count="3">
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:50%; background:#FAF3DC; border:1.5px solid #F0D281; display:flex; align-items:center; justify-content:center; font-family:'Oswald','Pretendard'; font-size:15px; font-weight:700; color:#A5841B;">{{ b.icon }}</div>
+              <div>
+                <div style="font-size:11px; font-weight:700; color:#8A8577;">{{ b.title }}</div>
+                <div style="font-size:15px; font-weight:800; margin-top:2px;">{{ b.name }} <span style="font-size:12px; font-weight:700; color:#A5841B;">{{ b.sub }}</span></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin:22px 0 10px;">
+          <span style="font-size:13px; font-weight:800;">최근 경기</span>
+          <span onClick="{{ goMatches }}" style="font-size:11.5px; font-weight:700; color:#113C98; cursor:pointer;">전체 경기 보기</span>
+        </div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <sc-for list="{{ recentMatches }}" as="m" hint-placeholder-count="3">
             <div style="display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:14px; background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:13px 16px;">
@@ -131,32 +276,6 @@
               <div style="width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; background:{{ m.resBg }}; color:{{ m.resColor }};">{{ m.resLabel }}</div>
             </div>
           </sc-for>
-        </div>
-
-        <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:26px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">다음 경기 일정 및 구장 위치</div>
-        <div class="g-sched">
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <sc-for list="{{ schedules }}" as="s" hint-placeholder-count="2">
-              <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px;">
-                <div style="background:#EEF2FB; border-radius:10px; padding:9px 13px; text-align:center; min-width:56px;">
-                  <div style="font-size:16px; font-weight:800; color:#113C98;">{{ s.dateShort }}</div>
-                  <div style="font-size:10.5px; color:#7C8AAB;">{{ s.time }}</div>
-                </div>
-                <div>
-                  <div style="font-size:14.5px; font-weight:800;">vs {{ s.opponent }}</div>
-                  <div style="font-size:11.5px; color:#8A8577; margin-top:3px;">{{ s.venue }}</div>
-                </div>
-              </div>
-            </sc-for>
-            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:14px 16px;">
-              <div style="font-size:13px; font-weight:800;">{{ venueName }}</div>
-              <div style="font-size:11.5px; color:#8A8577; margin-top:4px;">{{ venueAddr }}</div>
-              <div style="font-size:11.5px; color:#8A8577; margin-top:2px;">{{ venueInfo }}</div>
-            </div>
-          </div>
-          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; overflow:hidden;">
-            <div id="venueMap" data-address="{{ venueAddr }}" data-name="{{ venueName }}" style="width:100%; height:100%; min-height:240px;"></div>
-          </div>
         </div>
       </div>
     </sc-if>
@@ -471,6 +590,27 @@
     </sc-if>
 
   </div>
+
+  <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="이름 선택" onClick="{{ closePicker }}" style="position:fixed; inset:0; z-index:200; background:rgba(17,30,60,.45); display:flex; align-items:flex-end; justify-content:center;">
+      <div onClick="{{ stop }}" style="width:100%; max-width:560px; max-height:82vh; background:#FFFFFF; border-radius:18px 18px 0 0; display:flex; flex-direction:column; box-shadow:0 -6px 24px rgba(17,30,60,.2);">
+        <div style="padding:18px 20px 12px; border-bottom:1px solid #F0EEE7;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:16px; font-weight:800;">내 이름 선택</div>
+            <div onClick="{{ closePicker }}" style="width:30px; height:30px; border-radius:50%; background:#F3F1EA; color:#8A8577; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; cursor:pointer;">&times;</div>
+          </div>
+          <div style="font-size:11.5px; color:#8A8577; margin-top:4px;">선택한 이름은 이 기기에 저장돼요. 다른 사람 이름은 고르지 말아주세요.</div>
+          <input onInput="{{ onQuery }}" placeholder="이름 검색" style="width:100%; margin-top:12px; padding:11px 14px; border-radius:12px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-family:'Pretendard'; font-size:14px; outline:none;">
+        </div>
+        <div style="overflow-y:auto; padding:14px 20px 20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:8px;">
+          <sc-for list="{{ pickList }}" as="p" hint-placeholder-count="12">
+            <div data-pick="{{ p.name }}" onClick="{{ p.onClick }}" style="min-height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; font-size:14px; font-weight:700; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">{{ p.name }}</div>
+          </sc-for>
+          <div id="pickEmpty" style="display:none; grid-column:1 / -1; text-align:center; font-size:12.5px; color:#B0AB9D; padding:20px 0;">명단에 없는 이름이에요. 운영진에게 등록을 요청해주세요.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 
   <div style="position:fixed; bottom:0; left:0; right:0; z-index:100; background:#FFFFFF; border-top:1px solid #E7E4DB; box-shadow:0 -2px 10px rgba(17,30,60,.08);">
     <div style="max-width:960px; margin:0 auto; display:flex;">

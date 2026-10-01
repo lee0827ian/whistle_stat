@@ -77,27 +77,32 @@ function renderNodes(parent, nodes, scope) {
 }
 
 const KAKAO_MAP_API_KEY = '47eed652b004605d8a8e3e39df268f24'; // JS 키(도메인 제한: fcwhistle.vercel.app · github.io 등록)
-const DEFAULT_LAT = 37.656, DEFAULT_LNG = 127.065; // 성불빌라 부근(지오코딩 실패 시)
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const MIN_PLAYERS = 11;  // 경기 성립 최소 인원
+const MAX_GUESTS = 10;   // 한 사람이 올릴 수 있는 용병 수 상한(DB 제약과 같은 값)
+// 기기 시간대 기준 오늘 날짜(YYYY-MM-DD). toISOString()은 UTC라 한국 오전 9시 전에는 어제가 된다.
+const localDate = () => { const n = new Date(); return new Date(n - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 
 // 기록 확인 중인 경기(날짜 → 사유): 경기 카드 상대명 옆에 ** 표시. 확정되면 여기서 지운다.
 const MATCH_FLAGS = {
-  '2026-03-29': '득점자 1골 미확인(카페 원문 득점 합계 불일치)',
-  '2026-05-09': '득점자 1골 미확인(카페 원문 득점 합계 불일치)'
 };
 
 // ── 앱 로직 (디자인 원본 그대로) ──
 class WhistleApp {
   props = { koreanTabs: false, recentCount: 3 };
 
-  state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null };
+  state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null,
+            me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false };
 
-  async supa(path) {
+  async supa(path, opt) {
     const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
     const KEY = 'sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4';
-    const res = await fetch(URL + '/rest/v1/' + path, { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } });
+    const headers = { apikey: KEY, Authorization: 'Bearer ' + KEY };
+    const res = await fetch(URL + '/rest/v1/' + path, opt
+      ? { method: opt.method, headers: { ...headers, 'Content-Type': 'application/json', Prefer: opt.prefer || 'return=minimal' }, body: opt.body && JSON.stringify(opt.body) }
+      : { headers });
     if (!res.ok) throw new Error('Supabase ' + res.status);
-    return res.json();
+    return opt ? null : res.json();
   }
 
   async supaAll(path, pageSize = 1000) {
@@ -171,13 +176,60 @@ class WhistleApp {
 
   async loadSchedules() {
     try {
-      const today = new Date().toISOString().slice(0, 10);
-      this._sched = await this.supa(`schedules?date=gte.${today}&order=date.asc&select=date,time,opponent,venue,address,note`);
+      this._sched = await this.supa(`schedules?date=gte.${localDate()}&order=date.asc&select=id,date,time,opponent,venue,address,note`);
     } catch (e) { this._sched = []; }
+    this.setState({ tick: Date.now() });
+    this.loadRsvp(true);
+  }
+
+  // ── 참석 투표: 다음 경기(일정 첫 행)에 대한 명단 선수의 응답 ──
+  // 투표 테이블이 아직 없거나 조회에 실패하면 this._rsvp가 비어 있어 투표 영역만 숨는다.
+  async loadRsvp(first) {
+    const next = (this._sched || [])[0];
+    if (!next) return;
+    const seq = this._rsvpSeq || 0;
+    try {
+      if (first) {
+        const [roster, mgr] = await Promise.all([
+          this.supa('players?number=not.is.null&select=id,name'),
+          this.supa('rsvp_managers?select=player_id')
+        ]);
+        this._roster = roster;
+        this._mgr = mgr.map(m => m.player_id);
+      }
+      const rows = await this.supa(`schedule_rsvps?schedule_id=eq.${next.id}&select=player_id,status,guests,updated_at`);
+      if (seq !== (this._rsvpSeq || 0)) return; // 조회 중에 내가 투표했으면 오래된 응답은 버린다
+      const sig = JSON.stringify(rows);
+      if (sig === this._rsvpSig && Date.now() - this._rsvpAt < 60000) return;
+      this._rsvp = rows; this._rsvpSig = sig; this._rsvpAt = Date.now();
+    } catch (e) { return; }
     this.setState({ tick: Date.now() });
   }
 
-  componentDidMount() { this.loadSchedules(); }
+  // 내 응답 저장. patch = { status } 또는 { guests }. 응답도 용병도 없으면 행을 지운다.
+  async saveRsvp(patch) {
+    const next = this._sched[0], me = this.state.me;
+    const cur = this._rsvp.find(r => r.player_id === me) || { status: null, guests: 0 };
+    const row = { schedule_id: next.id, player_id: me, status: cur.status, guests: cur.guests, ...patch };
+    const empty = !row.status && !row.guests;
+    this._rsvpSeq = (this._rsvpSeq || 0) + 1;
+    this._rsvp = this._rsvp.filter(r => r.player_id !== me).concat(empty ? [] : [{ ...row, updated_at: new Date().toISOString() }]);
+    this._rsvpErr = false;
+    this.setState({ tick: Date.now() });
+    try {
+      if (empty) await this.supa(`schedule_rsvps?schedule_id=eq.${next.id}&player_id=eq.${me}`, { method: 'DELETE' });
+      else await this.supa('schedule_rsvps?on_conflict=schedule_id,player_id', { method: 'POST', body: row, prefer: 'resolution=merge-duplicates,return=minimal' });
+    } catch (e) { this._rsvpErr = true; }
+    this._rsvpSig = null;
+    this.loadRsvp();
+  }
+
+  componentDidMount() {
+    this.loadSchedules();
+    setInterval(() => {
+      if (this._rsvp && this.state.tab === 'home' && !this.state.pickerOpen && !document.hidden) this.loadRsvp();
+    }, 20000);
+  }
 
   async loadNorwich() {
     try {
@@ -224,14 +276,111 @@ class WhistleApp {
     this.setState({ tick: Date.now() });
   }
 
-  schedVals() {
-    const sched = this._sched || [];
-    const nv = sched.find(s => s.address) || sched[0];
+  // 홈 상단(다가오는 경기 · 참석 투표 · 참석 현황) 템플릿 값
+  rsvpVals() {
+    const off = { noNext: false, hasNext: false, rsvpOn: false, pickerOpen: false };
+    if (!this._sched) return off;
+    const s = this._sched[0];
+    if (!s) return { ...off, noNext: true };
+    const day = new Date(s.date + 'T00:00:00');
+    const days = Math.round((day - new Date(localDate() + 'T00:00:00')) / 86400000);
+    const where = s.address || s.venue || '';
+    const next = {
+      dday: days <= 0 ? 'D-DAY' : 'D-' + days,
+      dateShort: (day.getMonth() + 1) + '/' + day.getDate(),
+      when: '일월화수목금토'[day.getDay()] + '요일' + (s.time ? ' · ' + s.time.slice(0, 5) + ' 킥오프' : ''),
+      opponent: s.opponent, venue: s.venue || '구장 미정',
+      addressDot: s.address ? s.address + ' · ' : '',
+      address: s.address || '', name: s.venue || '',
+      hasMap: !!where, mapUrl: 'https://map.kakao.com/link/search/' + encodeURIComponent(where),
+      note: s.note || ''
+    };
+    if (!this._rsvp) return { ...off, hasNext: true, next };
+
+    const st = this.state;
+    const label = { attend: '참석', maybe: '미정', absent: '불참' };
+    const mark = { attend: '○', maybe: '△', absent: '×' };
+    const pal = { attend: ['#E4F5EA', '#15803D', '#2E7D4F', '#FFFFFF'], maybe: ['#FAF3DC', '#A5841B', '#E0B94B', '#5B4708'], absent: ['#FBE9E9', '#C0392B', '#C0392B', '#FFFFFF'] };
+    const collator = new Intl.Collator('ko');
+    const roster = [...this._roster].sort((a, b) => collator.compare(a.name, b.name));
+    const rowOf = {};
+    this._rsvp.forEach(r => { rowOf[r.player_id] = r; });
+    const statusOf = p => (rowOf[p.id] && rowOf[p.id].status) || null;
+    const guestsOf = p => (rowOf[p.id] && rowOf[p.id].guests) || 0;
+    const me = roster.find(p => p.id === st.me) || null;
+    const myStatus = me ? statusOf(me) : null;
+    const myGuests = me ? guestsOf(me) : 0;
+
+    const by = k => roster.filter(p => statusOf(p) === k).sort((a, b) => (b === me) - (a === me));
+    const bringers = roster.filter(p => guestsOf(p) > 0);
+    const guests = bringers.reduce((n, p) => n + guestsOf(p), 0);
+    const cnt = { attend: by('attend').length, maybe: by('maybe').length, absent: by('absent').length, none: by(null).length, guests, total: roster.length };
+    cnt.head = cnt.attend + guests;
+    cnt.sub = guests ? `팀원 ${cnt.attend} + 용병 ${guests} · 명단 ${cnt.total}명` : `/ 전체 ${cnt.total}명`;
+    const whole = cnt.total + guests || 1;
+    const pct = n => (n / whole * 100).toFixed(1) + '%';
+
+    const chip = (p, k) => {
+      const c = k ? pal[k] : ['#F3F1EA', '#8A8577'];
+      return p === me ? { name: p.name, bg: '#113C98', fg: '#FFFFFF', weight: 800, bd: '#113C98' } : { name: p.name, bg: c[0], fg: c[1], weight: 600, bd: 'transparent' };
+    };
+    const group = (k, l, color) => { const list = by(k); return { label: l, color, n: list.length, names: list.map(p => chip(p, k)), empty: !list.length }; };
+    const groups = [group('attend', '참석', '#15803D')];
+    if (guests) groups.push({ label: '용병', color: '#113C98', n: guests, empty: false, names: bringers.map(p => ({ name: p.name + ' +' + guestsOf(p), bg: '#EEF2FB', fg: '#113C98', weight: 600, bd: 'transparent' })) });
+    groups.push(group('maybe', '미정', '#A5841B'), group('absent', '불참', '#C0392B'), group(null, '미응답', '#8A8577'));
+
+    const short = MIN_PLAYERS - cnt.head;
+    const quorum = short <= 0
+      ? { label: '경기 성립 · 여유 ' + (-short) + '명', bg: '#E4F5EA', fg: '#15803D' }
+      : { label: short + '명 더 필요', bg: '#FBE9E9', fg: '#C0392B' };
+
+    const last = roster.filter(p => rowOf[p.id]).sort((a, b) => new Date(rowOf[b.id].updated_at) - new Date(rowOf[a.id].updated_at))[0];
+    let lastUpdate = '아직 응답이 없어요';
+    if (last) {
+      const min = Math.max(0, Math.round((Date.now() - new Date(rowOf[last.id].updated_at)) / 60000));
+      const ago = min < 1 ? '방금 전' : min < 60 ? min + '분 전' : min < 1440 ? Math.floor(min / 60) + '시간 전' : Math.floor(min / 1440) + '일 전';
+      lastUpdate = ago + ' · ' + last.name + ' ' + (statusOf(last) ? label[statusOf(last)] : '용병 +' + guestsOf(last));
+    }
+
+    const rsvpButtons = ['attend', 'maybe', 'absent'].map(k => {
+      const on = myStatus === k;
+      return {
+        label: label[k], mark: mark[k],
+        bg: on ? pal[k][2] : '#FFFFFF', color: on ? pal[k][3] : '#1A1A1A', bd: on ? pal[k][2] : '#E7E4DB',
+        dotBg: on ? 'rgba(255,255,255,.25)' : pal[k][0], dotFg: on ? pal[k][3] : pal[k][1],
+        onClick: () => this.saveRsvp({ status: on ? null : k })
+      };
+    });
+
     return {
-      schedules: sched.slice(0, 3).map(s => ({ dateShort: Number(s.date.slice(5, 7)) + '/' + Number(s.date.slice(8, 10)), time: s.time || '', opponent: s.opponent, venue: s.venue || '미정' })),
-      venueName: (nv && nv.venue) || '성불빌라',
-      venueAddr: (nv && nv.address) || '서울 노원구 동일로231가길 7',
-      venueInfo: (nv && nv.note) || '전화번호: 031-790-2022, 주차 아무데나'
+      noNext: false, hasNext: true, next, rsvpOn: true, minPlayers: MIN_PLAYERS,
+      noIdentity: !me, hasIdentity: !!me, myName: me && me.name, rsvpButtons,
+      myNote: this._rsvpErr ? '저장하지 못했어요. 잠시 후 다시 눌러주세요' : myStatus ? '응답 완료 · 경기 당일까지 언제든 바꿀 수 있어요' : '아직 응답하지 않았어요',
+      myNoteColor: !this._rsvpErr && myStatus ? '#15803D' : '#C0392B',
+      isManager: !!me && this._mgr.includes(me.id), myGuests,
+      guestPlus: () => { if (myGuests < MAX_GUESTS) this.saveRsvp({ guests: myGuests + 1 }); },
+      guestMinus: () => { if (myGuests > 0) this.saveRsvp({ guests: myGuests - 1 }); },
+      lastUpdate, cnt, quorum, groups,
+      bar: { attend: pct(cnt.attend), guests: pct(guests), maybe: pct(cnt.maybe), absent: pct(cnt.absent), minPos: 'calc(' + Math.min(100, MIN_PLAYERS / whole * 100).toFixed(1) + '% - 1px)' },
+      pickerOpen: st.pickerOpen,
+      pickList: roster.map(p => ({
+        name: p.name, bg: p === me ? '#113C98' : '#FFFFFF', fg: p === me ? '#FFFFFF' : '#1A1A1A', bd: p === me ? '#113C98' : '#E7E4DB',
+        onClick: () => { try { localStorage.setItem('whistle_me', p.id); } catch (e) {} this._rsvpErr = false; this.setState({ me: p.id, pickerOpen: false }); }
+      })),
+      openPicker: () => this.setState({ pickerOpen: true }),
+      closePicker: () => this.setState({ pickerOpen: false }),
+      stop: e => e.stopPropagation(),
+      // 검색은 다시 그리지 않고 보이는 이름만 걸러낸다(다시 그리면 입력 칸이 포커스를 잃음)
+      onQuery: e => {
+        const q = e.target.value.trim();
+        let shown = 0;
+        document.querySelectorAll('[data-pick]').forEach(el => {
+          const hit = !q || el.dataset.pick.includes(q);
+          el.style.display = hit ? 'flex' : 'none';
+          if (hit) shown++;
+        });
+        document.getElementById('pickEmpty').style.display = shown ? 'none' : 'block';
+      }
     };
   }
 
@@ -475,22 +624,8 @@ class WhistleApp {
       stGoals: gf, stGpm: (gf / (d.matches.length || 1)).toFixed(1),
       mvpName: mvpP ? mvpP.name : '-', mvpSub: mvpP ? `MVP ${mvpP.mvp}회 · 출전 ${mvpP.ap}회` : 'MVP 0회',
       recentMatches: sortedMatches.slice(0, recentCount).map(deco),
-      ...this.schedVals(),
-      ...(() => {
-        const now = new Date();
-        const y = Number(st.season);
-        const pct = y < now.getFullYear() ? 100 : y > now.getFullYear() ? 0
-          : Math.min(100, Math.round((now - new Date(y, 0, 1)) / (new Date(y, 11, 31) - new Date(y, 0, 1)) * 100));
-        const found = new Date(2000, 4, 9);
-        const foundDays = Math.floor((now - found) / 86400000);
-        let foundYears = now.getFullYear() - 2000;
-        if (now < new Date(now.getFullYear(), 4, 9)) foundYears--;
-        return {
-          progPct: pct + '%', progLabel: pct + '%',
-          progSub: st.season + ' 시즌 · ' + d.matches.length + '경기 소화',
-          foundYears, foundDays: foundDays.toLocaleString()
-        };
-      })(),
+      ...this.rsvpVals(),
+      goMatches: () => { this.setState({ tab: 'matches', openMatch: null }); window.scrollTo({ top: 0 }); },
       hasStatus: !!(d.loading || d.error || (st.tab === 'records' && A.loading)),
       statusMsg: d.error ? st.season + ' 시즌 데이터를 불러올 수 없습니다.' : (st.tab === 'records' && A.loading) ? '역대 기록을 불러오는 중...' : st.season + ' 시즌 데이터를 불러오는 중...',
       seasonCards, seasonBest, formList, monthly, trendBars,
@@ -544,7 +679,8 @@ Object.assign(WhistleApp.prototype, {
     if (this.componentDidMount) this.componentDidMount();
   },
 
-  // ── 카카오지도: 일정 카드에 표시되는 주소(다음 경기 구장, 없으면 성불빌라)를 지오코딩해 마커 표시 ──
+  // ── 카카오지도: 다음 경기 구장을 경기 카드 안에 표시. 주소가 있으면 주소로, 없으면 구장 이름으로 찾는다. ──
+  // 화면을 다시 그릴 때마다 #venueMap 자리가 새로 생기므로, 지도 본체(this._mapEl)는 한 번만 만들고 옮겨 붙인다.
   loadKakao() {
     if (this._kakaoReady) return this._kakaoReady;
     this._kakaoReady = new Promise((resolve, reject) => {
@@ -561,38 +697,49 @@ Object.assign(WhistleApp.prototype, {
     const slot = document.getElementById('venueMap');
     if (!slot) return;
     const address = slot.dataset.address || '';
-    const name = slot.dataset.name || '구장';
+    const name = slot.dataset.name || '';
+    const key = address + '|' + name;
+    // 지도를 못 찾았거나 못 불러온 구장은 자리를 숨긴다("지도 보기" 링크는 그대로 남는다)
+    if (this._mapFail === key) { slot.style.display = 'none'; return; }
     if (!this._mapEl) {
       this._mapEl = document.createElement('div');
-      this._mapEl.style.cssText = 'width:100%; height:100%; min-height:240px;';
+      this._mapEl.style.cssText = 'width:100%; height:100%;';
     }
     slot.appendChild(this._mapEl);
+    const fail = () => {
+      this._mapFail = key;
+      const cur = document.getElementById('venueMap');
+      if (cur) cur.style.display = 'none';
+    };
     this.loadKakao().then(() => {
       const km = window.kakao.maps;
       if (!this._map) {
-        this._map = new km.Map(this._mapEl, { center: new km.LatLng(DEFAULT_LAT, DEFAULT_LNG), level: 4 });
+        this._map = new km.Map(this._mapEl, { center: new km.LatLng(37.5665, 126.978), level: 4 });
         this._marker = new km.Marker({ map: this._map });
         this._info = new km.InfoWindow({});
-        this._geocoder = new km.services.Geocoder();
       }
       this._map.relayout();
-      if (this._mapAddress === address) { this._map.setCenter(this._marker.getPosition()); return; }
-      this._mapAddress = address;
-      const place = (pos) => {
-        this._map.setCenter(pos);
-        this._marker.setPosition(pos);
+      if (this._mapKey === key) { if (this._mapPos) this._map.setCenter(this._mapPos); return; }
+      this._mapKey = key;
+      this._mapPos = null;
+      const place = (y, x) => {
+        this._mapPos = new km.LatLng(y, x);
+        this._map.setCenter(this._mapPos);
+        this._marker.setPosition(this._mapPos);
         this._info.setContent(`<div style="padding:4px 8px; font-size:12px; font-weight:700; color:#113C98; white-space:nowrap;">${escapeHtml(name)}</div>`);
         this._info.open(this._map, this._marker);
       };
-      if (!address) { place(new km.LatLng(DEFAULT_LAT, DEFAULT_LNG)); return; }
-      this._geocoder.addressSearch(address, (result, status) => {
-        if (this._mapAddress !== address) return;
-        const ok = status === km.services.Status.OK && result.length > 0;
-        place(ok ? new km.LatLng(result[0].y, result[0].x) : new km.LatLng(DEFAULT_LAT, DEFAULT_LNG));
+      const ok = (result, status) => status === km.services.Status.OK && result.length > 0;
+      const byName = () => new km.services.Places().keywordSearch(name, (result, status) => {
+        if (this._mapKey !== key) return;
+        if (ok(result, status)) place(result[0].y, result[0].x); else fail();
       });
-    }).catch(() => {
-      slot.innerHTML = '<div style="padding:16px; font-size:12px; color:#B0AB9D;">지도를 불러올 수 없습니다.</div>';
-    });
+      if (!address) { byName(); return; }
+      new km.services.Geocoder().addressSearch(address, (result, status) => {
+        if (this._mapKey !== key) return;
+        if (ok(result, status)) place(result[0].y, result[0].x); else byName();
+      });
+    }).catch(fail);
   },
 
   render() {
