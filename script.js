@@ -92,7 +92,8 @@ class WhistleApp {
   props = { koreanTabs: false, recentCount: 3 };
 
   state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null,
-            me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false };
+            me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false,
+            isMobile: window.innerWidth < 640 };
 
   async supa(path, opt) {
     const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
@@ -233,6 +234,8 @@ class WhistleApp {
 
   componentDidMount() {
     this.loadSchedules();
+    // 화면 폭이 640px 경계를 넘나들 때만 다시 그린다(모바일용 여백·헤더 전환)
+    window.addEventListener('resize', () => { const m = window.innerWidth < 640; if (m !== this.state.isMobile) this.setState({ isMobile: m }); });
     setInterval(() => {
       if (this._rsvp && this.state.tab === 'home' && !this.state.pickerOpen && !document.hidden) this.loadRsvp();
     }, 20000);
@@ -335,13 +338,13 @@ class WhistleApp {
     const pct = n => (n / whole * 100).toFixed(1) + '%';
 
     const chip = (p, k) => {
-      const c = k ? pal[k] : ['#F3F1EA', '#8A8577'];
+      const c = k ? pal[k] : ['#F3F1EA', '#6B675C'];
       return p === me ? { name: p.name, bg: '#113C98', fg: '#FFFFFF', weight: 800, bd: '#113C98' } : { name: p.name, bg: c[0], fg: c[1], weight: 600, bd: 'transparent' };
     };
     const group = (k, l, color) => { const list = by(k); return { label: l, color, n: list.length, names: list.map(p => chip(p, k)), empty: !list.length }; };
     const groups = [group('attend', '참석', '#15803D')];
     if (guests) groups.push({ label: '용병', color: '#113C98', n: guests, empty: false, names: bringers.map(p => ({ name: p.name + ' +' + guestsOf(p), bg: '#EEF2FB', fg: '#113C98', weight: 600, bd: 'transparent' })) });
-    groups.push(group('maybe', '미정', '#A5841B'), group('absent', '불참', '#C0392B'), group(null, '미응답', '#8A8577'));
+    groups.push(group('maybe', '미정', '#A5841B'), group('absent', '불참', '#C0392B'), group(null, '미응답', '#6B675C'));
 
     const short = MIN_PLAYERS - cnt.head;
     const quorum = short <= 0
@@ -606,7 +609,7 @@ class WhistleApp {
       const onClick = () => { this.setState({ tab: key, openMatch: null }); window.scrollTo({ top: 0 }); };
       return pos === 'top'
         ? { label, onClick, color: on ? '#113C98' : '#CBD8F5', bg: on ? '#F6F5F1' : 'rgba(255,255,255,.06)' }
-        : { label, onClick, color: on ? '#113C98' : '#B0AB9D', bd: on ? '#113C98' : 'transparent' };
+        : { label, onClick, color: on ? '#113C98' : '#8A8577', bd: on ? '#113C98' : 'transparent' };
     });
 
     const allOn = st.tab === 'records';
@@ -639,6 +642,10 @@ class WhistleApp {
       stGoals: gf, stGpm: (gf / (d.matches.length || 1)).toFixed(1),
       mvpName: mvpP ? mvpP.name : '-', mvpSub: mvpP ? `MVP ${mvpP.mvp}회 · 출전 ${mvpP.ap}회` : 'MVP 0회',
       recentMatches: sortedMatches.slice(0, recentCount).map(deco),
+      // 화면 폭별 여백·헤더(모바일은 상단 탭을 숨기고 하단 탭만 쓴다)
+      ui: st.isMobile
+        ? { headPad: '12px 14px', logo: '36px', title: '17px', topTabs: 'none', mainPad: '16px 14px 0', heroPad: '18px 18px 16px', cardPad: '16px', groupCols: 'minmax(0,1fr)', groupGap: '6px' }
+        : { headPad: '16px 20px 0', logo: '44px', title: '20px', topTabs: 'flex', mainPad: '22px 20px 0', heroPad: '20px 24px 18px', cardPad: '16px 20px 18px', groupCols: '60px minmax(0,1fr)', groupGap: '10px' },
       ...this.rsvpVals(),
       goMatches: () => { this.setState({ tab: 'matches', openMatch: null }); window.scrollTo({ top: 0 }); },
       hasStatus: !!(d.loading || d.error || (st.tab === 'records' && A.loading)),
