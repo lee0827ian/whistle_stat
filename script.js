@@ -190,11 +190,18 @@ class WhistleApp {
     const seq = this._rsvpSeq || 0;
     try {
       if (first) {
-        const [roster, mgr] = await Promise.all([
-          this.supa('players?number=not.is.null&select=id,name'),
-          this.supa('rsvp_managers?select=player_id')
+        // 선수 전체(이름 검색 대상)와 올해 출전자(화면에 기본으로 보이는 명단)
+        const season = Number(next.date.slice(0, 4));
+        const played = y => this.supaAll(`match_lineups?select=player_id,matches!inner(season)&matches.season=eq.${y}&player_id=not.is.null&order=id.asc`);
+        const [roster, mgr, cur] = await Promise.all([
+          this.supaAll('players?select=id,name,number&order=id.asc'),
+          this.supa('rsvp_managers?select=player_id'),
+          played(season)
         ]);
+        // 시즌 초라 올해 출전자가 아직 없으면 지난 시즌 출전자를 기본 명단으로 쓴다
+        const core = cur.length ? cur : await played(season - 1);
         this._roster = roster;
+        this._core = new Set(core.map(l => l.player_id));
         this._mgr = mgr.map(m => m.player_id);
       }
       const rows = await this.supa(`schedule_rsvps?schedule_id=eq.${next.id}&select=player_id,status,guests,updated_at`);
@@ -302,12 +309,19 @@ class WhistleApp {
     const mark = { attend: '○', maybe: '△', absent: '×' };
     const pal = { attend: ['#E4F5EA', '#15803D', '#2E7D4F', '#FFFFFF'], maybe: ['#FAF3DC', '#A5841B', '#E0B94B', '#5B4708'], absent: ['#FBE9E9', '#C0392B', '#C0392B', '#FFFFFF'] };
     const collator = new Intl.Collator('ko');
-    const roster = [...this._roster].sort((a, b) => collator.compare(a.name, b.name));
+    const all = [...this._roster].sort((a, b) => collator.compare(a.name, b.name));
     const rowOf = {};
     this._rsvp.forEach(r => { rowOf[r.player_id] = r; });
     const statusOf = p => (rowOf[p.id] && rowOf[p.id].status) || null;
     const guestsOf = p => (rowOf[p.id] && rowOf[p.id].guests) || 0;
-    const me = roster.find(p => p.id === st.me) || null;
+    const me = all.find(p => p.id === st.me) || null;
+    // 화면에 보이는 명단 = 올해 출전자 + 이미 응답한 사람 + 나. 그 밖의 선수는 이름 검색으로 고른다.
+    const roster = all.filter(p => this._core.has(p.id) || rowOf[p.id] || p === me);
+    const shown = new Set(roster);
+    const keyOf = p => p.name.replace(/\s/g, '');
+    const dup = {};
+    all.forEach(p => { dup[keyOf(p)] = (dup[keyOf(p)] || 0) + 1; });
+    const labelOf = p => dup[keyOf(p)] > 1 ? p.name + (p.number != null ? ' ' + p.number + '번' : ' (번호 없음)') : p.name;
     const myStatus = me ? statusOf(me) : null;
     const myGuests = me ? guestsOf(me) : 0;
 
@@ -363,19 +377,20 @@ class WhistleApp {
       lastUpdate, cnt, quorum, groups,
       bar: { attend: pct(cnt.attend), guests: pct(guests), maybe: pct(cnt.maybe), absent: pct(cnt.absent), minPos: 'calc(' + Math.min(100, MIN_PLAYERS / whole * 100).toFixed(1) + '% - 1px)' },
       pickerOpen: st.pickerOpen,
-      pickList: roster.map(p => ({
-        name: p.name, bg: p === me ? '#113C98' : '#FFFFFF', fg: p === me ? '#FFFFFF' : '#1A1A1A', bd: p === me ? '#113C98' : '#E7E4DB',
+      pickList: all.map(p => ({
+        name: labelOf(p), key: keyOf(p), core: shown.has(p) ? '1' : '', disp: shown.has(p) ? 'flex' : 'none', bg: p === me ? '#113C98' : '#FFFFFF', fg: p === me ? '#FFFFFF' : '#1A1A1A', bd: p === me ? '#113C98' : '#E7E4DB',
         onClick: () => { try { localStorage.setItem('whistle_me', p.id); } catch (e) {} this._rsvpErr = false; this.setState({ me: p.id, pickerOpen: false }); }
       })),
       openPicker: () => this.setState({ pickerOpen: true }),
       closePicker: () => this.setState({ pickerOpen: false }),
       stop: e => e.stopPropagation(),
-      // 검색은 다시 그리지 않고 보이는 이름만 걸러낸다(다시 그리면 입력 칸이 포커스를 잃음)
+      // 검색은 다시 그리지 않고 보이는 이름만 걸러낸다(다시 그리면 입력 칸이 포커스를 잃음).
+      // 검색어가 없으면 기본 명단만, 있으면 선수 전체에서 찾는다.
       onQuery: e => {
-        const q = e.target.value.trim();
+        const q = e.target.value.replace(/\s/g, '');
         let shown = 0;
         document.querySelectorAll('[data-pick]').forEach(el => {
-          const hit = !q || el.dataset.pick.includes(q);
+          const hit = q ? el.dataset.pick.includes(q) : el.dataset.core === '1';
           el.style.display = hit ? 'flex' : 'none';
           if (hit) shown++;
         });

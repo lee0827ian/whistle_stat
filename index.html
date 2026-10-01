@@ -600,13 +600,13 @@
             <div onClick="{{ closePicker }}" style="width:30px; height:30px; border-radius:50%; background:#F3F1EA; color:#8A8577; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; cursor:pointer;">&times;</div>
           </div>
           <div style="font-size:11.5px; color:#8A8577; margin-top:4px;">선택한 이름은 이 기기에 저장돼요. 다른 사람 이름은 고르지 말아주세요.</div>
-          <input onInput="{{ onQuery }}" placeholder="이름 검색" style="width:100%; margin-top:12px; padding:11px 14px; border-radius:12px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-family:'Pretendard'; font-size:14px; outline:none;">
+          <input onInput="{{ onQuery }}" placeholder="이름 검색 · 목록에 없으면 여기서 찾으세요" style="width:100%; margin-top:12px; padding:11px 14px; border-radius:12px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-family:'Pretendard'; font-size:14px; outline:none;">
         </div>
         <div style="overflow-y:auto; padding:14px 20px 20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:8px;">
           <sc-for list="{{ pickList }}" as="p" hint-placeholder-count="12">
-            <div data-pick="{{ p.name }}" onClick="{{ p.onClick }}" style="min-height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; font-size:14px; font-weight:700; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">{{ p.name }}</div>
+            <div data-pick="{{ p.key }}" data-core="{{ p.core }}" onClick="{{ p.onClick }}" style="min-height:48px; display:{{ p.disp }}; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; font-size:14px; font-weight:700; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">{{ p.name }}</div>
           </sc-for>
-          <div id="pickEmpty" style="display:none; grid-column:1 / -1; text-align:center; font-size:12.5px; color:#B0AB9D; padding:20px 0;">명단에 없는 이름이에요. 운영진에게 등록을 요청해주세요.</div>
+          <div id="pickEmpty" style="display:none; grid-column:1 / -1; text-align:center; font-size:12.5px; color:#B0AB9D; padding:20px 0;">등록되지 않은 이름이에요. 운영진에게 선수 등록을 요청해주세요.</div>
         </div>
       </div>
     </div>

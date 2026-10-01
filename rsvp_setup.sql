@@ -3,7 +3,7 @@
 --
 -- 규칙
 --   1) 누구나 읽을 수 있다.
---   2) 쓰기는 "오늘 이후 경기" + "등번호가 있는 명단 선수"의 행만 가능하다.
+--   2) 쓰기는 "오늘 이후 경기"의 행만 가능하다. 선수는 선수 표에 등록된 사람이면 된다(등번호 없어도 됨).
 --   3) 용병 수(guests)는 rsvp_managers에 등록된 선수의 행에만 붙일 수 있다.
 --   4) updated_at은 서버가 채운다(화면에서 보낸 값은 무시).
 
@@ -63,7 +63,6 @@ for insert to anon, authenticated
 with check (
   exists (select 1 from public.schedules s where s.id = schedule_id
           and s.date::date >= (now() at time zone 'Asia/Seoul')::date)
-  and exists (select 1 from public.players p where p.id = player_id and p.number is not null)
   and (guests = 0 or exists (select 1 from public.rsvp_managers m where m.player_id = schedule_rsvps.player_id))
 );
 
@@ -76,7 +75,6 @@ using (
 with check (
   exists (select 1 from public.schedules s where s.id = schedule_id
           and s.date::date >= (now() at time zone 'Asia/Seoul')::date)
-  and exists (select 1 from public.players p where p.id = player_id and p.number is not null)
   and (guests = 0 or exists (select 1 from public.rsvp_managers m where m.player_id = schedule_rsvps.player_id))
 );
 
