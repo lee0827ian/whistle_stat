@@ -140,7 +140,16 @@ class WhistleApp {
 
   state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null,
             me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false,
-            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: null, voteOpen: false };
+            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: null, voteOpen: false, flash: '' };
+
+  // 카톡 공유 카드의 참석 · 미정 · 불참을 눌러 들어온 경우(?s=일정 id&r=응답). 명단과 응답을 읽은 뒤 한 번만 반영하고,
+  // 새로고침해도 다시 반영되지 않도록 주소에서는 바로 지운다.
+  pendingRsvp = (() => {
+    const qs = new URLSearchParams(location.search);
+    const p = qs.get('s') && ['attend', 'maybe', 'absent'].includes(qs.get('r')) ? { id: qs.get('s'), status: qs.get('r') } : null;
+    if (qs.has('s') || qs.has('r')) history.replaceState(null, '', location.pathname);
+    return p;
+  })();
 
   async supa(path, opt) {
     const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
@@ -229,7 +238,7 @@ class WhistleApp {
     this.setState({ tick: Date.now() });
     const s = this._sched[0];
     if (s && (s.address || s.venue)) this.findVenue(s.address || '', s.venue || '');
-    this.loadRsvp(true);
+    this.loadRsvp(true).then(() => this.applyPendingRsvp());
   }
 
   // ── 참석 투표: 다음 경기(일정 첫 행)에 대한 명단 선수의 응답 ──
@@ -279,6 +288,46 @@ class WhistleApp {
     } catch (e) { this._rsvpErr = true; }
     this._rsvpSig = null;
     this.loadRsvp();
+  }
+
+  // ── 카톡 공유 카드 ──
+  // 홈 위쪽 안내 한 줄. 6초 뒤 사라진다
+  flash(text) {
+    clearTimeout(this._flashTimer);
+    this.setState({ flash: text });
+    this._flashTimer = setTimeout(() => this.setState({ flash: '' }), 6000);
+  }
+  // 카드에서 누른 응답을 저장한다. 이름을 아직 안 골랐으면 이름 선택 창을 열고, 고른 뒤에 다시 불린다.
+  // 투표는 다음 경기 하나만 받으므로, 지난 카드(다른 일정)의 응답은 저장하지 않는다.
+  applyPendingRsvp() {
+    const p = this.pendingRsvp, next = (this._sched || [])[0];
+    if (!p || !this._sched) return;
+    if (!next || String(next.id) !== p.id) { this.pendingRsvp = null; this.flash('이 카드의 경기는 지금 응답을 받는 경기가 아니에요.'); return; }
+    if (!this._rsvp || !this._roster) return;
+    if (!this._roster.some(r => r.id === this.state.me)) { this.setState({ tab: 'home', pickerOpen: true }); return; }
+    this.pendingRsvp = null;
+    const d = new Date(next.date + 'T00:00:00');
+    const label = { attend: '참석', maybe: '미정', absent: '불참' }[p.status];
+    this.setState({ tab: 'home', voteOpen: false });
+    this.saveRsvp({ status: p.status }).then(() => this.flash(this._rsvpErr
+      ? '저장하지 못했어요. 잠시 후 다시 눌러주세요.'
+      : (d.getMonth() + 1) + '/' + d.getDate() + ' 경기 "' + label + '"으로 저장했어요.'));
+  }
+  // 단체방에 올릴 카드: 참석 · 미정 · 불참 항목마다 응답이 담긴 주소를 건다
+  shareToKakao() {
+    const s = this._sched[0], d = new Date(s.date + 'T00:00:00');
+    const base = location.origin + location.pathname;
+    const link = query => ({ mobileWebUrl: base + query, webUrl: base + query });
+    const title = (d.getMonth() + 1) + '/' + d.getDate() + ' (' + '일월화수목금토'[d.getDay()] + ')' + (s.time ? ' ' + s.time.slice(0, 5) : '') + ' · ' + (s.venue || '구장 미정');
+    loadKakaoSdk().then(() => window.Kakao.Share.sendDefault({
+      objectType: 'list',
+      headerTitle: title,
+      headerLink: link(''),
+      contents: [['attend', '참석'], ['maybe', '미정'], ['absent', '불참']].map(([k, l]) => ({
+        title: l, description: '눌러서 응답하기', link: link('?s=' + encodeURIComponent(s.id) + '&r=' + k)
+      })),
+      buttons: [{ title: '참석 현황 보기', link: link('') }]
+    })).catch(() => alert('카카오톡 공유를 열지 못했어요. 잠시 후 다시 눌러 주세요.'));
   }
 
   componentDidMount() {
@@ -452,10 +501,12 @@ class WhistleApp {
       pickerOpen: st.pickerOpen,
       pickList: all.map(p => ({
         name: labelOf(p), key: keyOf(p), core: shown.has(p) ? '1' : '', disp: shown.has(p) ? 'flex' : 'none', bg: p === me ? '#113C98' : '#FFFFFF', fg: p === me ? '#FFFFFF' : '#1A1A1A', bd: p === me ? '#113C98' : '#E7E4DB',
-        onClick: () => { try { localStorage.setItem('whistle_me', p.id); } catch (e) {} this._rsvpErr = false; this.setState({ me: p.id, pickerOpen: false }); }
+        onClick: () => { try { localStorage.setItem('whistle_me', p.id); } catch (e) {} this._rsvpErr = false; this.setState({ me: p.id, pickerOpen: false }); this.applyPendingRsvp(); }
       })),
       openPicker: () => this.setState({ pickerOpen: true }),
-      closePicker: () => this.setState({ pickerOpen: false }),
+      closePicker: () => { this.pendingRsvp = null; this.setState({ pickerOpen: false }); },
+      pickerNote: this.pendingRsvp ? '이름을 고르면 ' + next.dateShort + ' 경기 "' + label[this.pendingRsvp.status] + '"이 바로 저장돼요.' : '',
+      shareKakao: () => this.shareToKakao(),
       stop: e => e.stopPropagation(),
       // 검색은 다시 그리지 않고 보이는 이름만 걸러낸다(다시 그리면 입력 칸이 포커스를 잃음).
       // 검색어가 없으면 기본 명단만, 있으면 선수 전체에서 찾는다.
@@ -721,6 +772,7 @@ class WhistleApp {
         ? { headPad: '12px 14px', logo: '36px', title: '17px', topTabs: 'none', mainPad: '16px 14px 0', heroPad: '18px 18px 16px', cardPad: '16px', groupCols: 'minmax(0,1fr)', groupGap: '6px' }
         : { headPad: '16px 20px 0', logo: '44px', title: '20px', topTabs: 'flex', mainPad: '22px 20px 0', heroPad: '20px 24px 18px', cardPad: '16px 20px 18px', groupCols: '60px minmax(0,1fr)', groupGap: '10px' },
       ...this.rsvpVals(),
+      flash: st.flash, closeFlash: () => this.setState({ flash: '' }),
       goMatches: () => { this.setState({ tab: 'matches', openMatch: null }); window.scrollTo({ top: 0 }); },
       hasStatus: !!(d.loading || d.error || (st.tab === 'records' && A.loading)),
       statusMsg: d.error ? st.season + ' 시즌 데이터를 불러올 수 없습니다.' : (st.tab === 'records' && A.loading) ? '역대 기록을 불러오는 중...' : st.season + ' 시즌 데이터를 불러오는 중...',

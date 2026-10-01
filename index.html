@@ -88,6 +88,10 @@
     <sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
       <div data-screen-label="Home" style="display:flex; flex-direction:column;">
 
+        <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeFlash }}" style="background:#1A1A1A; color:#FFFFFF; border-radius:12px; padding:12px 16px; font-size:13.5px; font-weight:700; margin-bottom:12px; cursor:pointer;">{{ flash }}</div>
+        </sc-if>
+
         <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">다가오는 경기</div>
 
         <sc-if value="{{ noNext }}" hint-placeholder-val="{{ false }}">
@@ -129,6 +133,9 @@
                     <a href="{{ a.href }}" onClick="{{ a.onClick }}" style="flex:1; min-width:0; min-height:42px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:1.5px solid #4C6CC0; background:rgba(255,255,255,.06); color:#F0D281; font-size:13px; font-weight:800; white-space:nowrap;">{{ a.label }}</a>
                   </sc-for>
                 </div>
+              </sc-if>
+              <sc-if value="{{ rsvpOn }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ shareKakao }}" style="flex-basis:100%; min-height:42px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:#FEE500; color:#191600; font-size:13px; font-weight:800; cursor:pointer;">카톡방에 참석 투표 올리기</div>
               </sc-if>
             </div>
             <sc-if value="{{ rsvpOn }}" hint-placeholder-val="{{ true }}">
@@ -635,6 +642,9 @@
             <div onClick="{{ closePicker }}" style="width:30px; height:30px; border-radius:50%; background:#F3F1EA; color:#6B675C; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; cursor:pointer;">&times;</div>
           </div>
           <div style="font-size:12.5px; color:#6B675C; margin-top:4px;">선택한 이름은 이 기기에 저장돼요. 다른 사람 이름은 고르지 말아주세요.</div>
+          <sc-if value="{{ pickerNote }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12.5px; font-weight:800; color:#C0392B; margin-top:6px;">{{ pickerNote }}</div>
+          </sc-if>
           <input onInput="{{ onQuery }}" placeholder="이름 검색 · 목록에 없으면 여기서 찾으세요" style="width:100%; margin-top:12px; padding:11px 14px; border-radius:12px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-family:'Pretendard'; font-size:14px; outline:none;">
         </div>
         <div style="overflow-y:auto; padding:14px 20px 20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:8px;">
