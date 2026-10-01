@@ -82,6 +82,49 @@ const MIN_PLAYERS = 11;  // 경기 성립 최소 인원
 // 시상식 전까지 홈에서 시즌 MVP(배너의 시즌 MVP 줄 · 최다 MVP 카드)를 가릴 시즌. 공개하면 목록에서 뺀다.
 // 가릴 때는 실제 이름·횟수 대신 자리 표시 글자를 흐리게 그려서, 홈 화면에는 실제 값이 들어가지 않는다.
 const MVP_HIDDEN_SEASONS = [2026];
+// ── 내비 연결(휴대폰) ──
+// T맵·네이버지도는 앱 주소로 연다. 안드로이드는 intent 주소라 앱이 없으면 스토어로 간다.
+// 아이폰은 앱 주소를 연 뒤 1.5초가 지나도 화면이 그대로면 앱이 없는 것으로 보고 스토어로 보낸다.
+// 카카오내비는 카카오 JS SDK로 실행한다(앱이 없으면 설치 화면). 안드로이드·아이폰이 아니면 버튼을 주지 않는다.
+function navLinks(name, lat, lng) {
+  const android = /Android/i.test(navigator.userAgent), ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!android && !ios) return [];
+  const n = encodeURIComponent(name);
+  const storeLater = store => () => { setTimeout(() => { if (!document.hidden) location.href = store; }, 1500); };
+  const tmap = `route?goalname=${n}&goalx=${lng}&goaly=${lat}`;
+  const nmap = `route/car?dlat=${lat}&dlng=${lng}&dname=${n}&appname=${encodeURIComponent(location.host)}`;
+  return [
+    android
+      ? { label: 'T맵', href: `intent://${tmap}#Intent;scheme=tmap;package=com.skt.tmap.ku;end` }
+      : { label: 'T맵', href: `tmap://${tmap}`, onClick: storeLater('https://apps.apple.com/kr/app/id431589174') },
+    { label: '카카오내비', href: '#', onClick: e => { e.preventDefault(); startKakaoNavi(name, lat, lng); } },
+    android
+      ? { label: '네이버지도', href: `intent://${nmap}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;end` }
+      : { label: '네이버지도', href: `nmap://${nmap}`, onClick: storeLater('http://itunes.apple.com/app/id311867728?mt=8') }
+  ];
+}
+
+// 카카오 JS SDK(지도 SDK와 별개, window.Kakao). 구장 좌표를 구하면 미리 불러 두어 버튼을 누르는 즉시 실행되게 한다.
+let kakaoSdkReady = null;
+function loadKakaoSdk() {
+  if (kakaoSdkReady) return kakaoSdkReady;
+  kakaoSdkReady = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js';
+    s.integrity = 'sha384-oroumrnFVE0xtgqyDZJARgERibXg2C28380uaUZz2kHDS5CR7tu20eGiOU6GkTpy';
+    s.crossOrigin = 'anonymous';
+    s.onload = () => { if (!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_MAP_API_KEY); resolve(); };
+    s.onerror = () => { kakaoSdkReady = null; reject(new Error('kakao js sdk load failed')); };
+    document.head.appendChild(s);
+  });
+  return kakaoSdkReady;
+}
+function startKakaoNavi(name, lat, lng) {
+  const go = () => window.Kakao.Navi.start({ name, x: lng, y: lat, coordType: 'wgs84' });
+  if (window.Kakao && window.Kakao.Navi && window.Kakao.isInitialized()) go();
+  else loadKakaoSdk().then(go).catch(() => {});
+}
+
 const MVP_BLUR = 'display:inline-block; filter:blur(6px); user-select:none; pointer-events:none;';
 const MAX_GUESTS = 10;   // 한 사람이 올릴 수 있는 용병 수 상한(DB 제약과 같은 값)
 // 기기 시간대 기준 오늘 날짜(YYYY-MM-DD). toISOString()은 UTC라 한국 오전 9시 전에는 어제가 된다.
@@ -184,6 +227,8 @@ class WhistleApp {
       this._sched = await this.supa(`schedules?date=gte.${localDate()}&order=date.asc&select=id,date,time,opponent,venue,address,note`);
     } catch (e) { this._sched = []; }
     this.setState({ tick: Date.now() });
+    const s = this._sched[0];
+    if (s && (s.address || s.venue)) this.findVenue(s.address || '', s.venue || '');
     this.loadRsvp(true);
   }
 
@@ -299,6 +344,8 @@ class WhistleApp {
     const day = new Date(s.date + 'T00:00:00');
     const days = Math.round((day - new Date(localDate() + 'T00:00:00')) / 86400000);
     const where = s.address || s.venue || '';
+    const coord = this._mapCoord && this._mapCoord.key === (s.address || '') + '|' + (s.venue || '') ? this._mapCoord : null;
+    const navApps = coord && this.state.isMobile ? navLinks(s.venue || where, coord.lat, coord.lng) : [];
     const next = {
       dday: days <= 0 ? 'D-DAY' : 'D-' + days,
       dateShort: (day.getMonth() + 1) + '/' + day.getDate(),
@@ -310,6 +357,7 @@ class WhistleApp {
       // 모바일은 지도를 접어 두고 '지도 보기'로 펼친다. 데스크톱은 항상 보이고 '지도 보기'는 카카오맵 링크
       mapLink: !!where && !this.state.isMobile, mapToggle: !!where && this.state.isMobile,
       showMap: !!where && (!this.state.isMobile || this.state.mapOpen), mapOpenLink: !!where && this.state.isMobile && this.state.mapOpen,
+      navOn: navApps.length > 0, navApps,
       mapToggleLabel: this.state.mapOpen ? '지도 접기 \u25B4' : '지도 보기 \u25BE',
       toggleMap: () => this.setState(s => ({ mapOpen: !s.mapOpen })),
       note: s.note || ''
@@ -741,6 +789,33 @@ Object.assign(WhistleApp.prototype, {
     return this._kakaoReady;
   },
 
+  // 구장 좌표 찾기: 주소로 찾고, 안 되면 구장 이름으로 찾는다. 같은 구장은 한 번만 찾는다. 못 찾으면 null.
+  // 지도 표시와 내비 연결 버튼이 같이 쓴다. 좌표를 처음 구하면 화면을 다시 그린다(내비 버튼 표시).
+  findVenue(address, name) {
+    const key = address + '|' + name;
+    if (this._venue && this._venue.key === key) return this._venue.promise;
+    const promise = this.loadKakao().then(() => new Promise(resolve => {
+      const sv = window.kakao.maps.services;
+      const ok = (result, status) => status === sv.Status.OK && result.length > 0;
+      const done = result => resolve({ lat: Number(result[0].y), lng: Number(result[0].x) });
+      const byName = () => {
+        if (!name) { resolve(null); return; }
+        new sv.Places().keywordSearch(name, (result, status) => { if (ok(result, status)) done(result); else resolve(null); });
+      };
+      if (!address) { byName(); return; }
+      new sv.Geocoder().addressSearch(address, (result, status) => { if (ok(result, status)) done(result); else byName(); });
+    })).catch(() => null).then(coord => {
+      if (coord && this._venue && this._venue.key === key) {
+        this._mapCoord = { key, lat: coord.lat, lng: coord.lng };
+        if (this.state.isMobile) loadKakaoSdk().catch(() => {});
+        this.setState({ tick: Date.now() });
+      }
+      return coord;
+    });
+    this._venue = { key, promise };
+    return promise;
+  },
+
   afterRender() {
     const slot = document.getElementById('venueMap');
     if (!slot) return;
@@ -754,40 +829,28 @@ Object.assign(WhistleApp.prototype, {
       this._mapEl.style.cssText = 'width:100%; height:100%;';
     }
     slot.appendChild(this._mapEl);
-    const fail = () => {
-      this._mapFail = key;
-      const cur = document.getElementById('venueMap');
-      if (cur) cur.style.display = 'none';
-    };
-    this.loadKakao().then(() => {
+    this.findVenue(address, name).then(coord => {
+      if (!coord) {
+        this._mapFail = key;
+        const cur = document.getElementById('venueMap');
+        if (cur) cur.style.display = 'none';
+        return;
+      }
       const km = window.kakao.maps;
+      const pos = new km.LatLng(coord.lat, coord.lng);
       if (!this._map) {
-        this._map = new km.Map(this._mapEl, { center: new km.LatLng(37.5665, 126.978), level: 4 });
+        this._map = new km.Map(this._mapEl, { center: pos, level: 4 });
         this._marker = new km.Marker({ map: this._map });
         this._info = new km.InfoWindow({});
       }
       this._map.relayout();
-      if (this._mapKey === key) { if (this._mapPos) this._map.setCenter(this._mapPos); return; }
+      this._map.setCenter(pos);
+      if (this._mapKey === key) return;
       this._mapKey = key;
-      this._mapPos = null;
-      const place = (y, x) => {
-        this._mapPos = new km.LatLng(y, x);
-        this._map.setCenter(this._mapPos);
-        this._marker.setPosition(this._mapPos);
-        this._info.setContent(`<div style="padding:4px 8px; font-size:12px; font-weight:700; color:#113C98; white-space:nowrap;">${escapeHtml(name)}</div>`);
-        this._info.open(this._map, this._marker);
-      };
-      const ok = (result, status) => status === km.services.Status.OK && result.length > 0;
-      const byName = () => new km.services.Places().keywordSearch(name, (result, status) => {
-        if (this._mapKey !== key) return;
-        if (ok(result, status)) place(result[0].y, result[0].x); else fail();
-      });
-      if (!address) { byName(); return; }
-      new km.services.Geocoder().addressSearch(address, (result, status) => {
-        if (this._mapKey !== key) return;
-        if (ok(result, status)) place(result[0].y, result[0].x); else byName();
-      });
-    }).catch(fail);
+      this._marker.setPosition(pos);
+      this._info.setContent(`<div style="padding:4px 8px; font-size:12px; font-weight:700; color:#113C98; white-space:nowrap;">${escapeHtml(name)}</div>`);
+      this._info.open(this._map, this._marker);
+    });
   },
 
   render() {
