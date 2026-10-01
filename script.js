@@ -93,7 +93,7 @@ class WhistleApp {
 
   state = { tab: 'home', season: '2026', matchSort: 'desc', playerFilter: 'all', regionalSort: 'winrate', teamSort: 'season', openMatch: null,
             me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false,
-            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: false };
+            isMobile: window.innerWidth < 640, mapOpen: false, listOpen: false, voteOpen: false };
 
   async supa(path, opt) {
     const URL = 'https://sgzanwxgdcyojcoskseo.supabase.co';
@@ -370,13 +370,20 @@ class WhistleApp {
         label: label[k], mark: mark[k],
         bg: on ? pal[k][2] : '#FFFFFF', color: on ? pal[k][3] : '#1A1A1A', bd: on ? pal[k][2] : '#E7E4DB',
         dotBg: on ? 'rgba(255,255,255,.25)' : pal[k][0], dotFg: on ? pal[k][3] : pal[k][1],
-        onClick: () => this.saveRsvp({ status: on ? null : k })
+        onClick: () => { this.setState({ voteOpen: false }); this.saveRsvp({ status: on ? null : k }); }
       };
     });
 
+    const folded = !!me && st.isMobile && !!myStatus && !st.voteOpen;
     return {
       noNext: false, hasNext: true, next, rsvpOn: true, minPlayers: MIN_PLAYERS,
       noIdentity: !me, hasIdentity: !!me, myName: me && me.name, rsvpButtons,
+      // 모바일: 응답한 뒤에는 내 참석 여부를 한 줄로 접는다. '변경'을 누르면 다시 펼친다
+      voteFolded: folded, voteExpanded: !!me && !folded,
+      voteCanFold: !!me && st.isMobile && !!myStatus && st.voteOpen, voteNoFold: !(st.isMobile && !!myStatus && st.voteOpen),
+      voteFoldLabel: '접기 \u25B4',
+      my: myStatus ? { label: label[myStatus], mark: mark[myStatus], bg: pal[myStatus][2], fg: pal[myStatus][3] } : null,
+      openVote: () => this.setState({ voteOpen: true }), closeVote: () => this.setState({ voteOpen: false }),
       myNote: this._rsvpErr ? '저장하지 못했어요. 잠시 후 다시 눌러주세요' : myStatus ? '응답 완료 · 경기 당일까지 언제든 바꿀 수 있어요' : '아직 응답하지 않았어요',
       myNoteColor: !this._rsvpErr && myStatus ? '#15803D' : '#C0392B',
       isManager: !!me && this._mgr.includes(me.id), myGuests,
