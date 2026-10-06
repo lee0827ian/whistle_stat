@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap">
 <style>
-/* Claude Design 프로젝트 7704b360 "Admin.dc.html"을 옮긴 관리자 화면. 마크업·인라인 스타일은 디자인 그대로 */
+/* Claude Design 프로젝트 7704b360 "Admin.dc.html"(모바일)·"Admin PC.dc.html"(PC)을 옮긴 관리자 화면. 마크업·인라인 스타일은 디자인 그대로 */
 * { box-sizing: border-box; }
 body { margin: 0; background: #F6F5F1; font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; color: #1A1A1A; -webkit-font-smoothing: antialiased; }
 a { color: #113C98; text-decoration: none; }
@@ -22,6 +22,7 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
 </head>
 <body>
 <div id="app"></div>
+<!-- 모바일 화면 -->
 <template id="dc-template">
 <div style="min-height:100vh; background:#F6F5F1; padding-bottom:120px;">
 
@@ -32,7 +33,10 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
         <div style="font-family:'Oswald','Pretendard'; font-size:18px; font-weight:700; color:#FFFFFF; letter-spacing:2px;">WHISTLE FC</div>
         <div style="font-size:12px; color:#9FB4E4; letter-spacing:.5px;">운영진 관리</div>
       </div>
-      <a href="index.html" style="font-size:12.5px; font-weight:700; color:#F0D281; padding:8px 0;">사이트 보기</a>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="#" onClick="{{ goPC }}" style="font-size:12px; font-weight:700; color:#CBD8F5; padding:5px 9px; border-radius:8px; border:1px solid #4C6CC0;">PC 버전</a>
+        <a href="./" style="font-size:12.5px; font-weight:700; color:#F0D281; padding:8px 0;">사이트 보기</a>
+      </div>
     </div>
   </div>
 
@@ -250,7 +254,7 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
             </sc-for>
           </div>
           <div id="lineupNoHit" style="display:{{ noLineupHitDisp }}; font-size:13px; color:#8A8577; text-align:center; padding:8px 0;">검색 결과가 없어요</div>
-          <div id="lineupHiddenNote" style="display:{{ hiddenNoteDisp }}; font-size:12px; color:#8A8577; padding:8px 2px 0;">{{ hiddenNote }}</div>
+              <div id="lineupHiddenNote" style="display:{{ hiddenNoteDisp }}; font-size:12px; color:#8A8577; padding:8px 2px 0;">{{ hiddenNote }}</div>
         </div>
 
         <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px;">
@@ -361,7 +365,6 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
             </div>
           </sc-for>
           <div id="playerNoHit" style="display:{{ noPlayerHitDisp }}; font-size:13px; color:#8A8577; text-align:center; padding:20px 0; border-top:1px solid #F0EEE7;">검색 결과가 없어요</div>
-          
         </div>
         <div style="font-size:12.5px; color:#6B675C; margin-top:10px; line-height:1.5;">스위치와 번호·이름은 바꾸는 즉시 저장돼요. 용병 담당자만 참석 투표에서 용병 인원을 추가할 수 있어요.</div>
       </div>
@@ -436,6 +439,450 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
           <div style="font-size:13px; font-weight:700; color:#C0392B; background:#FBE9E9; border-radius:10px; padding:10px 12px;">{{ sheetErr }}</div>
         </sc-if>
         <div onClick="{{ addPlayer }}" style="min-height:50px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:{{ sheetBtnBg }}; color:#FFFFFF; font-size:15px; font-weight:800; cursor:pointer; opacity:{{ sheetBtnOp }};">{{ sheetBtnLabel }}</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</template>
+<!-- PC 화면(화면 폭 768px 이상이 기본, 화면 안 링크로 바꿀 수 있음) -->
+<template id="dc-template-pc">
+<div style="min-height:100vh; background:#F6F5F1;">
+
+  <sc-if value="{{ showSide }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="사이드바" style="position:fixed; top:0; left:0; bottom:0; width:232px; z-index:100; background:#113C98; display:flex; flex-direction:column; padding:22px 14px;">
+      <div style="display:flex; align-items:center; gap:10px; padding:0 8px 22px; border-bottom:1px solid #2A52AE;">
+        <img src="whistle_logo.svg" alt="WHISTLE" style="width:38px; height:38px; border-radius:10px; border:2px solid #F0D281; display:block;">
+        <div>
+          <div style="font-family:'Oswald','Pretendard'; font-size:18px; font-weight:700; color:#FFFFFF; letter-spacing:2px;">WHISTLE FC</div>
+          <div style="font-size:12px; color:#9FB4E4;">운영진 관리</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; margin-top:18px;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+          <div onClick="{{ t.onClick }}" style="display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:10px; cursor:pointer; background:{{ t.sbg }}; color:{{ t.sfg }}; font-size:15px; font-weight:800;" style-hover="background:#1C49AC;">
+            <span style="flex:1;">{{ t.label }}</span>
+            <sc-if value="{{ t.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px; padding:1px 6px; border-radius:10px; background:#C0392B; color:#FFFFFF; font-size:11.5px; font-weight:800; text-align:center;">{{ t.badge }}</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <a href="#" onClick="{{ goMobile }}" style="display:flex; align-items:center; padding:9px 14px; border-radius:10px; font-size:13px; font-weight:700; color:#CBD8F5;">모바일 버전으로 보기</a>
+        <a href="./" style="display:flex; align-items:center; padding:12px 14px; border-radius:10px; border:1.5px solid #2A52AE; font-size:13.5px; font-weight:800; color:#F0D281;">사이트 보기 ↗</a>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position:fixed; top:20px; right:24px; z-index:300; width:400px; max-width:calc(100vw - 48px); display:flex; align-items:flex-start; gap:12px; padding:14px 14px 14px 16px; border-radius:14px; background:{{ toast.bg }}; color:#FFFFFF; box-shadow:0 10px 30px rgba(17,30,60,.3);">
+      <span style="width:26px; height:26px; flex-shrink:0; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">{{ toast.icon }}</span>
+      <div style="flex:1; min-width:0; padding-top:3px;">
+        <div style="font-size:15px; font-weight:800;">{{ toast.msg }}</div>
+        <sc-if value="{{ toast.hasSub }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px; margin-top:3px; line-height:1.45;">{{ toast.sub }}</div>
+        </sc-if>
+      </div>
+      <div onClick="{{ closeToast }}" style="width:30px; height:30px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; cursor:pointer;">&times;</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="로그인" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:#113C98;">
+      <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; width:100%; max-width:400px; padding:32px 28px; display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <img src="whistle_logo.svg" alt="WHISTLE" style="width:40px; height:40px; border-radius:10px; border:2px solid #F0D281; display:block;">
+          <div style="font-family:'Oswald','Pretendard'; font-size:19px; font-weight:700; color:#113C98; letter-spacing:2px;">WHISTLE FC</div>
+        </div>
+        <div style="font-size:20px; font-weight:800;">운영진 로그인</div>
+        <sc-if value="{{ byLogout }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px; color:#6B675C; margin-top:-8px;">로그아웃되었습니다.</div>
+        </sc-if>
+        <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">운영진 PIN<input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password" id="pinInput" value="{{ pin }}" onInput="{{ onPin }}" onKeyDown="{{ onPinKey }}" placeholder="6~8자리 숫자" style="width:100%; padding:13px 14px; border-radius:10px; border:1.5px solid {{ pinBd }}; background:#F6F5F1; font-family:'Oswald','Pretendard'; font-size:22px; font-weight:600; letter-spacing:8px; text-align:center; color:#113C98; outline:none;" style-focus="border-color:#113C98;"></label>
+        <sc-if value="{{ hasPinErr }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="font-size:13.5px; font-weight:700; color:#C0392B; background:#FBE9E9; border-radius:10px; padding:10px 12px;">{{ pinErr }}</div>
+        </sc-if>
+        <div onClick="{{ toggleKeep }}" role="checkbox" style="display:flex; align-items:center; gap:10px; min-height:36px; cursor:pointer;">
+          <span style="width:22px; height:22px; border-radius:6px; border:1.5px solid {{ keepBd }}; background:{{ keepBg }}; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800;">{{ keepMark }}</span>
+          <span style="font-size:14px; font-weight:700;">이 기기에서 로그인 유지</span>
+        </div>
+        <div onClick="{{ login }}" style="min-height:48px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:#113C98; color:#FFFFFF; font-size:15px; font-weight:800; cursor:pointer; opacity:{{ loginOp }};">들어가기</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="margin-left:{{ mainOffset }}; padding:0 36px 48px;">
+   <div style="max-width:1180px; margin:0 auto;">
+
+    <sc-if value="{{ vGames }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="경기" style="padding-top:28px;">
+        <div style="display:flex; align-items:flex-end; gap:16px; margin-bottom:22px;">
+          <div style="flex:1; font-size:26px; font-weight:800;">경기</div>
+          <div onClick="{{ newSchedule }}" style="min-height:42px; padding:0 18px; display:flex; align-items:center; border-radius:10px; background:#113C98; color:#FFFFFF; font-size:14px; font-weight:800; cursor:pointer;" style-hover="background:#0C53C2;">+ 일정 추가</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); gap:24px; align-items:start;">
+          <div style="display:flex; flex-direction:column;">
+            <div style="font-family:'Oswald','Pretendard'; font-size:17px; font-weight:700; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid #113C98;">다가오는 경기</div>
+            <sc-if value="{{ noNext }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:28px 20px; text-align:center;">
+                <div style="font-size:15px; font-weight:800;">등록된 다음 경기가 없습니다</div>
+                <div style="font-size:13px; color:#6B675C; margin-top:4px;">일정을 추가하면 메인 사이트에서 참석 투표가 열려요.</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#113C98; border-radius:14px; overflow:hidden; box-shadow:0 3px 12px rgba(17,30,60,.18);">
+                <div style="padding:22px; display:flex; align-items:flex-start; gap:22px;">
+                  <div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
+                    <div style="background:#F0D281; color:#113C98; font-family:'Oswald','Pretendard'; font-size:13px; font-weight:700; letter-spacing:1px; padding:3px 10px; border-radius:8px;">{{ next.dday }}</div>
+                    <div style="font-family:'Oswald','Pretendard'; font-size:44px; font-weight:700; color:#F0D281; line-height:1;">{{ next.dateShort }}</div>
+                    <div style="font-size:13px; color:#9FB4E4;">{{ next.when }}</div>
+                  </div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:12px; font-weight:800; color:#F0D281; letter-spacing:1.5px;">WHISTLE LEAGUE</div>
+                    <div style="font-size:23px; font-weight:800; color:#FFFFFF; margin-top:4px;">vs {{ next.opp }}</div>
+                    <div style="font-size:13.5px; color:#CBD8F5; margin-top:8px;">{{ next.venue }}</div>
+                    <div style="font-size:12.5px; color:#9FB4E4; margin-top:2px;">{{ next.address }}</div>
+                  </div>
+                  <div onClick="{{ editSchedule }}" style="min-height:40px; padding:0 16px; display:flex; align-items:center; border-radius:10px; border:1.5px solid #4C6CC0; background:rgba(255,255,255,.06); color:#F0D281; font-size:13.5px; font-weight:800; cursor:pointer; white-space:nowrap;" style-hover="background:rgba(255,255,255,.12);">일정 수정</div>
+                </div>
+                <div style="background:#FFFFFF; padding:18px 20px;">
+                  <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+                    <span style="font-size:15px; font-weight:800;">참석 현황</span>
+                    <span style="font-size:12.5px; color:#6B675C;">{{ next.sub }}</span>
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; margin-top:12px;">
+                    <sc-for list="{{ next.counts }}" as="c" hint-placeholder-count="4">
+                      <div style="background:{{ c.bg }}; border-radius:10px; padding:10px 4px; text-align:center;">
+                        <div style="font-family:'Oswald','Pretendard'; font-size:26px; font-weight:700; color:{{ c.fg }}; line-height:1.1;">{{ c.n }}</div>
+                        <div style="font-size:12px; font-weight:800; color:{{ c.fg }}; margin-top:2px;">{{ c.label }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid #F0EEE7;">
+                    <sc-for list="{{ next.groups }}" as="g" hint-placeholder-count="5">
+                      <div style="display:grid; grid-template-columns:52px 1fr; gap:8px; align-items:start;">
+                        <span style="font-size:12.5px; font-weight:800; color:{{ g.color }}; padding-top:5px;">{{ g.label }}</span>
+                        <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                          <sc-for list="{{ g.names }}" as="p" hint-placeholder-count="5">
+                            <span style="font-size:13.5px; padding:5px 11px; border-radius:10px; background:{{ g.bg }}; color:{{ g.fg }}; font-weight:600;">{{ p }}</span>
+                          </sc-for>
+                          <sc-if value="{{ g.empty }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:13px; color:#8A8577; padding:4px 0;">없음</span>
+                          </sc-if>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasLater }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin:24px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">
+                <span style="font-family:'Oswald','Pretendard'; font-size:17px; font-weight:700;">이후 일정</span>
+                <span style="font-size:12.5px; color:#8A8577;">눌러서 수정·삭제</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ laterRows }}" as="l" hint-placeholder-count="2">
+              <div onClick="{{ l.onClick }}" style="display:grid; grid-template-columns:minmax(0,1fr) 14px; align-items:center; gap:12px; background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:13px 14px 13px 16px; cursor:pointer;">
+                <div style="min-width:0;">
+                  <div style="font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">vs {{ l.opp }}</div>
+                  <div style="font-size:12px; color:#8A8577; margin-top:2px;">{{ l.dateLabel }} {{ l.time }} · {{ l.venue }}</div>
+                </div>
+                <span style="font-size:20px; color:#B0AB9D; font-weight:600;">›</span>
+              </div>
+            </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid #113C98;">
+              <span style="font-family:'Oswald','Pretendard'; font-size:17px; font-weight:700;">지난 경기</span>
+              <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:12.5px; font-weight:800; color:#C0392B;">결과 미입력 {{ pendingCount }}경기</span>
+              </sc-if>
+            </div>
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; overflow:hidden;">
+              <div style="display:grid; grid-template-columns:96px minmax(0,1fr) 128px 16px; gap:14px; padding:10px 18px; background:#F3F1EA; font-size:12px; font-weight:800; color:#6B675C;">
+                <span>날짜</span><span>상대 · 장소</span><span style="text-align:right;">결과</span><span></span>
+              </div>
+              <sc-for list="{{ pastRows }}" as="m" hint-placeholder-count="5">
+                <div onClick="{{ m.onClick }}" style="display:grid; grid-template-columns:96px minmax(0,1fr) 128px 16px; gap:14px; align-items:center; padding:14px 18px; border-top:1px solid #F0EEE7; cursor:pointer; background:{{ m.rowBg }};" style-hover="background:#F6F5F1;">
+                  <span style="font-size:13px; font-weight:700; color:#6B675C;">{{ m.dateLabel }}</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">vs {{ m.opp }}</div>
+                    <div style="font-size:12px; color:#8A8577; margin-top:2px;">{{ m.venue }}</div>
+                  </div>
+                  <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+                    <sc-if value="{{ m.needs }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:12px; font-weight:800; padding:5px 10px; border-radius:10px; background:#FBE9E9; color:#C0392B; white-space:nowrap;">결과 입력 필요</span>
+                    </sc-if>
+                    <sc-if value="{{ m.hasRes }}" hint-placeholder-val="{{ true }}">
+                      <span style="font-family:'Oswald','Pretendard'; font-size:20px; font-weight:700; color:#113C98;">{{ m.score }}</span>
+                      <span style="width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; background:{{ m.resBg }}; color:{{ m.resColor }};">{{ m.resLabel }}</span>
+                    </sc-if>
+                  </div>
+                  <span style="font-size:18px; color:#B0AB9D; font-weight:600;">›</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vMatch }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="경기 기록 입력">
+
+        <div style="position:sticky; top:0; z-index:50; background:#F6F5F1; padding:20px 0 14px; margin-bottom:18px; border-bottom:2px solid #113C98; display:flex; align-items:flex-end; gap:16px;">
+          <div style="flex:1; min-width:0;">
+            <div onClick="{{ back }}" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#113C98; cursor:pointer; margin-bottom:6px;" style-hover="color:#0C53C2;"><span style="font-size:17px;">‹</span>경기 목록</div>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;"><span style="font-size:24px; font-weight:800;">vs {{ mf.opp }}</span>
+              <sc-if value="{{ mf.isNew }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px; font-weight:800; padding:5px 10px; border-radius:10px; background:#FBE9E9; color:#C0392B;">결과 입력 필요</span></sc-if></div>
+            <div style="font-size:13px; color:#6B675C; margin-top:4px;">{{ mf.dateLabel }}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:9px; height:9px; border-radius:50%; background:{{ sb.dot }};"></span>
+            <span style="font-size:13px; font-weight:700; color:{{ sb.color }};">{{ sb.status }}</span>
+          </div>
+          <div onClick="{{ save }}" style="min-height:44px; min-width:128px; padding:0 22px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:{{ sb.bg }}; color:#FFFFFF; font-size:15px; font-weight:800; cursor:pointer; opacity:{{ sb.opacity }}; transition:background .2s;">{{ sb.label }}</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:20px; align-items:start;">
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:16px;">
+              <div style="font-size:15px; font-weight:800;">경기 정보</div>
+              <div style="display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:8px; background:#F6F5F1; border-radius:12px; padding:16px 10px;">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#113C98; letter-spacing:1px;">WHISTLE</span>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div onClick="{{ decOur }}" style="width:38px; height:38px; border-radius:10px; border:1.5px solid #E7E4DB; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#113C98; cursor:pointer;">&minus;</div>
+                    <span style="min-width:34px; text-align:center; font-family:'Oswald','Pretendard'; font-size:40px; font-weight:700; color:#113C98; line-height:1;">{{ mf.our }}</span>
+                    <div onClick="{{ incOur }}" style="width:38px; height:38px; border-radius:10px; border:1.5px solid #113C98; background:#113C98; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#FFFFFF; cursor:pointer;">+</div>
+                  </div>
+                </div>
+                <span style="font-family:'Oswald','Pretendard'; font-size:26px; font-weight:700; color:#B0AB9D; padding-top:22px;">:</span>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#6B675C; letter-spacing:1px;">상대</span>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div onClick="{{ decTheir }}" style="width:38px; height:38px; border-radius:10px; border:1.5px solid #E7E4DB; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#113C98; cursor:pointer;">&minus;</div>
+                    <span style="min-width:34px; text-align:center; font-family:'Oswald','Pretendard'; font-size:40px; font-weight:700; color:#1A1A1A; line-height:1;">{{ mf.their }}</span>
+                    <div onClick="{{ incTheir }}" style="width:38px; height:38px; border-radius:10px; border:1.5px solid #113C98; background:#113C98; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#FFFFFF; cursor:pointer;">+</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px;">
+                <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">날짜<input type="date" value="{{ mf.date }}" onChange="{{ mf.onDate }}" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+                <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">상대팀<input value="{{ mf.opp }}" onChange="{{ mf.onOpp }}" placeholder="예: Dream FC" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+                <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">지역<input value="{{ mf.region }}" onChange="{{ mf.onRegion }}" placeholder="예: 노원구" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+                <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">장소<input value="{{ mf.venue }}" onChange="{{ mf.onVenue }}" placeholder="예: 은로초등학교" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:4px;">
+                <div>
+                  <div style="font-size:14px; font-weight:800;">용병 수</div>
+                  <div style="font-size:12.5px; color:#6B675C; margin-top:2px;">{{ mf.mercHint }}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div onClick="{{ decMerc }}" style="width:38px; height:38px; border-radius:10px; border:1.5px solid #E7E4DB; background:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#113C98; cursor:pointer;">&minus;</div>
+                  <span style="min-width:28px; text-align:center; font-family:'Oswald','Pretendard'; font-size:24px; font-weight:700; color:#113C98;">{{ mf.merc }}</span>
+                  <div onClick="{{ incMerc }}" style="width:38px; height:38px; border-radius:10px; border:1.5px solid #113C98; background:#113C98; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#FFFFFF; cursor:pointer;">+</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:15px; font-weight:800;">득점자</span>
+                <span style="font-size:13px; font-weight:700; color:{{ mf.sumColor }};">{{ mf.sumLabel }}</span>
+              </div>
+              <sc-for list="{{ goalRows }}" as="g" hint-placeholder-count="2">
+                <div style="display:grid; grid-template-columns:minmax(0,1fr) auto 36px; gap:8px; align-items:center;">
+                  <select value="{{ g.pid }}" onChange="{{ g.onPick }}" style="width:100%; min-height:42px; padding:0 12px; border-radius:10px; border:1.5px solid {{ g.bd }}; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none; cursor:pointer;">
+                    <sc-for list="{{ goalOpts }}" as="o" hint-placeholder-count="6">
+                      <option value="{{ o.v }}">{{ o.l }}</option>
+                    </sc-for>
+                  </select>
+                  <div style="display:flex; align-items:center; gap:4px;">
+                    <div onClick="{{ g.dec }}" style="width:36px; height:40px; border-radius:10px; border:1.5px solid #E7E4DB; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; color:#113C98; cursor:pointer;">&minus;</div>
+                    <span style="min-width:36px; text-align:center; font-size:14px; font-weight:800;">{{ g.n }}골</span>
+                    <div onClick="{{ g.inc }}" style="width:36px; height:40px; border-radius:10px; border:1.5px solid #E7E4DB; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; color:#113C98; cursor:pointer;">+</div>
+                  </div>
+                  <div onClick="{{ g.remove }}" aria-label="삭제" style="width:36px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:19px; color:#8A8577; cursor:pointer;" style-hover="background:#FBE9E9; color:#C0392B;">&times;</div>
+                </div>
+              </sc-for>
+              <div onClick="{{ addGoal }}" style="min-height:42px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:1.5px dashed #C9C4B5; font-size:14px; font-weight:800; color:#113C98; cursor:pointer;" style-hover="background:#F6F5F1;">+ 득점 추가</div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:15px; font-weight:800;">출전 선수</span>
+                <span style="font-family:'Oswald','Pretendard'; font-size:18px; font-weight:700; color:#113C98;">{{ mf.lineupCount }}<span style="font-family:'Pretendard'; font-size:13px; font-weight:700;">명</span></span>
+              </div>
+              <sc-if value="{{ mf.hasPre }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px; font-weight:600; color:#15803D; background:#E4F5EA; border-radius:10px; padding:9px 12px;">{{ mf.preNote }}</div>
+              </sc-if>
+              <input value="{{ q }}" onInput="{{ onQ }}" data-search="lineup" placeholder="이름 또는 초성 검색 (예: ㅇㅈㅎ)" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(112px, 1fr)); gap:6px;">
+                <sc-for list="{{ lineupChips }}" as="p" hint-placeholder-count="12">
+                  <div data-nm="{{ p.name }}" data-def="{{ p.def }}" onClick="{{ p.onClick }}" style="min-height:40px; display:{{ p.disp }}; align-items:center; gap:6px; padding:0 10px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:{{ p.weight }}; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">
+                    <span style="font-family:'Oswald','Pretendard'; font-size:12px; font-weight:600; min-width:16px; color:{{ p.numFg }};">{{ p.num }}</span>{{ p.name }}
+                  </div>
+                </sc-for>
+              </div>
+              <div id="lineupNoHit" style="display:{{ noLineupHitDisp }}; font-size:13px; color:#8A8577; text-align:center; padding:8px 0;">검색 결과가 없어요</div>
+              <div id="lineupHiddenNote" style="display:{{ hiddenNoteDisp }}; font-size:12px; color:#8A8577; padding:8px 2px 0;">{{ hiddenNote }}</div>
+            </div>
+
+            <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:15px; font-weight:800;">MVP</span>
+                <span style="font-size:12.5px; color:#6B675C;">출전 선수 중 여러 명 가능 · 선택 사항</span>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <sc-for list="{{ mvpChips }}" as="p" hint-placeholder-count="8">
+                  <div onClick="{{ p.onClick }}" style="min-height:36px; display:flex; align-items:center; gap:5px; padding:0 13px; border-radius:18px; cursor:pointer; font-size:14px; font-weight:700; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">{{ p.mark }}{{ p.name }}</div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ mvpEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px; color:#8A8577;">출전 선수를 먼저 선택해주세요.</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ mf.hasFooter }}" hint-placeholder-val="{{ true }}"><div style="display:flex; justify-content:flex-end; margin-top:24px; padding-top:18px; border-top:1px solid #E7E4DB;">
+          <sc-if value="{{ mf.canDelete }}" hint-placeholder-val="{{ true }}"><div onClick="{{ deleteMatch }}" style="min-height:40px; padding:0 16px; display:flex; align-items:center; border-radius:10px; font-size:13.5px; font-weight:800; color:#C0392B; cursor:pointer;" style-hover="background:#FBE9E9;">이 경기 기록 삭제</div></sc-if><sc-if value="{{ mf.canCancel }}" hint-placeholder-val="{{ false }}"><div onClick="{{ cancelSchedule }}" title="취소된 경기면 일정을 지워 목록에서 없애요" style="min-height:40px; padding:0 16px; display:flex; align-items:center; border-radius:10px; font-size:13.5px; font-weight:800; color:#C0392B; cursor:pointer;" style-hover="background:#FBE9E9;">경기 안 함 (일정 삭제)</div></sc-if>
+        </div></sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vSchedule }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="일정 입력">
+
+        <div style="position:sticky; top:0; z-index:50; background:#F6F5F1; padding:20px 0 14px; margin-bottom:18px; border-bottom:2px solid #113C98; display:flex; align-items:flex-end; gap:16px;">
+          <div style="flex:1; min-width:0;">
+            <div onClick="{{ back }}" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#113C98; cursor:pointer; margin-bottom:6px;" style-hover="color:#0C53C2;"><span style="font-size:17px;">‹</span>경기 목록</div>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;"><span style="font-size:24px; font-weight:800;">{{ sf.title }}</span></div>
+            
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:9px; height:9px; border-radius:50%; background:{{ sb.dot }};"></span>
+            <span style="font-size:13px; font-weight:700; color:{{ sb.color }};">{{ sb.status }}</span>
+          </div>
+          <div onClick="{{ save }}" style="min-height:44px; min-width:128px; padding:0 22px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:{{ sb.bg }}; color:#FFFFFF; font-size:15px; font-weight:800; cursor:pointer; opacity:{{ sb.opacity }}; transition:background .2s;">{{ sb.label }}</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:20px; align-items:start;">
+          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:14px;">
+            <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px;">
+              <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">날짜<input type="date" value="{{ sf.date }}" onChange="{{ sf.onDate }}" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid {{ sf.dateBd }}; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;"></label>
+              <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">시간<input type="time" value="{{ sf.time }}" onChange="{{ sf.onTime }}" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;"></label>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">상대팀<input value="{{ sf.opp }}" onChange="{{ sf.onOpp }}" placeholder="예: FC 챌린지" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid {{ sf.oppBd }}; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+            <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">구장<input value="{{ sf.venue }}" onChange="{{ sf.onVenue }}" placeholder="예: 은로초등학교" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+            <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">주소<input value="{{ sf.address }}" onChange="{{ sf.onAddress }}" placeholder="예: 서울 노원구 동일로 1234" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+            <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">공지 메모<textarea rows="4" value="{{ sf.note }}" onChange="{{ sf.onNote }}" placeholder="주차 안내, 준비물 등" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none; resize:vertical; line-height:1.5;" style-focus="border-color:#113C98;"></textarea></label>
+          </div>
+          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:15px; font-weight:800;">지도 미리보기</div>
+            <div id="schedMap" data-address="{{ sf.address }}" data-venue="{{ sf.venue }}" style="height:340px; border-radius:10px; overflow:hidden; background:{{ sf.mapBg }}; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:16px; text-align:center;">
+              <sc-if value="{{ sf.hasMap }}" hint-placeholder-val="{{ true }}">
+                <div style="width:18px; height:18px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); background:#F0D281; border:3px solid #FFFFFF;"></div>
+                <div style="font-size:14px; font-weight:800; color:#FFFFFF;">{{ sf.venueOrAddr }}</div>
+                <div style="font-size:12px; color:#9FB4E4;">지도에서 위치를 찾고 있어요</div>
+              </sc-if>
+              <sc-if value="{{ sf.noMap }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px; font-weight:600; color:#8A8577;">주소를 입력하면 지도에 위치가 표시돼요</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ sf.isEdit }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; justify-content:flex-end; margin-top:24px; padding-top:18px; border-top:1px solid #E7E4DB;">
+            <div onClick="{{ deleteSchedule }}" style="min-height:40px; padding:0 16px; display:flex; align-items:center; border-radius:10px; font-size:13.5px; font-weight:800; color:#C0392B; cursor:pointer;" style-hover="background:#FBE9E9;">이 일정 삭제</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vPlayers }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="선수" style="padding-top:28px;">
+        <div style="display:flex; align-items:flex-end; gap:12px; margin-bottom:18px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px;">
+            <div style="font-size:26px; font-weight:800;">선수</div>
+            <div style="font-size:13px; color:#6B675C; margin-top:4px;">{{ playerSummary }}</div>
+          </div>
+          <input value="{{ pq }}" onInput="{{ onPq }}" data-search="players" placeholder="이름 또는 초성 검색" style="width:260px; padding:10px 14px; border-radius:10px; border:1.5px solid #E7E4DB; background:#FFFFFF; font-size:15px; outline:none;" style-focus="border-color:#113C98;">
+          <div onClick="{{ openSheet }}" style="min-height:42px; padding:0 18px; display:flex; align-items:center; border-radius:10px; background:#113C98; color:#FFFFFF; font-size:14px; font-weight:800; cursor:pointer;" style-hover="background:#0C53C2;">+ 선수 추가</div>
+        </div>
+        <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; overflow:hidden;">
+          <div style="display:grid; grid-template-columns:76px minmax(160px,1fr) 96px 96px; align-items:center; gap:12px; padding:11px 20px; background:#F3F1EA; font-size:12px; font-weight:800; color:#6B675C;">
+            <span>번호</span><span>이름</span><span style="text-align:center;">활성</span><span style="text-align:center;">용병 담당</span>
+          </div>
+          <sc-for list="{{ playerRows }}" as="r" hint-placeholder-count="10">
+            <div data-pnm="{{ r.name }}" style="display:{{ r.disp }}; grid-template-columns:76px minmax(160px,1fr) 96px 96px; align-items:center; gap:12px; padding:7px 20px; border-top:1px solid #F0EEE7; background:{{ r.rowBg }};" style-hover="background:#FAF9F6;">
+              <input value="{{ r.num }}" inputmode="numeric" onChange="{{ r.onNum }}" onBlur="{{ r.onBlur }}" style="width:64px; padding:7px 4px; border-radius:8px; border:1.5px solid #E7E4DB; background:#FFFFFF; font-family:'Oswald','Pretendard'; font-size:16px; font-weight:600; color:#113C98; text-align:center; outline:none;" style-focus="border-color:#113C98;">
+              <div style="min-width:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;"><input value="{{ r.name }}" onChange="{{ r.onName }}" onBlur="{{ r.onBlur }}" style="flex:1 1 140px; min-width:0; max-width:280px; padding:7px 8px; border-radius:8px; border:1.5px solid transparent; background:transparent; font-size:15px; font-weight:700; color:{{ r.nameColor }}; outline:none;" style-hover="border-color:#E7E4DB;" style-focus="border-color:#113C98; background:#FFFFFF;">
+              <sc-if value="{{ r.hasMsg }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px; font-weight:800; color:{{ r.msgColor }}; white-space:nowrap;">{{ r.msg }}</span></sc-if></div>
+              <div onClick="{{ r.onActive }}" role="switch" style="display:flex; justify-content:center; padding:6px 0; cursor:pointer;"><div style="width:44px; height:26px; border-radius:13px; background:{{ r.aBg }}; position:relative; transition:background .15s; flex-shrink:0;"><div style="position:absolute; top:3px; left:{{ r.aKnob }}; width:20px; height:20px; border-radius:50%; background:#FFFFFF; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .15s;"></div></div></div>
+              <div onClick="{{ r.onMgr }}" role="switch" style="display:flex; justify-content:center; padding:6px 0; cursor:pointer;"><div style="width:44px; height:26px; border-radius:13px; background:{{ r.mBg }}; position:relative; transition:background .15s; flex-shrink:0;"><div style="position:absolute; top:3px; left:{{ r.mKnob }}; width:20px; height:20px; border-radius:50%; background:#FFFFFF; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .15s;"></div></div></div>
+            </div>
+          </sc-for>
+          <div id="playerNoHit" style="display:{{ noPlayerHitDisp }}; font-size:13px; color:#8A8577; text-align:center; padding:24px 0; border-top:1px solid #F0EEE7;">검색 결과가 없어요</div>
+        </div>
+        <div style="font-size:12.5px; color:#6B675C; margin-top:12px; line-height:1.5;">스위치와 번호·이름은 바꾸는 즉시 저장돼요. 용병 담당자만 참석 투표에서 용병 인원을 추가할 수 있어요.</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vSettings }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="설정" style="padding-top:28px;">
+        <div style="font-size:26px; font-weight:800; margin-bottom:18px;">설정</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:20px; align-items:start;">
+          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; overflow:hidden;">
+            <div style="padding:18px 20px 14px;">
+              <div style="font-size:15px; font-weight:800;">시즌 MVP 공개</div>
+              <div style="font-size:12.5px; color:#6B675C; margin-top:3px;">끄면 메인 사이트에서 해당 시즌 MVP 이름이 가려져요.</div>
+            </div>
+            <sc-for list="{{ seasonRows }}" as="r" hint-placeholder-count="6">
+              <div onClick="{{ r.onClick }}" style="display:flex; align-items:center; gap:12px; padding:10px 20px; border-top:1px solid #F0EEE7; cursor:pointer; min-height:52px;" style-hover="background:#FAF9F6;">
+                <span style="font-family:'Oswald','Pretendard'; font-size:18px; font-weight:700; color:#113C98;">{{ r.season }}</span>
+                <span style="flex:1; font-size:13px; font-weight:700; color:{{ r.stColor }};">{{ r.st }}</span>
+                <sc-if value="{{ r.hasMsg }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:12px; font-weight:800; color:{{ r.msgColor }};">{{ r.msg }}</span>
+                </sc-if>
+                <div style="width:44px; height:26px; border-radius:13px; background:{{ r.bg }}; position:relative; transition:background .15s; flex-shrink:0;"><div style="position:absolute; top:3px; left:{{ r.knob }}; width:20px; height:20px; border-radius:50%; background:#FFFFFF; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .15s;"></div></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:18px 20px; display:flex; align-items:center; gap:12px;">
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:15px; font-weight:800;">계정</div>
+              <div style="font-size:12.5px; color:#6B675C; margin-top:3px;">{{ accountLabel }}</div>
+            </div>
+            <div onClick="{{ logout }}" style="min-height:40px; padding:0 18px; display:flex; align-items:center; border-radius:10px; border:1.5px solid #E7E4DB; font-size:14px; font-weight:800; color:#C0392B; cursor:pointer;" style-hover="background:#FBE9E9;">로그아웃</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+   </div>
+  </div>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="선수 추가" onClick="{{ closeSheet }}" style="position:fixed; inset:0; z-index:200; background:rgba(17,30,60,.45); display:flex; align-items:center; justify-content:center; padding:24px;">
+      <div onClick="{{ stop }}" style="width:100%; max-width:440px; background:#FFFFFF; border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-shadow:0 12px 36px rgba(17,30,60,.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:17px; font-weight:800;">선수 추가</div>
+          <div onClick="{{ closeSheet }}" style="width:30px; height:30px; border-radius:50%; background:#F3F1EA; color:#6B675C; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; cursor:pointer;">&times;</div>
+        </div>
+        <div style="display:grid; grid-template-columns:96px minmax(0,1fr); gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">등번호<input value="{{ newNum }}" onChange="{{ onNewNum }}" inputmode="numeric" placeholder="14" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:700; color:#6B675C;">이름<input value="{{ newName }}" onChange="{{ onNewName }}" placeholder="예: 이정호" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:15px; color:#1A1A1A; outline:none;" style-focus="border-color:#113C98;"></label>
+        </div>
+        <sc-if value="{{ hasSheetErr }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px; font-weight:700; color:#C0392B; background:#FBE9E9; border-radius:10px; padding:10px 12px;">{{ sheetErr }}</div>
+        </sc-if>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <div onClick="{{ closeSheet }}" style="min-height:44px; padding:0 18px; display:flex; align-items:center; border-radius:10px; border:1.5px solid #E7E4DB; font-size:14px; font-weight:800; color:#6B675C; cursor:pointer;">취소</div>
+          <div onClick="{{ addPlayer }}" style="min-height:44px; min-width:110px; padding:0 20px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:{{ sheetBtnBg }}; color:#FFFFFF; font-size:14.5px; font-weight:800; cursor:pointer; opacity:{{ sheetBtnOp }};">{{ sheetBtnLabel }}</div>
+        </div>
       </div>
     </div>
   </sc-if>

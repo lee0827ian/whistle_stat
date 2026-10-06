@@ -65,6 +65,7 @@ const SB_KEY = 'sb_publishable_tHW4O3rv3B0hk1p-v4s7gg_MLc2BeN4';
 const ADMIN_EMAIL = 'whistle@naver.com';
 const KAKAO_KEY = '47eed652b004605d8a8e3e39df268f24';
 const RT_KEY = 'whistle_admin_rt';
+const VIEW_KEY = 'whistle_admin_view';   // 'pc' | 'mobile'
 const REGION_SEP = ' | ';   // 경기 장소는 지금처럼 '지역 | 장소' 한 칸으로 저장
 const REGIONS = ['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구',
   '고양시','광명시','구리시','군포시','김포시','남양주시','부천시','성남시','수원시','시흥시','안양시','양주시','양평군','용인시','의왕시','의정부시','파주시','평택시','하남시'];
@@ -128,8 +129,23 @@ class AdminApp {
   }
   pathTo(el) { const p = []; while (el && el !== this.root) { p.unshift([...el.parentNode.children].indexOf(el)); el = el.parentNode; } return p; }
   nodeAt(p) { let el = this.root; for (const i of p) { el = el && el.children[i]; } return el; }
-  mount(root, tpl) {
-    this.root = root; this.template = tpl.content;
+  // 화면 종류: 저장한 선택(whistle_admin_view)이 있으면 그것, 없으면 화면 폭 768px 이상이면 PC
+  pickView() {
+    let pref = null; try { pref = localStorage.getItem(VIEW_KEY); } catch (e) {}
+    return pref || (window.screen.width >= 768 ? 'pc' : 'mobile');
+  }
+  switchView(v, e) {
+    if (e) e.preventDefault();
+    try { localStorage.setItem(VIEW_KEY, v); } catch (err) {}
+    this.viewKind = v;
+    this.template = (v === 'pc' ? this.tplPc : this.tplM).content;
+    window.scrollTo(0, 0);
+    this.render();
+  }
+  mount(root, tpl, tplPc) {
+    this.root = root; this.tplM = tpl; this.tplPc = tplPc || tpl;
+    this.viewKind = tplPc ? this.pickView() : 'mobile';
+    this.template = (this.viewKind === 'pc' ? this.tplPc : this.tplM).content;
     document.addEventListener('compositionstart', () => { this._composing = true; });
     document.addEventListener('compositionend', () => { this._composing = false; if (this._dirtyRender) { this._dirtyRender = false; setTimeout(() => this.render(), 0); } });
     const dl = document.getElementById('regionOptions');
@@ -567,7 +583,8 @@ class AdminApp {
     const pending = past.filter(r => r.kind === 'pending').length;
     const tabs = [['games', '경기'], ['players', '선수'], ['settings', '설정']].map(([k, l]) => ({
       label: l, badge: k === 'games' && pending ? pending : 0, hasBadge: k === 'games' && pending > 0,
-      onClick: () => this.setState({ tab: k, view: null, q: '', pq: '' }), color: s.tab === k ? '#113C98' : '#8A8577', bd: s.tab === k ? '#113C98' : 'transparent'
+      onClick: () => this.setState({ tab: k, view: null, q: '', pq: '' }), color: s.tab === k ? '#113C98' : '#8A8577', bd: s.tab === k ? '#113C98' : 'transparent',
+      sbg: s.tab === k ? '#0C2E78' : 'transparent', sfg: s.tab === k ? '#F0D281' : '#CBD8F5'
     }));
     const ready = !s.loggedOut && !s.booting;
     const inList = ready && !s.view;
@@ -626,7 +643,7 @@ class AdminApp {
       const sum = f.goals.reduce((a, g) => a + (g.pid ? g.n : 0), 0);
       const sumOk = sum === f.our;
       mf = {
-        ...f, dateLabel: f.date ? fmtLong(f.date) : '날짜 미입력', lineupCount: inLine.length, canDelete: !!f.id, canCancel: !f.id && !!f.schedId,
+        ...f, dateLabel: f.date ? fmtLong(f.date) : '날짜 미입력', lineupCount: inLine.length, canDelete: !!f.id, canCancel: !f.id && !!f.schedId, hasFooter: !!f.id || !!f.schedId,
         hasPre: !!f.pre, preNote: f.pre ? '참석 응답한 ' + f.pre + '명을 미리 체크했어요. 안 온 사람은 눌러서 빼주세요.' : '',
         mercHint: f.merc ? '출전 ' + inLine.length + '명 + 용병 ' + f.merc + '명' : '팀원 외 참가 인원',
         sumLabel: '득점 합계 ' + sum + ' / 우리 점수 ' + f.our, sumColor: sumOk ? '#15803D' : '#A5841B',
@@ -728,6 +745,8 @@ class AdminApp {
       vGames: inList && s.tab === 'games', vPlayers: inList && s.tab === 'players', vSettings: inList && s.tab === 'settings',
       vMatch: ready && s.view === 'match', vSchedule: ready && s.view === 'schedule',
       showNav: inList, showSaveBar: ready && !!s.view, tabs,
+      showSide: !s.loggedOut, mainOffset: s.loggedOut ? '0px' : '232px',
+      goPC: e => this.switchView('pc', e), goMobile: e => this.switchView('mobile', e),
       hasNext: !!next, noNext: !next && !s.booting, next: next || {}, pendingCount: pending, hasPending: pending > 0, pastRows,
       newSchedule: () => this.openSchedule(false), editSchedule: () => this.openSchedule(true), deleteSchedule: () => this.deleteSchedule(),
       laterRows, hasLater: inList && laterRows.length > 0, cancelSchedule: () => this.deleteSchedule(s.form && s.form.schedId),
@@ -755,6 +774,6 @@ class AdminApp {
 AdminApp.prototype.editS = function (patch) { this.setState(s => ({ sched: { ...s.sched, ...patch }, dirty: true, save: s.save === 'saving' ? 'saving' : 'idle' })); };
 
 const adminApp = new AdminApp();
-adminApp.mount(document.getElementById('app'), document.getElementById('dc-template'));
+adminApp.mount(document.getElementById('app'), document.getElementById('dc-template'), document.getElementById('dc-template-pc'));
 window.adminApp = adminApp;
 void isTyping;

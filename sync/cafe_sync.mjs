@@ -214,7 +214,11 @@ async function main() {
 
   // 일정
   const sched = parseSchedules(sHtml).filter(s => s.date >= today);
-  const dbSched = await db(`schedules?date=gte.${today}&select=id,date,time,opponent,venue&order=date.asc`);
+  const dbSched = await db(`schedules?date=gte.${today}&select=id,date,time,opponent,venue,address&order=date.asc`);
+  // 주소: 카페 메모엔 주소가 없으므로, 예전에 같은 구장으로 등록한 일정의 주소(가장 최근 것)를 가져다 씀
+  const pastAddr = {};
+  (await db('schedules?select=venue,address,date&address=not.is.null&order=date.asc')).forEach(x => { if ((x.address || '').trim()) pastAddr[norm(x.venue)] = x.address.trim(); });
+  const addrOf = venue => pastAddr[norm(venue)] || null;
   const known = [...new Set([...venues.map(v => v.venue), ...matches.map(m => (m.venue || '').split(' | ').pop())])].filter(Boolean).sort((a, b) => b.length - a.length);
   const splitRest = rest => {
     const v = known.find(v => rest.endsWith(v) && rest.length > v.length);
@@ -229,11 +233,22 @@ async function main() {
     const d = dbSched.find(x => x.date === s.date);
     const label = `${s.date} ${s.time} ${s.rest}`;
     if (!sp) { sRows.push(`확인 필요 · ${label} — 상대와 구장을 나누지 못함(반영 안 함)`); continue; }
-    if (!d) { sRows.push(`새로 등록 · ${label} → 상대 "${sp.opp}", 구장 "${sp.venue}"${sp.guess ? ' (띄어쓰기로 추정)' : ''}`); sPlans.push({ s, sp, label }); continue; }
+    if (!d) {
+      const address = addrOf(sp.venue);
+      sRows.push(`새로 등록 · ${label} → 상대 "${sp.opp}", 구장 "${sp.venue}"${sp.guess ? ' (띄어쓰기로 추정)' : ''} · 주소 ${address ? '"' + address + '"(예전 일정에서)' : '없음(관리자에서 입력)'}`);
+      sPlans.push({ s, sp, label, address }); continue;
+    }
     const diff = [], fields = {};
     if ((d.time || '').slice(0, 5) !== s.time) { diff.push(`시간 ${(d.time || '없음').slice(0, 5)} → ${s.time}`); fields.time = s.time; }
     if (norm(d.opponent) !== norm(sp.opp)) { diff.push(`상대 "${d.opponent}" → "${sp.opp}"`); fields.opponent = sp.opp; }
-    if (norm(d.venue) !== norm(sp.venue)) { diff.push(`구장 "${d.venue}" → "${sp.venue}"`); fields.venue = sp.venue; }
+    if (norm(d.venue) !== norm(sp.venue)) {
+      // 구장이 바뀌면 원래 주소는 맞지 않으므로 예전 일정의 주소로 바꾸고, 없으면 비움
+      diff.push(`구장 "${d.venue}" → "${sp.venue}"`); fields.venue = sp.venue; fields.address = addrOf(sp.venue);
+      diff.push(`주소 → ${fields.address ? '"' + fields.address + '"' : '비움'}`);
+    } else if (!(d.address || '').trim() && addrOf(sp.venue)) {
+      // 주소가 비어 있는 일정은 예전 주소로 채움(관리자에서 넣은 주소는 건드리지 않음)
+      fields.address = addrOf(sp.venue); diff.push(`주소 채움 "${fields.address}"`);
+    }
     if (diff.length) { sRows.push(`수정 · ${label} — ${diff.join(' · ')}`); sPlans.push({ s, sp, label, id: d.id, fields }); }
     else sRows.push(`같음 · ${label}`);
   }
@@ -275,7 +290,7 @@ async function main() {
     for (const p of sPlans) {
       try {
         if (p.id) await w('PATCH', `schedules?id=eq.${p.id}`, p.fields, true);
-        else await w('POST', 'schedules', { season: +p.s.date.slice(0, 4), date: p.s.date, time: p.s.time, opponent: p.sp.opp, venue: p.sp.venue }, true);
+        else await w('POST', 'schedules', { season: +p.s.date.slice(0, 4), date: p.s.date, time: p.s.time, opponent: p.sp.opp, venue: p.sp.venue, address: p.address }, true);
         done.push('일정 ' + p.label);
       } catch (e) { failed.push(`일정 ${p.label} — ${e.message}`); }
     }
