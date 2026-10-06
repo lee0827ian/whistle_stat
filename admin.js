@@ -304,7 +304,7 @@ class AdminApp {
       const lineup = {}; attend.forEach(i => { lineup[i] = true; });
       this.setState({ view: 'match', dirty: false, save: 'idle', toast: null, form: {
         id: null, date: x.date, opp: x.opponent || '', our: 0, their: 0, merc: guests, region, venue: x.venue || '',
-        lineup, goals: [], mvp: null, pre: attend.length, isNew: true, schedId: x.id
+        lineup, goals: [], mvps: [], mvpRaw: [], pre: attend.length, isNew: true, schedId: x.id
       } });
     } else {
       const m = row.match;
@@ -319,12 +319,13 @@ class AdminApp {
       const lineup = {}; lu.filter(l => !l.is_mercenary && l.player_id).forEach(l => { lineup[l.player_id] = true; });
       const counts = new Map();
       gl.forEach(g => { const k = g.goal_type === 'own_goal' ? 'og' : g.player_id ? String(g.player_id) : 'merc'; counts.set(k, (counts.get(k) || 0) + 1); });
-      const mvRow = mv[0];
-      const mvp = mvRow ? (mvRow.player_id || (this.state.players.find(p => p.name === mvRow.raw_name) || {}).id || null) : null;
+      // MVP는 여러 명일 수 있음(공동 MVP). 선수와 연결되지 않은 이름은 그대로 보존해 다시 저장
+      const mvps = [], mvpRaw = [];
+      mv.forEach(r => { const id = r.player_id || (this.state.players.find(p => p.name === r.raw_name) || {}).id; if (id) { if (!mvps.includes(id)) mvps.push(id); } else if (r.raw_name) mvpRaw.push(r.raw_name); });
       const { region, venue } = splitVenue(m.venue);
       this.setState({ view: 'match', dirty: false, save: 'idle', toast: null, form: {
         id: m.id, date: m.date, opp: m.opponent, our: m.our_score ?? 0, their: m.opp_score ?? 0, merc: lu.filter(l => l.is_mercenary).length,
-        region, venue, lineup, goals: [...counts].map(([pid, n]) => ({ pid, n })), mvp, pre: 0, isNew: false
+        region, venue, lineup, goals: [...counts].map(([pid, n]) => ({ pid, n })), mvps, mvpRaw, pre: 0, isNew: false
       } });
     }
     window.scrollTo(0, 0);
@@ -412,8 +413,9 @@ class AdminApp {
       }
     });
     if (goals.length) await this.api('POST', 'match_goals', goals, 'return=minimal');
-    const mvp = f.mvp && this.state.players.find(p => p.id === f.mvp);
-    if (mvp) await this.api('POST', 'match_mvps', [{ match_id: id, player_id: mvp.id, raw_name: mvp.name }], 'return=minimal');
+    const mvpRows = [...f.mvps.map(pid => this.state.players.find(p => p.id === pid)).filter(Boolean).map(p => ({ match_id: id, player_id: p.id, raw_name: p.name })),
+      ...(f.mvpRaw || []).map(n => ({ match_id: id, player_id: null, raw_name: n }))];
+    if (mvpRows.length) await this.api('POST', 'match_mvps', mvpRows, 'return=minimal');
     const fresh = await this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score&order=date.desc,id.desc&limit=120');
     this.setState({ matches: fresh, form: { ...this.state.form, id, isNew: false } });
     this.toast('ok', '경기 기록을 저장했어요', 'vs ' + f.opp.trim() + ' ' + f.our + ' : ' + f.their + ' · 메인 사이트에 바로 반영돼요.');
@@ -639,7 +641,7 @@ class AdminApp {
         const on = !!f.lineup[p.id], def = isDef(p);
         return { name: p.name, num: p.num, def: def ? '1' : '0', disp: (s.q ? matchName(p.name, s.q) : def) ? 'flex' : 'none', weight: on ? 800 : 600,
           bg: on ? '#113C98' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1A1A1A', bd: on ? '#113C98' : '#E7E4DB', numFg: on ? '#F0D281' : '#8A8577',
-          onClick: () => this.editF({ lineup: { ...f.lineup, [p.id]: !on }, mvp: on && f.mvp === p.id ? null : f.mvp }) };
+          onClick: () => this.editF({ lineup: { ...f.lineup, [p.id]: !on }, mvps: on ? f.mvps.filter(x => x !== p.id) : f.mvps }) };
       });
       noLineupHit = !!s.q && !visible.some(p => matchName(p.name, s.q));
       goalOpts = [{ v: '', l: '득점자 선택' }, ...inLine.map(p => ({ v: String(p.id), l: (p.num ? p.num + ' ' : '') + p.name })), { v: 'merc', l: '용병' }, { v: 'og', l: '상대 자책골' }];
@@ -652,8 +654,8 @@ class AdminApp {
         remove: () => setGoals(f.goals.filter((_, j) => j !== i))
       }));
       mvpChips = inLine.map(p => {
-        const on = f.mvp === p.id;
-        return { name: p.name, mark: on ? '★ ' : '', bg: on ? '#F0D281' : '#FFFFFF', fg: on ? '#113C98' : '#1A1A1A', bd: on ? '#F0D281' : '#E7E4DB', onClick: () => this.editF({ mvp: on ? null : p.id }) };
+        const on = f.mvps.includes(p.id);
+        return { name: p.name, mark: on ? '★ ' : '', bg: on ? '#F0D281' : '#FFFFFF', fg: on ? '#113C98' : '#1A1A1A', bd: on ? '#F0D281' : '#E7E4DB', onClick: () => this.editF({ mvps: on ? f.mvps.filter(x => x !== p.id) : [...f.mvps, p.id] }) };
       });
       mvpEmpty = !inLine.length;
     }

@@ -1,0 +1,20 @@
+# 다음카페 기록 글 → 사이트 DB 비교. 지금은 미리 보기 전용(DB에 쓰지 않음): 결과는 실행 화면의 Summary에 표로 나온다.
+name: Cafe sync (preview)
+
+on:
+  workflow_dispatch:         # Actions 탭에서 직접 실행
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 카페 읽기 → DB 비교
+        run: node sync/cafe_sync.mjs
