@@ -358,10 +358,27 @@ class AdminApp {
       if (!f.date || !f.opp.trim()) { this.setState({ sched: { ...f, tried: true } }); this.toast('err', '날짜와 상대팀을 입력해주세요', '빨간 칸을 채운 뒤 다시 저장해주세요.'); return; }
     }
     if (s.view === 'match' && (!s.form.date || !s.form.opp.trim())) { this.toast('err', '날짜와 상대팀을 입력해주세요'); return; }
+    if (s.view === 'match') {
+      // 득점자 합계와 우리 점수가 다르면 저장 전에 알림(득점자를 모르는 경우도 있어 확인 후 저장은 허용)
+      const f = s.form, sum = f.goals.reduce((a, g) => a + (g.pid ? g.n : 0), 0);
+      const blank = f.goals.some(g => !g.pid);
+      if (sum !== f.our || blank) {
+        const msg = (sum !== f.our ? '득점자 합계(' + sum + '골)와 우리 점수(' + f.our + '점)가 일치하지 않아요.' : '')
+          + (blank ? (sum !== f.our ? '\n' : '') + '득점자를 고르지 않은 줄이 있어요(저장되지 않아요).' : '')
+          + '\n\n그래도 저장할까요?';
+        if (!window.confirm(msg)) return;
+      }
+    }
     this.setState({ save: 'saving', toast: null });
     try {
-      if (s.view === 'match') await this.saveMatch(s.form);
-      else await this.saveSchedule(s.sched);
+      if (s.view === 'match') {
+        await this.saveMatch(s.form);
+        // 경기 기록은 저장하면 관리자 첫 화면(경기 목록)으로
+        this.setState({ view: null, form: null, save: 'idle', dirty: false, savedAt: nowHM() });
+        window.scrollTo(0, 0);
+        return;
+      }
+      await this.saveSchedule(s.sched);
       this.setState({ save: 'ok', dirty: false, savedAt: nowHM() });
     } catch (e) {
       if (e.auth) return;
