@@ -252,13 +252,17 @@ class AdminApp {
         this.api('GET', 'rsvp_managers?select=player_id'),
         this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note&order=date.asc'),
         this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score&order=date.desc,id.desc&limit=120'),
-        this.apiAll(`match_lineups?select=player_id,matches!inner(season)&matches.season=gte.${year - 2}&player_id=not.is.null&order=id.asc`)
+        this.apiAll(`match_lineups?select=player_id,matches!inner(season,date)&matches.season=gte.${year - 2}&player_id=not.is.null&order=id.asc`)
       ]);
-      const apps3 = {};
-      apps.forEach(l => { apps3[l.player_id] = (apps3[l.player_id] || 0) + 1; });
+      const apps3 = {}, recent = {};
+      const since2y = String(year - 2) + localDate().slice(4);   // 오늘로부터 2년 전
+      apps.forEach(l => {
+        apps3[l.player_id] = (apps3[l.player_id] || 0) + 1;
+        if (l.matches && l.matches.date >= since2y) recent[l.player_id] = true;
+      });
       const mgrSet = new Set(mgrs.map(m => m.player_id));
       this.setState({
-        players: players.map(p => ({ id: p.id, num: p.number == null ? '' : String(p.number), name: p.name, active: p.active !== false, mgr: mgrSet.has(p.id), apps3: apps3[p.id] || 0 })),
+        players: players.map(p => ({ id: p.id, num: p.number == null ? '' : String(p.number), name: p.name, active: p.active !== false, mgr: mgrSet.has(p.id), apps3: apps3[p.id] || 0, recent: !!recent[p.id] })),
         schedules, matches
       });
       this.loadNext();
@@ -463,7 +467,7 @@ class AdminApp {
     this.setState({ sheetBusy: true, sheetErr: '', newNum: num, newName: name });
     try {
       const r = await this.apiOne('POST', 'players', { name, number: num ? Number(num) : null, active: true });
-      this.setState(st => ({ players: [...st.players, { id: r.id, num: num.trim(), name, active: true, mgr: false, apps3: 0 }], sheet: false, sheetBusy: false, newNum: '', newName: '', rowMsg: { ...st.rowMsg, [r.id]: 'ok' } }));
+      this.setState(st => ({ players: [...st.players, { id: r.id, num: num.trim(), name, active: true, mgr: false, apps3: 0, recent: true }], sheet: false, sheetBusy: false, newNum: '', newName: '', rowMsg: { ...st.rowMsg, [r.id]: 'ok' } }));
       this.toast('ok', name + ' 선수를 추가했어요');
       setTimeout(() => this.setState(st => ({ rowMsg: { ...st.rowMsg, [r.id]: null } })), 2200);
     } catch (e) { if (!e.auth) this.setState({ sheetBusy: false, sheetErr: '저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러주세요.' }); else this.setState({ sheetBusy: false }); }
@@ -492,8 +496,10 @@ class AdminApp {
   filterDom(kind, q) {
     let shown = 0;
     if (kind === 'lineup') {
-      document.querySelectorAll('[data-nm]').forEach(el => { const on = matchName(el.dataset.nm, q); el.style.display = on ? 'flex' : 'none'; if (on) shown++; });
+      // 검색어가 없으면 기본 표시(최근 2년 출전·체크됨)만, 검색하면 전체 선수에서 찾음
+      document.querySelectorAll('[data-nm]').forEach(el => { const on = q ? matchName(el.dataset.nm, q) : el.dataset.def === '1'; el.style.display = on ? 'flex' : 'none'; if (on) shown++; });
       const nh = document.getElementById('lineupNoHit'); if (nh) nh.style.display = q && !shown ? 'block' : 'none';
+      const hn = document.getElementById('lineupHiddenNote'); if (hn) hn.style.display = !q && hn.textContent.trim() ? 'block' : 'none';
     } else {
       document.querySelectorAll('[data-pnm]').forEach(el => { const on = matchName(el.dataset.pnm, q); el.style.display = on ? 'grid' : 'none'; if (on) shown++; });
       const nh = document.getElementById('playerNoHit'); if (nh) nh.style.display = !shown ? 'block' : 'none';
@@ -594,7 +600,7 @@ class AdminApp {
       opp: x.opponent || '', dateLabel: fmtShort(x.date), time: (x.time || '').slice(0, 5), venue: x.venue || '구장 미정', onClick: () => this.openSchedule(x)
     }));
 
-    let mf = {}, lineupChips = [], goalRows = [], goalOpts = [], mvpChips = [], noLineupHit = false, mvpEmpty = false;
+    let hiddenCount = 0, mf = {}, lineupChips = [], goalRows = [], goalOpts = [], mvpChips = [], noLineupHit = false, mvpEmpty = false;
     if (s.view === 'match' && s.form) {
       const f = s.form;
       const inLine = P.filter(p => f.lineup[p.id]);
@@ -608,11 +614,13 @@ class AdminApp {
         onDate: e => this.editF({ date: e.target.value }), onOpp: e => this.typeF({ opp: e.target.value }),
         onRegion: e => this.typeF({ region: e.target.value }), onVenue: e => this.typeF({ venue: e.target.value })
       };
-      // 기본 명단 + 활성 선수 + 이미 체크된 선수(검색하면 전체에서 찾음)
-      const visible = P.filter(p => p.active || f.lineup[p.id]);
+      // 기본으로는 최근 2년 안에 출전한 활성 선수 + 이미 체크된 선수만. 나머지(오래 안 나온·비활성)는 검색하면 나옴
+      const isDef = p => (p.active && p.recent) || !!f.lineup[p.id];
+      const visible = P;
+      hiddenCount = P.filter(p => !isDef(p)).length;
       lineupChips = visible.map(p => {
-        const on = !!f.lineup[p.id];
-        return { name: p.name, num: p.num, disp: matchName(p.name, s.q) ? 'flex' : 'none', weight: on ? 800 : 600,
+        const on = !!f.lineup[p.id], def = isDef(p);
+        return { name: p.name, num: p.num, def: def ? '1' : '0', disp: (s.q ? matchName(p.name, s.q) : def) ? 'flex' : 'none', weight: on ? 800 : 600,
           bg: on ? '#113C98' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1A1A1A', bd: on ? '#113C98' : '#E7E4DB', numFg: on ? '#F0D281' : '#8A8577',
           onClick: () => this.editF({ lineup: { ...f.lineup, [p.id]: !on }, mvp: on && f.mvp === p.id ? null : f.mvp }) };
       });
@@ -705,7 +713,8 @@ class AdminApp {
       newSchedule: () => this.openSchedule(false), editSchedule: () => this.openSchedule(true), deleteSchedule: () => this.deleteSchedule(),
       laterRows, hasLater: inList && laterRows.length > 0, cancelSchedule: () => this.deleteSchedule(s.form && s.form.schedId),
       back: () => this.back(), save: () => this.save(),
-      mf, lineupChips, noLineupHitDisp: noLineupHit ? 'block' : 'none', goalRows, goalOpts, mvpChips, mvpEmpty, sf, sb,
+      mf, lineupChips, noLineupHitDisp: noLineupHit ? 'block' : 'none',
+      hiddenNote: hiddenCount ? '최근 2년 출전 기록이 없는 ' + hiddenCount + '명은 숨겼어요. 이름을 검색하면 나와요.' : '', hiddenNoteDisp: hiddenCount && !s.q ? 'block' : 'none', goalRows, goalOpts, mvpChips, mvpEmpty, sf, sb,
       q: s.q, onQ: e => { this.quiet({ q: e.target.value }); this.filterDom('lineup', e.target.value); },
       addGoal: () => this.editF({ goals: [...s.form.goals, { pid: '', n: 1 }] }),
       incOur: () => this.editF({ our: Math.min(30, s.form.our + 1) }), decOur: () => this.editF({ our: Math.max(0, s.form.our - 1) }),

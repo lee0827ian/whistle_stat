@@ -244,12 +244,13 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
           <input value="{{ q }}" onInput="{{ onQ }}" data-search="lineup" placeholder="이름 또는 초성 검색 (예: ㅇㅈㅎ)" style="width:100%; padding:11px 14px; border-radius:12px; border:1.5px solid #E7E4DB; background:#F6F5F1; font-size:16px; outline:none;" style-focus="border-color:#113C98;">
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:6px;">
             <sc-for list="{{ lineupChips }}" as="p" hint-placeholder-count="12">
-              <div data-nm="{{ p.name }}" onClick="{{ p.onClick }}" style="min-height:44px; display:{{ p.disp }}; align-items:center; gap:6px; padding:0 10px; border-radius:12px; cursor:pointer; font-size:14px; font-weight:{{ p.weight }}; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">
+              <div data-nm="{{ p.name }}" data-def="{{ p.def }}" onClick="{{ p.onClick }}" style="min-height:44px; display:{{ p.disp }}; align-items:center; gap:6px; padding:0 10px; border-radius:12px; cursor:pointer; font-size:14px; font-weight:{{ p.weight }}; background:{{ p.bg }}; color:{{ p.fg }}; border:1.5px solid {{ p.bd }};">
                 <span style="font-family:'Oswald','Pretendard'; font-size:12px; font-weight:600; min-width:16px; color:{{ p.numFg }};">{{ p.num }}</span>{{ p.name }}
               </div>
             </sc-for>
           </div>
           <div id="lineupNoHit" style="display:{{ noLineupHitDisp }}; font-size:13px; color:#8A8577; text-align:center; padding:8px 0;">검색 결과가 없어요</div>
+          <div id="lineupHiddenNote" style="display:{{ hiddenNoteDisp }}; font-size:12px; color:#8A8577; padding:8px 2px 0;">{{ hiddenNote }}</div>
         </div>
 
         <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px;">
