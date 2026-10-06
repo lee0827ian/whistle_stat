@@ -133,6 +133,24 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
           </div>
         </sc-if>
 
+        <sc-if value="{{ hasLater }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin:26px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">
+            <span style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700;">이후 일정</span>
+            <span style="font-size:12.5px; color:#8A8577;">눌러서 수정·삭제</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ laterRows }}" as="l" hint-placeholder-count="2">
+              <div onClick="{{ l.onClick }}" style="display:grid; grid-template-columns:minmax(0,1fr) 14px; align-items:center; gap:12px; background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:13px 14px 13px 16px; cursor:pointer;">
+                <div style="min-width:0;">
+                  <div style="font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">vs {{ l.opp }}</div>
+                  <div style="font-size:12px; color:#8A8577; margin-top:2px;">{{ l.dateLabel }} {{ l.time }} · {{ l.venue }}</div>
+                </div>
+                <span style="font-size:20px; color:#B0AB9D; font-weight:600;">›</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin:26px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">
           <span style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700;">지난 경기</span>
           <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ false }}">
@@ -272,6 +290,7 @@ input:focus, select:focus, textarea:focus { border-color: #113C98 !important; ou
           </sc-if>
         </div>
         <sc-if value="{{ mf.canDelete }}" hint-placeholder-val="{{ true }}"><div onClick="{{ deleteMatch }}" style="min-height:46px; display:flex; align-items:center; justify-content:center; border-radius:12px; border:1.5px solid #E7E4DB; background:#FFFFFF; font-size:14px; font-weight:800; color:#C0392B; cursor:pointer; margin-top:6px;">이 경기 기록 삭제</div></sc-if>
+        <sc-if value="{{ mf.canCancel }}" hint-placeholder-val="{{ false }}"><div onClick="{{ cancelSchedule }}" style="min-height:46px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border-radius:12px; border:1.5px solid #E7E4DB; background:#FFFFFF; cursor:pointer; margin-top:6px; padding:8px 12px;"><span style="font-size:14px; font-weight:800; color:#C0392B;">경기 안 함 (일정 삭제)</span><span style="font-size:12px; color:#8A8577;">취소된 경기면 일정을 지워 목록에서 없애요</span></div></sc-if>
       </div>
     </sc-if>
 

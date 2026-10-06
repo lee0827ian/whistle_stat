@@ -300,7 +300,7 @@ class AdminApp {
       const lineup = {}; attend.forEach(i => { lineup[i] = true; });
       this.setState({ view: 'match', dirty: false, save: 'idle', toast: null, form: {
         id: null, date: x.date, opp: x.opponent || '', our: 0, their: 0, merc: guests, region, venue: x.venue || '',
-        lineup, goals: [], mvp: null, pre: attend.length, isNew: true
+        lineup, goals: [], mvp: null, pre: attend.length, isNew: true, schedId: x.id
       } });
     } else {
       const m = row.match;
@@ -329,9 +329,10 @@ class AdminApp {
     try { const r = await this.api('GET', `venue_regions?venue=eq.${encodeURIComponent(venue)}&select=region&limit=1`); return (r[0] && r[0].region) || ''; }
     catch (e) { return ''; }
   }
+  // edit: false=새 일정, true=다음 경기, 일정 객체=그 일정(이후 일정 목록에서)
   openSchedule(edit) {
-    const n = this.state.next;
-    this.setState({ view: 'schedule', dirty: false, save: 'idle', toast: null, sched: edit && n
+    const n = edit && typeof edit === 'object' ? edit : edit ? this.state.next : null;
+    this.setState({ view: 'schedule', dirty: false, save: 'idle', toast: null, sched: n
       ? { id: n.id, date: n.date, time: (n.time || '').slice(0, 5), opp: n.opponent || '', venue: n.venue || '', address: n.address || '', note: n.note || '', isEdit: true, tried: false }
       : { id: null, date: '', time: '12:00', opp: '', venue: '', address: '', note: '', isEdit: false, tried: false } });
     window.scrollTo(0, 0);
@@ -405,13 +406,13 @@ class AdminApp {
     this.loadNext();
     this.toast('ok', f.isEdit ? '일정을 수정했어요' : '일정을 등록했어요', '메인 사이트 참석 투표에 바로 반영돼요.');
   }
-  async deleteSchedule() {
+  async deleteSchedule(schedId) {
     if (!window.confirm('이 일정을 삭제할까요? 참석 응답도 함께 지워져요.')) return;
-    const id = this.state.sched && this.state.sched.id;
+    const id = schedId || (this.state.sched && this.state.sched.id);
     try {
       await this.apiOne('DELETE', `schedules?id=eq.${id}`);
       const schedules = await this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note&order=date.asc');
-      this.setState({ schedules, view: null, sched: null, dirty: false, save: 'idle' });
+      this.setState({ schedules, view: null, sched: null, form: null, dirty: false, save: 'idle' });
       this.loadNext();
       this.toast('ok', '일정을 삭제했어요');
     } catch (e) { if (!e.auth) this.toast('err', '삭제하지 못했어요', '잠시 후 다시 시도해주세요.'); }
@@ -588,6 +589,11 @@ class AdminApp {
         resLabel: res ? res[0] : '', resBg: res ? res[1] : '', resColor: res ? res[2] : '', bd: needs ? '#F2C4C4' : 'transparent', onClick: () => this.openMatch(r) };
     });
 
+    // 다음 경기 뒤로 미리 등록해 둔 일정(눌러서 수정·삭제)
+    const laterRows = s.schedules.filter(x => !isPast(x) && (!s.next || x.id !== s.next.id)).map(x => ({
+      opp: x.opponent || '', dateLabel: fmtShort(x.date), time: (x.time || '').slice(0, 5), venue: x.venue || '구장 미정', onClick: () => this.openSchedule(x)
+    }));
+
     let mf = {}, lineupChips = [], goalRows = [], goalOpts = [], mvpChips = [], noLineupHit = false, mvpEmpty = false;
     if (s.view === 'match' && s.form) {
       const f = s.form;
@@ -595,7 +601,7 @@ class AdminApp {
       const sum = f.goals.reduce((a, g) => a + (g.pid ? g.n : 0), 0);
       const sumOk = sum === f.our;
       mf = {
-        ...f, dateLabel: f.date ? fmtLong(f.date) : '날짜 미입력', lineupCount: inLine.length, canDelete: !!f.id,
+        ...f, dateLabel: f.date ? fmtLong(f.date) : '날짜 미입력', lineupCount: inLine.length, canDelete: !!f.id, canCancel: !f.id && !!f.schedId,
         hasPre: !!f.pre, preNote: f.pre ? '참석 응답한 ' + f.pre + '명을 미리 체크했어요. 안 온 사람은 눌러서 빼주세요.' : '',
         mercHint: f.merc ? '출전 ' + inLine.length + '명 + 용병 ' + f.merc + '명' : '팀원 외 참가 인원',
         sumLabel: '득점 합계 ' + sum + ' / 우리 점수 ' + f.our, sumColor: sumOk ? '#15803D' : '#A5841B',
@@ -697,6 +703,7 @@ class AdminApp {
       showNav: inList, showSaveBar: ready && !!s.view, tabs,
       hasNext: !!next, noNext: !next && !s.booting, next: next || {}, pendingCount: pending, hasPending: pending > 0, pastRows,
       newSchedule: () => this.openSchedule(false), editSchedule: () => this.openSchedule(true), deleteSchedule: () => this.deleteSchedule(),
+      laterRows, hasLater: inList && laterRows.length > 0, cancelSchedule: () => this.deleteSchedule(s.form && s.form.schedId),
       back: () => this.back(), save: () => this.save(),
       mf, lineupChips, noLineupHitDisp: noLineupHit ? 'block' : 'none', goalRows, goalOpts, mvpChips, mvpEmpty, sf, sb,
       q: s.q, onQ: e => { this.quiet({ q: e.target.value }); this.filterDom('lineup', e.target.value); },
