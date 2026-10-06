@@ -1,14 +1,24 @@
-# 다음카페 기록 글 → 사이트 DB 비교. 지금은 미리 보기 전용(DB에 쓰지 않음): 결과는 실행 화면의 Summary에 표로 나온다.
-name: Cafe sync (preview)
+# 다음카페 기록 글·다음경기 메모 → 사이트 DB. 결과는 실행 화면의 Summary에 나온다.
+# 수동 실행 시 mode를 고른다: preview = 비교만(DB에 쓰지 않음), write = 바뀐 것만 반영(운영진 계정 비밀값 사용)
+name: Cafe sync
 
 on:
-  workflow_dispatch:         # Actions 탭에서 직접 실행
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'preview = 비교만 / write = 실제 반영'
+        type: choice
+        options: [preview, write]
+        default: preview
 
 permissions:
   contents: read
 
+concurrency:
+  group: cafe-sync          # 두 번 겹쳐 돌지 않게
+
 jobs:
-  preview:
+  sync:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -16,5 +26,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: 카페 읽기 → DB 비교
+      - name: 카페 읽기 → DB 비교/반영
+        env:
+          WRITE: ${{ inputs.mode == 'write' && '1' || '' }}
+          WHISTLE_ADMIN_EMAIL: ${{ inputs.mode == 'write' && secrets.WHISTLE_ADMIN_EMAIL || '' }}
+          WHISTLE_ADMIN_PIN: ${{ inputs.mode == 'write' && secrets.WHISTLE_ADMIN_PIN || '' }}
         run: node sync/cafe_sync.mjs
