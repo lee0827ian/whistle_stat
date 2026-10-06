@@ -81,7 +81,8 @@ const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<':
 const MIN_PLAYERS = 11;  // 경기 성립 최소 인원
 // 시상식 전까지 홈에서 시즌 MVP(배너의 시즌 MVP 줄 · 최다 MVP 카드)를 가릴 시즌. 공개하면 목록에서 뺀다.
 // 가릴 때는 실제 이름·횟수 대신 자리 표시 글자를 흐리게 그려서, 홈 화면에는 실제 값이 들어가지 않는다.
-const MVP_HIDDEN_SEASONS = [2026];
+// 운영진 관리 화면(설정 탭)에서 켜고 끈다(mvp_hidden_seasons 표). 표를 못 읽으면 아래 기본값을 쓴다.
+let MVP_HIDDEN_SEASONS = [2026];
 // ── 내비 연결(휴대폰) ──
 // T맵·네이버지도는 앱 주소로 연다. 안드로이드는 intent 주소라 앱이 없으면 스토어로 간다.
 // 아이폰은 앱 주소를 연 뒤 1.5초가 지나도 화면이 그대로면 앱이 없는 것으로 보고 스토어로 보낸다.
@@ -233,7 +234,11 @@ class WhistleApp {
 
   async loadSchedules() {
     try {
-      this._sched = await this.supa(`schedules?date=gte.${localDate()}&order=date.asc&select=id,date,time,opponent,venue,address,note`);
+      const rows = await this.supa(`schedules?date=gte.${localDate()}&order=date.asc&select=id,date,time,opponent,venue,address,note`);
+      // 킥오프 시간이 지난 오늘 경기는 빼고 다음 일정을 보여 준다(투표도 그 경기로 넘어감). 시간이 비어 있으면 그날 하루는 유지.
+      // 켜 둔 화면을 저절로 바꾸지는 않는다 — 새로고침하면 넘어감
+      const today = localDate(), t = new Date(), now = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+      this._sched = rows.filter(r => !(r.date === today && r.time && String(r.time).slice(0, 5) <= now));
     } catch (e) { this._sched = []; }
     this.setState({ tick: Date.now() });
     const s = this._sched[0];
@@ -345,6 +350,10 @@ class WhistleApp {
 
   componentDidMount() {
     this.loadSchedules();
+    this.supa('mvp_hidden_seasons?select=season').then(rows => {
+      MVP_HIDDEN_SEASONS = rows.map(r => Number(r.season));
+      this.setState({ tick: Date.now() });
+    }).catch(() => {});
     // 화면 폭이 640px 경계를 넘나들 때만 다시 그린다(모바일용 여백·헤더 전환)
     window.addEventListener('resize', () => { const m = window.innerWidth < 640; if (m !== this.state.isMobile) this.setState({ isMobile: m }); });
     setInterval(() => {
