@@ -263,12 +263,14 @@ class AdminApp {
   async loadAll() {
     try {
       const year = Number(localDate().slice(0, 4));
-      const [players, mgrs, schedules, matches, apps] = await Promise.all([
+      const [players, mgrs, schedules, matches, apps, ovr] = await Promise.all([
         this.apiAll('players?select=id,name,number,active&order=id.asc'),
         this.api('GET', 'rsvp_managers?select=player_id'),
         this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note&order=date.asc'),
         this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score&order=date.desc,id.desc&limit=120'),
-        this.apiAll(`match_lineups?select=player_id,matches!inner(season,date)&matches.season=gte.${year - 2}&player_id=not.is.null&order=id.asc`)
+        this.apiAll(`match_lineups?select=player_id,matches!inner(season,date)&matches.season=gte.${year - 2}&player_id=not.is.null&order=id.asc`),
+        // 참석 명단 직접 지정(rsvp_roster). 표가 아직 없으면(SQL 실행 전) 자동 기준만 씀
+        this.api('GET', 'rsvp_roster?select=player_id,show').catch(e => { if (e.auth) throw e; return null; })
       ]);
       const apps3 = {}, recent = {};
       const since2y = String(year - 2) + localDate().slice(4);   // 오늘로부터 2년 전
@@ -277,9 +279,15 @@ class AdminApp {
         if (l.matches && l.matches.date >= since2y) recent[l.player_id] = true;
       });
       const mgrSet = new Set(mgrs.map(m => m.player_id));
+      const ovrOf = {};
+      (ovr || []).forEach(o => { ovrOf[o.player_id] = o.show; });
       this.setState({
-        players: players.map(p => ({ id: p.id, num: p.number == null ? '' : String(p.number), name: p.name, active: p.active !== false, mgr: mgrSet.has(p.id), apps3: apps3[p.id] || 0, recent: !!recent[p.id] })),
-        schedules, matches
+        players: players.map(p => {
+          const auto = (apps3[p.id] || 0) >= 2;   // 자동 기준: 최근 3시즌 2경기 이상(메인 사이트와 같음)
+          const own = p.id in ovrOf ? ovrOf[p.id] : null;
+          return { id: p.id, num: p.number == null ? '' : String(p.number), name: p.name, active: p.active !== false, mgr: mgrSet.has(p.id), apps3: apps3[p.id] || 0, recent: !!recent[p.id], auto, own, roster: own == null ? auto : own };
+        }),
+        schedules, matches, rosterMissing: ovr === null
       });
       this.loadNext();
       this.loadMvpHidden();
@@ -477,6 +485,10 @@ class AdminApp {
       if ('mgr' in patch) {
         if (patch.mgr) await this.api('POST', 'rsvp_managers', [{ player_id: id }], 'return=representation');
         else await this.apiOne('DELETE', `rsvp_managers?player_id=eq.${id}`);
+      } else if ('roster' in patch) {
+        // 자동 기준과 같아지면 직접 지정을 지워 자동으로 되돌리고, 다르면 직접 지정으로 저장
+        if (patch.own == null) await this.apiOne('DELETE', `rsvp_roster?player_id=eq.${id}`);
+        else await this.api('POST', 'rsvp_roster', [{ player_id: id, show: patch.own }], 'resolution=merge-duplicates,return=representation');
       } else {
         const body = {};
         if ('num' in patch) body.number = patch.num === '' ? null : Number(patch.num);
@@ -502,7 +514,13 @@ class AdminApp {
     this.setState({ sheetBusy: true, sheetErr: '', newNum: num, newName: name });
     try {
       const r = await this.apiOne('POST', 'players', { name, number: num ? Number(num) : null, active: true });
-      this.setState(st => ({ players: [...st.players, { id: r.id, num: num.trim(), name, active: true, mgr: false, apps3: 0, recent: true }], sheet: false, sheetBusy: false, newNum: '', newName: '', rowMsg: { ...st.rowMsg, [r.id]: 'ok' } }));
+      // 새 선수는 출전 기록이 없어도 참석 명단에 바로 보이게 직접 지정(표가 없거나 실패하면 자동 기준대로 둠)
+      let own = null;
+      if (!s.rosterMissing) {
+        try { await this.api('POST', 'rsvp_roster', [{ player_id: r.id, show: true }], 'resolution=merge-duplicates,return=representation'); own = true; }
+        catch (e) { if (e.auth) throw e; }
+      }
+      this.setState(st => ({ players: [...st.players, { id: r.id, num: num.trim(), name, active: true, mgr: false, apps3: 0, recent: true, auto: false, own, roster: own === true }], sheet: false, sheetBusy: false, newNum: '', newName: '', rowMsg: { ...st.rowMsg, [r.id]: 'ok' } }));
       this.toast('ok', name + ' 선수를 추가했어요');
       setTimeout(() => this.setState(st => ({ rowMsg: { ...st.rowMsg, [r.id]: null } })), 2200);
     } catch (e) { if (!e.auth) this.setState({ sheetBusy: false, sheetErr: '저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러주세요.' }); else this.setState({ sheetBusy: false }); }
@@ -589,7 +607,7 @@ class AdminApp {
     const ready = !s.loggedOut && !s.booting;
     const inList = ready && !s.view;
 
-    // 다가오는 경기 · 참석 현황(메인 사이트와 같은 기본 명단 기준)
+    // 다가오는 경기 · 참석 현황(메인 사이트와 같은 참석 명단 기준: 자동 기준 + 관리자 직접 지정)
     let next = null;
     if (s.next) {
       const n = s.next, today = d(localDate()), diff = Math.round((d(n.date) - today) / 864e5);
@@ -600,14 +618,14 @@ class AdminApp {
       const guestRows = rs.filter(r => r.guests > 0);
       const guestN = guestRows.reduce((a, r) => a + r.guests, 0);
       const answered = new Set(rs.filter(r => r.status).map(r => r.player_id));
-      const base = P.filter(p => p.apps3 >= 2);
+      const base = P.filter(p => p.roster);
       const noAnswer = base.filter(p => !answered.has(p.id));
       const outside = [...answered].filter(id => !base.some(p => p.id === id)).length;
       const g = (label, list, color, bg, fg) => ({ label, names: list, color, bg, fg, empty: !list.length });
       next = {
         dday: diff === 0 ? 'D-DAY' : 'D-' + diff, dateShort: String(d(n.date).getMonth() + 1).padStart(2, '0') + '.' + String(d(n.date).getDate()).padStart(2, '0'),
         when: DOW[d(n.date).getDay()] + '요일 ' + ((n.time || '').slice(0, 5) || '시간 미정'), opp: n.opponent || '', venue: n.venue || '구장 미정', address: n.address || '',
-        sub: '총 ' + (attend.length + guestN) + '명 · 기본 명단 ' + base.length + '명' + (outside ? ' 외 ' + outside + '명' : '') + ' · 미응답 ' + noAnswer.length,
+        sub: '총 ' + (attend.length + guestN) + '명 · 참석 명단 ' + base.length + '명' + (outside ? ' 외 ' + outside + '명' : '') + ' · 미응답 ' + noAnswer.length,
         counts: [
           { label: '참석', n: attend.length, bg: '#E4F5EA', fg: '#15803D' },
           { label: '미정', n: maybe.length, bg: '#FAF3DC', fg: '#A5841B' },
@@ -703,11 +721,12 @@ class AdminApp {
     const shownCount = sorted.filter(p => matchName(p.name, s.pq)).length;
     const playerRows = sorted.map(p => {
       const m = MSG[s.rowMsg[p.id]] || ['', ''];
-      const a = sw(p.active), g = sw(p.mgr);
+      const a = sw(p.active), g = sw(p.mgr), rs = sw(p.roster);
       const orig = { num: p.num, name: p.name };
       return {
         num: p.num, name: p.name, disp: matchName(p.name, s.pq) ? 'grid' : 'none', nameColor: p.active ? '#1A1A1A' : '#8A8577', rowBg: s.rowMsg[p.id] === 'err' ? '#FDF3F3' : '#FFFFFF',
-        msg: m[0], hasMsg: !!m[0], msgColor: m[1], aBg: a.bg, aKnob: a.knob, mBg: g.bg, mKnob: g.knob,
+        msg: m[0], hasMsg: !!m[0], msgColor: m[1], aBg: a.bg, aKnob: a.knob, mBg: g.bg, mKnob: g.knob, rBg: rs.bg, rKnob: rs.knob,
+        rTag: p.own == null ? '자동' : '직접', rTagColor: p.own == null ? '#8A8577' : '#113C98',
         onNum: e => { this._orig = this._orig || {}; this._orig[p.id] = this._orig[p.id] || orig; const v = e.target.value.replace(/\D/g, ''); e.target.value = v; this.quiet({ players: this.state.players.map(x => x.id === p.id ? { ...x, num: v } : x) }); },
         onName: e => { this._orig = this._orig || {}; this._orig[p.id] = this._orig[p.id] || orig; const v = e.target.value; this.quiet({ players: this.state.players.map(x => x.id === p.id ? { ...x, name: v } : x) }); },
         onBlur: () => {
@@ -721,7 +740,12 @@ class AdminApp {
           if (cur.num !== o.num || cur.name !== o.name) this.playerWrite(p.id, { num: cur.num, name: cur.name.trim() }, o);
         },
         onActive: () => this.playerWrite(p.id, { active: !p.active }, { active: p.active }),
-        onMgr: () => this.playerWrite(p.id, { mgr: !p.mgr }, { mgr: p.mgr })
+        onMgr: () => this.playerWrite(p.id, { mgr: !p.mgr }, { mgr: p.mgr }),
+        onRoster: () => {
+          if (s.rosterMissing) { this.toast('err', '참석 명단 표가 아직 없어요', 'Supabase에서 admin_setup.sql을 먼저 실행해주세요.'); return; }
+          const v = !p.roster;
+          this.playerWrite(p.id, { roster: v, own: v === p.auto ? null : v }, { roster: p.roster, own: p.own });
+        }
       };
     });
 

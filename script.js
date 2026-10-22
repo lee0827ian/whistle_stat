@@ -258,17 +258,20 @@ class WhistleApp {
     try {
       if (first) {
         // 선수 전체(이름 검색 대상)와 기본 명단(화면에 먼저 보이는 사람).
-        // 기본 명단 = 최근 3시즌에 2번 이상 출전한 선수. 예: 2026년 경기면 2024~2026년 합계
+        // 기본 명단 = 최근 3시즌에 2번 이상 출전한 선수(예: 2026년 경기면 2024~2026년 합계)
+        //   + 운영진이 관리 화면 '참석 명단'에서 직접 켠 선수 − 직접 끈 선수(rsvp_roster)
         const since = Number(next.date.slice(0, 4)) - 2;
-        const [roster, mgr, played] = await Promise.all([
+        const [roster, mgr, played, own] = await Promise.all([
           this.supaAll('players?select=id,name,number&order=id.asc'),
           this.supa('rsvp_managers?select=player_id'),
-          this.supaAll(`match_lineups?select=player_id,matches!inner(season)&matches.season=gte.${since}&player_id=not.is.null&order=id.asc`)
+          this.supaAll(`match_lineups?select=player_id,matches!inner(season)&matches.season=gte.${since}&player_id=not.is.null&order=id.asc`),
+          this.supa('rsvp_roster?select=player_id,show').catch(() => [])   // 표가 아직 없으면 자동 기준만
         ]);
         this._roster = roster;
         const apps = {};
         played.forEach(l => { apps[l.player_id] = (apps[l.player_id] || 0) + 1; });
         this._core = new Set(Object.keys(apps).filter(id => apps[id] >= 2).map(Number));
+        (own || []).forEach(o => { if (o.show) this._core.add(o.player_id); else this._core.delete(o.player_id); });
         this._mgr = mgr.map(m => m.player_id);
       }
       const rows = await this.supa(`schedule_rsvps?schedule_id=eq.${next.id}&select=player_id,status,guests,updated_at`);

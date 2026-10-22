@@ -24,3 +24,22 @@ drop policy if exists mvp_hidden_delete on public.mvp_hidden_seasons;
 create policy mvp_hidden_read on public.mvp_hidden_seasons for select to anon, authenticated using (true);
 create policy mvp_hidden_insert on public.mvp_hidden_seasons for insert to authenticated with check (true);
 create policy mvp_hidden_delete on public.mvp_hidden_seasons for delete to authenticated using (true);
+
+-- 3) 참석 명단 직접 지정: 참석 투표 기본 명단 = 자동(최근 3시즌 2경기 이상 출전) + show=true − show=false
+--    자동 기준과 같은 값이면 행을 두지 않는다(관리 화면이 알아서 지움). 누구나 읽기, 운영진만 바꾸기.
+create table if not exists public.rsvp_roster (
+  player_id bigint primary key references public.players(id) on delete cascade,
+  show      boolean not null
+);
+
+alter table public.rsvp_roster enable row level security;
+grant select on public.rsvp_roster to anon, authenticated;
+grant insert, update, delete on public.rsvp_roster to authenticated;
+drop policy if exists rsvp_roster_read   on public.rsvp_roster;
+drop policy if exists rsvp_roster_insert on public.rsvp_roster;
+drop policy if exists rsvp_roster_update on public.rsvp_roster;
+drop policy if exists rsvp_roster_delete on public.rsvp_roster;
+create policy rsvp_roster_read   on public.rsvp_roster for select to anon, authenticated using (true);
+create policy rsvp_roster_insert on public.rsvp_roster for insert to authenticated with check (true);
+create policy rsvp_roster_update on public.rsvp_roster for update to authenticated using (true) with check (true);
+create policy rsvp_roster_delete on public.rsvp_roster for delete to authenticated using (true);
