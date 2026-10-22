@@ -377,6 +377,12 @@ class AdminApp {
     if (this.state.dirty && !window.confirm('저장하지 않은 변경 사항이 있어요. 나가면 사라져요. 나갈까요?')) return;
     this.setState({ view: null, form: null, sched: null, dirty: false, save: 'idle', toast: null });
   }
+  // 로고·WHISTLE FC 글자: 관리자 첫 화면(경기 탭 목록)으로
+  goHome() {
+    if (this.state.dirty && !window.confirm('저장하지 않은 변경 사항이 있어요. 나가면 사라져요. 나갈까요?')) return;
+    this.setState({ tab: 'games', view: null, form: null, sched: null, dirty: false, save: 'idle', toast: null, q: '', pq: '' });
+    window.scrollTo(0, 0);
+  }
 
   async save() {
     const s = this.state;
@@ -785,7 +791,7 @@ class AdminApp {
       vMatch: ready && s.view === 'match', vSchedule: ready && s.view === 'schedule',
       showNav: inList, showSaveBar: ready && !!s.view, tabs,
       showSide: !s.loggedOut, mainOffset: s.loggedOut ? '0px' : '232px',
-      goPC: e => this.switchView('pc', e), goMobile: e => this.switchView('mobile', e),
+      goPC: e => this.switchView('pc', e), goMobile: e => this.switchView('mobile', e), goHome: () => this.goHome(),
       hasNext: !!next, noNext: !next && !s.booting, next: next || {}, pendingCount: pending, hasPending: pending > 0, pastRows,
       newSchedule: () => this.openSchedule(false), editSchedule: () => this.openSchedule(true), deleteSchedule: () => this.deleteSchedule(),
       laterRows, hasLater: inList && laterRows.length > 0, cancelSchedule: () => this.deleteSchedule(s.form && s.form.schedId),
