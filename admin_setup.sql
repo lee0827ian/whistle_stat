@@ -43,3 +43,7 @@ create policy rsvp_roster_read   on public.rsvp_roster for select to anon, authe
 create policy rsvp_roster_insert on public.rsvp_roster for insert to authenticated with check (true);
 create policy rsvp_roster_update on public.rsvp_roster for update to authenticated using (true) with check (true);
 create policy rsvp_roster_delete on public.rsvp_roster for delete to authenticated using (true);
+
+-- 4) 카페 동기화 잠금: 관리자 페이지에서 고친 경기·일정은 카페 동기화가 덮어쓰지 않는다(관리 화면 스위치, 고쳐 저장하면 자동으로 켜짐)
+alter table public.matches   add column if not exists sync_locked boolean not null default false;
+alter table public.schedules add column if not exists sync_locked boolean not null default false;

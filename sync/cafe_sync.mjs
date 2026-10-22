@@ -120,7 +120,7 @@ async function main() {
 
   const [players, matches, venues] = await Promise.all([
     db('players?select=id,name,active&order=id.asc'),
-    db(`matches?season=in.(${seasons.join(',')})&select=id,date,match_no,opponent,venue,our_score,opp_score&order=date.asc`),
+    db(`matches?season=in.(${seasons.join(',')})&select=id,date,match_no,opponent,venue,our_score,opp_score,sync_locked&order=date.asc`),
     db('venue_regions?select=venue')
   ]);
   // 안전장치: 카페에서 읽은 경기 수가 DB보다 크게 적으면 글 구조가 바뀐 것으로 보고 쓰지 않음
@@ -157,7 +157,7 @@ async function main() {
   const gName = k => k === 'og' ? '자살골' : k === 'merc' ? '용병' : pName[k];
   const gStr = o => Object.entries(o).map(([k, n]) => gName(k) + (n > 1 ? ' ' + n : '')).sort().join(', ') || '없음';
 
-  const rows = { same: [], change: [], create: [], review: [] };
+  const rows = { same: [], change: [], create: [], review: [], locked: [] };
   const notes = [], plans = [];
   for (const g of games) {
     const problems = [];
@@ -208,13 +208,15 @@ async function main() {
     const cM = mvpIds.map(i => pName[i]).sort().join('·');
     const mvpChanged = dbM !== cM;
     if (mvpChanged) diff.push(`MVP ${dbM || '없음'} → ${cM || '없음'}`);
+    // 관리자 페이지에서 잠근 경기(sync_locked)는 카페와 달라도 덮어쓰지 않고 다른 점만 알림
+    if (diff.length && m.sync_locked) { rows.locked.push(`${label} — ${diff.join(' · ')}`); continue; }
     if (diff.length) { rows.change.push(`${label} — ${diff.join(' · ')}`); plans.push({ kind: 'change', g, want, label, id: m.id, fields, lineupChanged, goalsChanged, mvpChanged }); }
     else rows.same.push(label);
   }
 
   // 일정
   const sched = parseSchedules(sHtml).filter(s => s.date >= today);
-  const dbSched = await db(`schedules?date=gte.${today}&select=id,date,time,opponent,venue,address&order=date.asc`);
+  const dbSched = await db(`schedules?date=gte.${today}&select=id,date,time,opponent,venue,address,sync_locked&order=date.asc`);
   // 주소: 카페 메모엔 주소가 없으므로, 예전에 같은 구장으로 등록한 일정의 주소(가장 최근 것)를 가져다 씀
   const pastAddr = {};
   (await db('schedules?select=venue,address,date&address=not.is.null&order=date.asc')).forEach(x => { if ((x.address || '').trim()) pastAddr[norm(x.venue)] = x.address.trim(); });
@@ -249,6 +251,7 @@ async function main() {
       // 주소가 비어 있는 일정은 예전 주소로 채움(관리자에서 넣은 주소는 건드리지 않음)
       fields.address = addrOf(sp.venue); diff.push(`주소 채움 "${fields.address}"`);
     }
+    if (diff.length && d.sync_locked) { sRows.push(`잠금이라 건너뜀 · ${label} — 카페와 다른 점: ${diff.join(' · ')}`); continue; }
     if (diff.length) { sRows.push(`수정 · ${label} — ${diff.join(' · ')}`); sPlans.push({ s, sp, label, id: d.id, fields }); }
     else sRows.push(`같음 · ${label}`);
   }
@@ -298,9 +301,10 @@ async function main() {
 
   const verb = WRITE ? '' : ' 예정';
   say(`## 경기 기록 (카페 ${games.length}경기, 시즌 ${seasons.join(',')}, DB ${matches.length}경기)\n`);
-  say(`- 같음: ${rows.same.length}경기\n- 바뀜${verb}: ${rows.change.length}경기\n- 새로 추가${verb}: ${rows.create.length}경기\n- 확인 필요(반영 안 함): ${rows.review.length}경기\n`);
+  say(`- 같음: ${rows.same.length}경기\n- 바뀜${verb}: ${rows.change.length}경기\n- 새로 추가${verb}: ${rows.create.length}경기\n- 확인 필요(반영 안 함): ${rows.review.length}경기\n- 잠금이라 건너뜀: ${rows.locked.length}경기\n`);
   if (rows.change.length) say(`### 바뀜${verb}\n` + rows.change.map(x => '- ' + x).join('\n') + '\n');
   if (rows.create.length) say(`### 새로 추가${verb}\n` + rows.create.map(x => '- ' + x).join('\n') + '\n');
+  if (rows.locked.length) say('### 잠금이라 건너뜀(관리자 페이지에서 잠근 경기 · 카페와 다른 점)\n' + rows.locked.map(x => '- ' + x).join('\n') + '\n');
   if (rows.review.length) say('### 확인 필요\n' + rows.review.map(x => '- ' + x).join('\n') + '\n');
   if (notes.length) say('### 참고\n' + notes.map(x => '- ' + x).join('\n') + '\n');
   if (stray.length) say('### 읽지 못한 줄\n' + stray.map(x => '- ' + x).join('\n') + '\n');

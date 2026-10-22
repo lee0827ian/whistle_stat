@@ -266,8 +266,8 @@ class AdminApp {
       const [players, mgrs, schedules, matches, apps, ovr] = await Promise.all([
         this.apiAll('players?select=id,name,number,active&order=id.asc'),
         this.api('GET', 'rsvp_managers?select=player_id'),
-        this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note&order=date.asc'),
-        this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score&order=date.desc,id.desc&limit=120'),
+        this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note,sync_locked&order=date.asc'),
+        this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score,sync_locked&order=date.desc,id.desc&limit=120'),
         this.apiAll(`match_lineups?select=player_id,matches!inner(season,date)&matches.season=gte.${year - 2}&player_id=not.is.null&order=id.asc`),
         // 참석 명단 직접 지정(rsvp_roster). 표가 아직 없으면(SQL 실행 전) 자동 기준만 씀
         this.api('GET', 'rsvp_roster?select=player_id,show').catch(e => { if (e.auth) throw e; return null; })
@@ -310,7 +310,7 @@ class AdminApp {
   pastList() {
     const s = this.state, have = new Set(s.matches.map(m => m.date));
     const pending = s.schedules.filter(x => isPast(x) && !have.has(x.date)).map(x => ({ kind: 'pending', date: x.date, opp: x.opponent || '', venue: x.venue || '', sched: x }));
-    const saved = s.matches.map(m => ({ kind: 'match', date: m.date, opp: m.opponent, venue: splitVenue(m.venue).venue, our: m.our_score, their: m.opp_score, match: m }));
+    const saved = s.matches.map(m => ({ kind: 'match', date: m.date, opp: m.opponent + (m.sync_locked ? ' 🔒' : ''), venue: splitVenue(m.venue).venue, our: m.our_score, their: m.opp_score, match: m }));
     return [...pending, ...saved].sort((a, b) => b.date.localeCompare(a.date));
   }
 
@@ -328,7 +328,8 @@ class AdminApp {
       const lineup = {}; attend.forEach(i => { lineup[i] = true; });
       this.setState({ view: 'match', dirty: false, save: 'idle', toast: null, form: {
         id: null, date: x.date, opp: x.opponent || '', our: 0, their: 0, merc: guests, region, venue: x.venue || '',
-        lineup, goals: [], mvps: [], mvpRaw: [], pre: attend.length, isNew: true, schedId: x.id
+        lineup, goals: [], mvps: [], mvpRaw: [], pre: attend.length, isNew: true, schedId: x.id,
+        locked: false, lockTouched: false
       } });
     } else {
       const m = row.match;
@@ -349,7 +350,8 @@ class AdminApp {
       const { region, venue } = splitVenue(m.venue);
       this.setState({ view: 'match', dirty: false, save: 'idle', toast: null, form: {
         id: m.id, date: m.date, opp: m.opponent, our: m.our_score ?? 0, their: m.opp_score ?? 0, merc: lu.filter(l => l.is_mercenary).length,
-        region, venue, lineup, goals: [...counts].map(([pid, n]) => ({ pid, n })), mvps, mvpRaw, pre: 0, isNew: false
+        region, venue, lineup, goals: [...counts].map(([pid, n]) => ({ pid, n })), mvps, mvpRaw, pre: 0, isNew: false,
+        locked: !!m.sync_locked, lockTouched: false
       } });
     }
     window.scrollTo(0, 0);
@@ -362,8 +364,9 @@ class AdminApp {
   openSchedule(edit) {
     const n = edit && typeof edit === 'object' ? edit : edit ? this.state.next : null;
     this.setState({ view: 'schedule', dirty: false, save: 'idle', toast: null, sched: n
-      ? { id: n.id, date: n.date, time: (n.time || '').slice(0, 5), opp: n.opponent || '', venue: n.venue || '', address: n.address || '', note: n.note || '', isEdit: true, tried: false }
-      : { id: null, date: '', time: '12:00', opp: '', venue: '', address: '', note: '', isEdit: false, tried: false } });
+      ? { id: n.id, date: n.date, time: (n.time || '').slice(0, 5), opp: n.opponent || '', venue: n.venue || '', address: n.address || '', note: n.note || '', isEdit: true, tried: false,
+          locked: !!n.sync_locked, lockTouched: false, orig: { time: (n.time || '').slice(0, 5), opp: n.opponent || '', venue: n.venue || '' } }
+      : { id: null, date: '', time: '12:00', opp: '', venue: '', address: '', note: '', isEdit: false, tried: false, locked: false, lockTouched: false, orig: null } });
     window.scrollTo(0, 0);
   }
   editF(patch) { this.setState(s => ({ form: { ...s.form, ...patch }, dirty: true, save: s.save === 'saving' ? 'saving' : 'idle' })); }
@@ -413,7 +416,9 @@ class AdminApp {
   }
   async saveMatch(f) {
     const lineup = this.state.players.filter(p => f.lineup[p.id]);
-    const row = { season: Number(f.date.slice(0, 4)), date: f.date, opponent: f.opp.trim(), venue: joinVenue((f.region || '').trim(), (f.venue || '').trim()), our_score: f.our, opp_score: f.their };
+    // 카페 동기화 잠금: 기존 경기를 관리자에서 고쳐 저장하면 자동으로 잠금(스위치를 직접 만졌으면 그 값)
+    const locked = f.lockTouched ? !!f.locked : (f.id ? true : !!f.locked);
+    const row = { season: Number(f.date.slice(0, 4)), date: f.date, opponent: f.opp.trim(), venue: joinVenue((f.region || '').trim(), (f.venue || '').trim()), our_score: f.our, opp_score: f.their, sync_locked: locked };
     let id = f.id;
     if (id) {
       await this.apiOne('PATCH', `matches?id=eq.${id}`, row);
@@ -440,15 +445,19 @@ class AdminApp {
     const mvpRows = [...f.mvps.map(pid => this.state.players.find(p => p.id === pid)).filter(Boolean).map(p => ({ match_id: id, player_id: p.id, raw_name: p.name })),
       ...(f.mvpRaw || []).map(n => ({ match_id: id, player_id: null, raw_name: n }))];
     if (mvpRows.length) await this.api('POST', 'match_mvps', mvpRows, 'return=minimal');
-    const fresh = await this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score&order=date.desc,id.desc&limit=120');
+    const fresh = await this.api('GET', 'matches?select=id,date,opponent,venue,our_score,opp_score,sync_locked&order=date.desc,id.desc&limit=120');
     this.setState({ matches: fresh, form: { ...this.state.form, id, isNew: false } });
     this.toast('ok', '경기 기록을 저장했어요', 'vs ' + f.opp.trim() + ' ' + f.our + ' : ' + f.their + ' · 메인 사이트에 바로 반영돼요.');
   }
   async saveSchedule(f) {
-    const row = { season: Number(f.date.slice(0, 4)), date: f.date, time: f.time || null, opponent: f.opp.trim(), venue: f.venue.trim() || null, address: f.address.trim() || null, note: f.note.trim() || null };
+    // 카페 동기화 잠금: 카페가 덮어쓰는 칸(시간·상대·구장)을 바꿨을 때만 자동으로 잠금. 주소·메모는 원래 덮어쓰지 않으므로 잠그지 않음
+    const o = f.orig, synced = !!o && (f.time !== o.time || f.opp.trim() !== o.opp.trim() || f.venue.trim() !== o.venue.trim());
+    const locked = f.lockTouched ? !!f.locked : (!!f.locked || synced);
+    const row = { season: Number(f.date.slice(0, 4)), date: f.date, time: f.time || null, opponent: f.opp.trim(), venue: f.venue.trim() || null, address: f.address.trim() || null, note: f.note.trim() || null, sync_locked: locked };
     if (f.id) await this.apiOne('PATCH', `schedules?id=eq.${f.id}`, row);
     else { const r = await this.apiOne('POST', 'schedules', row); this.quiet({ sched: { ...this.state.sched, id: r.id, isEdit: true } }); }
-    const schedules = await this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note&order=date.asc');
+    this.quiet({ sched: { ...this.state.sched, locked, lockTouched: false, orig: { time: f.time, opp: f.opp.trim(), venue: f.venue.trim() } } });
+    const schedules = await this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note,sync_locked&order=date.asc');
     this.setState({ schedules });
     this.loadNext();
     this.toast('ok', f.isEdit ? '일정을 수정했어요' : '일정을 등록했어요', '메인 사이트 참석 투표에 바로 반영돼요.');
@@ -458,7 +467,7 @@ class AdminApp {
     const id = schedId || (this.state.sched && this.state.sched.id);
     try {
       await this.apiOne('DELETE', `schedules?id=eq.${id}`);
-      const schedules = await this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note&order=date.asc');
+      const schedules = await this.api('GET', 'schedules?select=id,date,time,opponent,venue,address,note,sync_locked&order=date.asc');
       this.setState({ schedules, view: null, sched: null, form: null, dirty: false, save: 'idle' });
       this.loadNext();
       this.toast('ok', '일정을 삭제했어요');
@@ -666,7 +675,10 @@ class AdminApp {
         mercHint: f.merc ? '출전 ' + inLine.length + '명 + 용병 ' + f.merc + '명' : '팀원 외 참가 인원',
         sumLabel: '득점 합계 ' + sum + ' / 우리 점수 ' + f.our, sumColor: sumOk ? '#15803D' : '#A5841B',
         onDate: e => this.editF({ date: e.target.value }), onOpp: e => this.typeF({ opp: e.target.value }),
-        onRegion: e => this.typeF({ region: e.target.value }), onVenue: e => this.typeF({ venue: e.target.value })
+        onRegion: e => this.typeF({ region: e.target.value }), onVenue: e => this.typeF({ venue: e.target.value }),
+        lockBg: sw(f.locked).bg, lockKnob: sw(f.locked).knob,
+        lockHint: f.locked ? '켜짐 · 카페 기록 글이 달라도 이 경기를 덮어쓰지 않아요' : f.id ? '꺼짐 · 지금 저장하면 자동으로 켜져요(카페가 다시 덮어쓰지 않게)' : '꺼짐 · 카페 기록 글이 올라오면 그 내용으로 맞춰져요',
+        onLock: () => this.editF({ locked: !f.locked, lockTouched: true })
       };
       // 기본으로는 최근 2년 안에 출전한 활성 선수 + 이미 체크된 선수만. 나머지(오래 안 나온·비활성)는 검색하면 나옴
       const isDef = p => (p.active && p.recent) || !!f.lineup[p.id];
@@ -703,7 +715,10 @@ class AdminApp {
         venueOrAddr: f.venue ? f.venue + ' · ' + f.address : f.address,
         dateBd: f.tried && !f.date ? bad : ok, oppBd: f.tried && !f.opp.trim() ? bad : ok,
         onDate: e => this.typeS({ date: e.target.value }), onTime: e => this.typeS({ time: e.target.value }), onOpp: e => this.typeS({ opp: e.target.value }),
-        onVenue: e => this.typeS({ venue: e.target.value }), onAddress: e => { this.typeS({ address: e.target.value }); const box = document.getElementById('schedMap'); if (box) { box.dataset.address = e.target.value; this.afterRender(); } }, onNote: e => this.typeS({ note: e.target.value }) };
+        onVenue: e => this.typeS({ venue: e.target.value }), onAddress: e => { this.typeS({ address: e.target.value }); const box = document.getElementById('schedMap'); if (box) { box.dataset.address = e.target.value; this.afterRender(); } }, onNote: e => this.typeS({ note: e.target.value }),
+        lockBg: sw(f.locked).bg, lockKnob: sw(f.locked).knob,
+        lockHint: f.locked ? '켜짐 · 카페 일정 메모가 달라도 시간·상대·구장을 덮어쓰지 않아요' : '꺼짐 · 시간·상대·구장을 바꿔 저장하면 자동으로 켜져요(주소·메모는 원래 그대로 유지돼요)',
+        onLock: () => this.setState(st => ({ sched: { ...st.sched, locked: !st.sched.locked, lockTouched: true }, dirty: true })) };
     }
 
     const SB = {
