@@ -629,17 +629,17 @@ class WhistleApp {
 
     const collator = new Intl.Collator('ko');
     const mvpHidden = MVP_HIDDEN_SEASONS.includes(Number(st.season));
-    // 시상식 전 가림 시즌: MVP 횟수 상위 5명은 선수 탭 어디서든 MVP 횟수를 자리 표시로 흐리게, 'MVP 횟수' 정렬에선 이름·출전·골도 가림(숫자로 누군지 알 수 있어서, 실제 값은 화면에 안 넣음)
+    // 시상식 전 가림 시즌: MVP 횟수 상위 5명은 선수 탭 어디서든 MVP 횟수를 자리 표시로 흐리게, 'MVP 횟수' 정렬에선 순위 번호도 가리고 5명끼리는 이름순(줄 순서로 1위가 드러나지 않게, 실제 값은 화면에 안 넣음)
     const mvpTop = new Set(mvpHidden ? [...d.players].filter(p => p.mvp > 0).sort((a, b) => b.mvp - a.mvp || b.goals - a.goals).slice(0, MVP_HIDE_TOP).map(p => p.name) : []);
     let pl = [...d.players];
     if (st.playerFilter === 'goals') pl.sort((a, b) => b.goals - a.goals || b.ap - a.ap);
     else if (st.playerFilter === 'attendance') pl.sort((a, b) => b.ap - a.ap || b.goals - a.goals);
-    else if (st.playerFilter === 'mvp') pl.sort((a, b) => b.mvp - a.mvp || b.goals - a.goals);
+    else if (st.playerFilter === 'mvp') pl.sort((a, b) => mvpTop.has(b.name) - mvpTop.has(a.name) || (mvpTop.has(a.name) ? collator.compare(a.name, b.name) : b.mvp - a.mvp || b.goals - a.goals));
     else pl.sort((a, b) => collator.compare(a.name, b.name));
     const playerList = pl.map((p, i) => {
-      const hide = mvpTop.has(p.name), hideName = hide && st.playerFilter === 'mvp';
+      const hide = mvpTop.has(p.name), hideRank = hide && st.playerFilter === 'mvp';
       const rate = Math.round(p.ap / (d.total || 1) * 100);
-      const rk = i === 0 ? ['#F0D281', '#113C98'] : i === 1 ? ['#D9D9D9', '#374151'] : i === 2 ? ['#CD9B6A', '#5B3A1E'] : ['#F3F1EA', '#8A8577'];
+      const rk = hideRank ? ['#FAF3DC', '#A5841B'] : i === 0 ? ['#F0D281', '#113C98'] : i === 1 ? ['#D9D9D9', '#374151'] : i === 2 ? ['#CD9B6A', '#5B3A1E'] : ['#F3F1EA', '#8A8577'];
       const rc = rate >= 70 ? ['#E4F5EA', '#15803D'] : rate >= 40 ? ['#FAF3DC', '#A5841B'] : ['#FBE9E9', '#C0392B'];
       const chips = [
         { key: 'attendance', label: '출전 ' + p.ap, bg: '#F3F1EA', color: '#8A8577', weight: 500 },
@@ -654,7 +654,7 @@ class WhistleApp {
       const badge = st.playerFilter === 'goals' ? { badgeLabel: p.goals + '골', badgeBg: '#EEF2FB', badgeColor: '#113C98' }
         : st.playerFilter === 'mvp' ? { badgeLabel: 'MVP ' + (hide ? 0 : p.mvp) + '회', badgeBg: '#FAF3DC', badgeColor: '#A5841B', badgeBlur: hide ? MVP_BLUR : '' }
         : { badgeLabel: '참석률 ' + rate + '%', badgeBg: rc[0], badgeColor: rc[1] };
-      return { ...p, name: hideName ? '수상 후보' : p.name, nameBlur: hideName ? MVP_BLUR : '', rate, rank: i + 1, rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: hideName ? chips.map(c => ({ ...c, label: c.label.replace(/\d+/, '0'), blur: MVP_BLUR })) : chips, ...badge };
+      return { ...p, rate, rank: hideRank ? 0 : i + 1, rankBlur: hideRank ? MVP_BLUR : '', rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: chips, ...badge };
     });
 
     const tops = k => [...d.players].sort((a, b) => b[k] - a[k])[0];
