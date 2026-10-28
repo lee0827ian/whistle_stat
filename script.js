@@ -126,6 +126,7 @@ function startKakaoNavi(name, lat, lng) {
   else loadKakaoSdk().then(go).catch(() => {});
 }
 
+const MVP_HIDE_TOP = 5;   // 가림 시즌에 선수 탭에서 MVP 횟수를 가릴 상위 인원
 const MVP_BLUR = 'display:inline-block; filter:blur(6px); user-select:none; pointer-events:none;';
 const MAX_GUESTS = 10;   // 한 사람이 올릴 수 있는 용병 수 상한(DB 제약과 같은 값)
 // 기기 시간대 기준 오늘 날짜(YYYY-MM-DD). toISOString()은 UTC라 한국 오전 9시 전에는 어제가 된다.
@@ -627,19 +628,23 @@ class WhistleApp {
     });
 
     const collator = new Intl.Collator('ko');
+    const mvpHidden = MVP_HIDDEN_SEASONS.includes(Number(st.season));
+    // 시상식 전 가림 시즌: MVP 횟수 상위 5명은 선수 탭 어디서든 MVP 횟수를 자리 표시로 흐리게, 'MVP 횟수' 정렬에선 이름·출전·골도 가림(숫자로 누군지 알 수 있어서, 실제 값은 화면에 안 넣음)
+    const mvpTop = new Set(mvpHidden ? [...d.players].filter(p => p.mvp > 0).sort((a, b) => b.mvp - a.mvp || b.goals - a.goals).slice(0, MVP_HIDE_TOP).map(p => p.name) : []);
     let pl = [...d.players];
     if (st.playerFilter === 'goals') pl.sort((a, b) => b.goals - a.goals || b.ap - a.ap);
     else if (st.playerFilter === 'attendance') pl.sort((a, b) => b.ap - a.ap || b.goals - a.goals);
     else if (st.playerFilter === 'mvp') pl.sort((a, b) => b.mvp - a.mvp || b.goals - a.goals);
     else pl.sort((a, b) => collator.compare(a.name, b.name));
     const playerList = pl.map((p, i) => {
+      const hide = mvpTop.has(p.name), hideName = hide && st.playerFilter === 'mvp';
       const rate = Math.round(p.ap / (d.total || 1) * 100);
       const rk = i === 0 ? ['#F0D281', '#113C98'] : i === 1 ? ['#D9D9D9', '#374151'] : i === 2 ? ['#CD9B6A', '#5B3A1E'] : ['#F3F1EA', '#8A8577'];
       const rc = rate >= 70 ? ['#E4F5EA', '#15803D'] : rate >= 40 ? ['#FAF3DC', '#A5841B'] : ['#FBE9E9', '#C0392B'];
       const chips = [
         { key: 'attendance', label: '출전 ' + p.ap, bg: '#F3F1EA', color: '#8A8577', weight: 500 },
         { key: 'goals', label: '골 ' + p.goals, bg: '#EEF2FB', color: '#113C98', weight: 700 },
-        { key: 'mvp', label: 'MVP ' + p.mvp + '회', bg: '#FAF3DC', color: '#A5841B', weight: 500 }
+        { key: 'mvp', label: 'MVP ' + (hide ? 0 : p.mvp) + '회', bg: '#FAF3DC', color: '#A5841B', weight: 500, blur: hide ? MVP_BLUR : '' }
       ];
       const ai = chips.findIndex(c => c.key === st.playerFilter);
       if (ai > -1) {
@@ -647,9 +652,9 @@ class WhistleApp {
         chips.unshift({ ...act, bg: '#FEE2E2', color: '#DC2626', weight: 700 });
       }
       const badge = st.playerFilter === 'goals' ? { badgeLabel: p.goals + '골', badgeBg: '#EEF2FB', badgeColor: '#113C98' }
-        : st.playerFilter === 'mvp' ? { badgeLabel: 'MVP ' + p.mvp + '회', badgeBg: '#FAF3DC', badgeColor: '#A5841B' }
+        : st.playerFilter === 'mvp' ? { badgeLabel: 'MVP ' + (hide ? 0 : p.mvp) + '회', badgeBg: '#FAF3DC', badgeColor: '#A5841B', badgeBlur: hide ? MVP_BLUR : '' }
         : { badgeLabel: '참석률 ' + rate + '%', badgeBg: rc[0], badgeColor: rc[1] };
-      return { ...p, rate, rank: i + 1, rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: chips, ...badge };
+      return { ...p, name: hideName ? '수상 후보' : p.name, nameBlur: hideName ? MVP_BLUR : '', rate, rank: i + 1, rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: hideName ? chips.map(c => ({ ...c, label: c.label.replace(/\d+/, '0'), blur: MVP_BLUR })) : chips, ...badge };
     });
 
     const tops = k => [...d.players].sort((a, b) => b[k] - a[k])[0];
@@ -660,7 +665,7 @@ class WhistleApp {
       { title: '득점', value: gf, sub: `경기당 ${(gf / (d.matches.length || 1)).toFixed(1)}골`, accent: '#113C98' },
       { title: '실점', value: ga, sub: `경기당 ${(ga / (d.matches.length || 1)).toFixed(1)}골`, accent: '#113C98' }
     ];
-    const mvpHidden = MVP_HIDDEN_SEASONS.includes(Number(st.season));
+    const maskBest = list => list.map(b => b.title === '최다 MVP' && mvpHidden ? { ...b, name: '수상자', sub: '0회', blur: MVP_BLUR, note: '시상식에서 공개' } : b);
     const seasonBest = [
       { icon: '골', title: '최다 골', name: tg ? tg.name : '-', sub: tg ? tg.goals + '골' : '' },
       { icon: '출', title: '최다 참여', name: ta ? ta.name : '-', sub: ta ? ta.ap + '경기' : '' },
@@ -791,7 +796,7 @@ class WhistleApp {
       mvpName: mvpHidden ? '수상자' : mvpP ? mvpP.name : '-',
       mvpSub: mvpHidden ? 'MVP 0회' : mvpP ? `MVP ${mvpP.mvp}회 · 출전 ${mvpP.ap}회` : 'MVP 0회',
       mvpBlur: mvpHidden ? MVP_BLUR : '',
-      homeBest: seasonBest.map(b => b.title === '최다 MVP' && mvpHidden ? { ...b, name: '수상자', sub: '0회', blur: MVP_BLUR, note: '시상식에서 공개' } : b),
+      homeBest: maskBest(seasonBest),
       recentMatches: sortedMatches.slice(0, recentCount).map(deco),
       // 화면 폭별 여백·헤더(모바일은 상단 탭을 숨기고 하단 탭만 쓴다)
       ui: st.isMobile
@@ -802,7 +807,7 @@ class WhistleApp {
       goMatches: () => { this.setState({ tab: 'matches', openMatch: null }); window.scrollTo({ top: 0 }); },
       hasStatus: !!(d.loading || d.error || (st.tab === 'records' && A.loading)),
       statusMsg: d.error ? st.season + ' 시즌 데이터를 불러올 수 없습니다.' : (st.tab === 'records' && A.loading) ? '역대 기록을 불러오는 중...' : st.season + ' 시즌 데이터를 불러오는 중...',
-      seasonCards, seasonBest, formList, monthly, trendBars,
+      seasonCards, seasonBest: maskBest(seasonBest), formList, monthly, trendBars,
       stGa: ga,
       wdlWin: (wins / (d.matches.length || 1) * 100).toFixed(1) + '%', wdlDraw: (draws / (d.matches.length || 1) * 100).toFixed(1) + '%', wdlLoss: (losses / (d.matches.length || 1) * 100).toFixed(1) + '%',
       wdlWinN: wins, wdlDrawN: draws, wdlLossN: losses,

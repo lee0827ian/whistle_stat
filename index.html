@@ -354,7 +354,7 @@
               <div style="width:36px; height:36px; border-radius:50%; background:#FAF3DC; border:1.5px solid #F0D281; display:flex; align-items:center; justify-content:center; font-family:'Oswald','Pretendard'; font-size:15px; font-weight:700; color:#A5841B;">{{ b.icon }}</div>
               <div>
                 <div style="font-size:11px; font-weight:700; color:#8A8577;">{{ b.title }}</div>
-                <div style="font-size:15px; font-weight:800; margin-top:2px;">{{ b.name }} <span style="font-size:12px; font-weight:700; color:#A5841B;">{{ b.sub }}</span></div>
+                <div style="font-size:15px; font-weight:800; margin-top:2px;"><span style="{{ b.blur }}">{{ b.name }} <span style="font-size:12px; font-weight:700; color:#A5841B;">{{ b.sub }}</span></span><sc-if value="{{ b.note }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px; font-weight:700; color:#6B675C; margin-left:8px;">{{ b.note }}</span></sc-if></div>
               </div>
             </div>
           </sc-for>
@@ -462,14 +462,14 @@
             <div style="display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:12px; background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:14px; padding:12px 16px;">
               <div style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; background:{{ p.rankBg }}; color:{{ p.rankColor }};">{{ p.rank }}</div>
               <div>
-                <div style="font-size:14.5px; font-weight:700;">{{ p.name }}</div>
+                <div style="font-size:14.5px; font-weight:700;"><span style="{{ p.nameBlur }}">{{ p.name }}</span></div>
                 <div style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;">
                   <sc-for list="{{ p.statChips }}" as="sc" hint-placeholder-count="3">
-                    <span style="font-size:10.5px; color:{{ sc.color }}; background:{{ sc.bg }}; padding:2px 8px; border-radius:8px; font-weight:{{ sc.weight }};">{{ sc.label }}</span>
+                    <span style="font-size:10.5px; color:{{ sc.color }}; background:{{ sc.bg }}; padding:2px 8px; border-radius:8px; font-weight:{{ sc.weight }}; {{ sc.blur }}">{{ sc.label }}</span>
                   </sc-for>
                 </div>
               </div>
-              <div style="font-size:12px; font-weight:800; padding:4px 10px; border-radius:10px; background:{{ p.badgeBg }}; color:{{ p.badgeColor }};">{{ p.badgeLabel }}</div>
+              <div style="font-size:12px; font-weight:800; padding:4px 10px; border-radius:10px; background:{{ p.badgeBg }}; color:{{ p.badgeColor }}; {{ p.badgeBlur }}">{{ p.badgeLabel }}</div>
             </div>
           </sc-for>
         </div>
