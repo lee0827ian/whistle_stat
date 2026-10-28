@@ -131,8 +131,9 @@ const MAX_GUESTS = 10;   // 한 사람이 올릴 수 있는 용병 수 상한(DB
 // 기기 시간대 기준 오늘 날짜(YYYY-MM-DD). toISOString()은 UTC라 한국 오전 9시 전에는 어제가 된다.
 const localDate = () => { const n = new Date(); return new Date(n - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 
-// 기록 확인 중인 경기(날짜 → 사유): 경기 카드 상대명 옆에 ** 표시. 확정되면 여기서 지운다.
+// 따로 설명이 필요한 경기(날짜 → 사유): 경기 카드 상대명 옆에 ** 표시, 경기 목록 아래에 날짜·사유. 기록 확인 중이면 확정 후 여기서 지운다.
 const MATCH_FLAGS = {
+  '2026-03-22': '몰수승 — 실제 경기 5:6, 상대팀 중도 이탈',
 };
 
 // ── 앱 로직 (디자인 원본 그대로) ──
@@ -808,6 +809,7 @@ class WhistleApp {
       matchChips: [chip(st.matchSort === 'desc', '날짜 내림차순', () => this.setState({ matchSort: 'desc' })), chip(st.matchSort === 'asc', '날짜 오름차순', () => this.setState({ matchSort: 'asc' }))],
       matchList,
       hasFlag: sortedMatches.some(m => MATCH_FLAGS[m.date]),
+      flagNote: sortedMatches.filter(m => MATCH_FLAGS[m.date]).map(m => `${+m.date.slice(5, 7)}/${+m.date.slice(8)} ${MATCH_FLAGS[m.date]}`).join(' · '),
       playerChips: [['all', '전체'], ['goals', '골 순'], ['attendance', '참석 순'], ['mvp', 'MVP 횟수']].map(([k, l]) => chip(st.playerFilter === k, l, () => this.setState({ playerFilter: k }))),
       playerList,
       ovMatches: A.overall.matches, ovRecord: `${A.overall.wins}승 ${A.overall.draws}무 ${A.overall.losses}패`,
