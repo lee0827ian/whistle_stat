@@ -817,6 +817,7 @@ class WhistleApp {
       flagNote: sortedMatches.filter(m => MATCH_FLAGS[m.date]).map(m => `${+m.date.slice(5, 7)}/${+m.date.slice(8)} ${MATCH_FLAGS[m.date]}`).join(' · '),
       playerChips: [['all', '전체'], ['goals', '골 순'], ['attendance', '참석 순'], ['mvp', 'MVP 횟수']].map(([k, l]) => chip(st.playerFilter === k, l, () => this.setState({ playerFilter: k }))),
       playerList,
+      mvpSortNote: st.playerFilter === 'mvp' && mvpTop.size > 0 ? `상위 ${mvpTop.size}명은 시상식 전까지 가나다순으로 보여 드려요 · 순위와 MVP 횟수는 시상식에서 공개` : '',
       ovMatches: A.overall.matches, ovRecord: `${A.overall.wins}승 ${A.overall.draws}무 ${A.overall.losses}패`,
       ovRate: (A.overall.wins / (A.overall.matches || 1) * 100).toFixed(1), ovGf: A.overall.gf, ovGa: A.overall.ga,
       bigWin: A.bigWin, bigLoss: A.bigLoss,
