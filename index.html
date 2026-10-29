@@ -173,8 +173,8 @@
                       <span onClick="{{ closeVote }}" style="font-size:12.5px; font-weight:700; color:#113C98; padding:4px 0; cursor:pointer;">{{ voteFoldLabel }}</span>
                     </sc-if>
                   </div>
-                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
-                    <sc-for list="{{ rsvpButtons }}" as="b" hint-placeholder-count="3">
+                  <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px;">
+                    <sc-for list="{{ rsvpButtons }}" as="b" hint-placeholder-count="2">
                       <div onClick="{{ b.onClick }}" style="min-height:48px; display:flex; align-items:center; justify-content:center; gap:7px; border-radius:12px; cursor:pointer; font-size:14.5px; font-weight:800; background:{{ b.bg }}; color:{{ b.color }}; border:1.5px solid {{ b.bd }}; transition:background .15s, color .15s;">
                         <span style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; background:{{ b.dotBg }}; color:{{ b.dotFg }};">{{ b.mark }}</span>{{ b.label }}
                       </div>
@@ -223,7 +223,6 @@
               <div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:#F3F1EA;">
                 <div style="width:{{ bar.attend }}; background:#2E7D4F; transition:width .4s;"></div>
                 <div style="width:{{ bar.guests }}; background:#3A66C9; transition:width .4s;"></div>
-                <div style="width:{{ bar.maybe }}; background:#E0B94B; transition:width .4s;"></div>
                 <div style="width:{{ bar.absent }}; background:#C0392B; transition:width .4s;"></div>
               </div>
               <div style="position:absolute; top:-4px; bottom:-4px; left:{{ bar.minPos }}; width:2px; background:#113C98; border-radius:1px;"></div>
@@ -234,7 +233,6 @@
                 <sc-if value="{{ cnt.guests }}" hint-placeholder-val="{{ false }}">
                   <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#3A66C9; display:inline-block;"></span>용병 {{ cnt.guests }}</span>
                 </sc-if>
-                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#E0B94B; display:inline-block;"></span>미정 {{ cnt.maybe }}</span>
                 <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#C0392B; display:inline-block;"></span>불참 {{ cnt.absent }}</span>
                 <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; border-radius:3px; background:#F3F1EA; border:1px solid #E7E4DB; display:inline-block;"></span>미응답 {{ cnt.none }}</span>
               </div>

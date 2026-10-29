@@ -628,11 +628,12 @@ class AdminApp {
       const n = s.next, today = d(localDate()), diff = Math.round((d(n.date) - today) / 864e5);
       const rs = n.rsvp || [];
       const ids = st => rs.filter(r => r.status === st).map(r => r.player_id);
-      const attend = ids('attend'), maybe = ids('maybe'), absent = ids('absent');
+      const attend = ids('attend'), absent = ids('absent');
       const names = list => list.map(i => byId(i)?.name).filter(Boolean);
       const guestRows = rs.filter(r => r.guests > 0);
       const guestN = guestRows.reduce((a, r) => a + r.guests, 0);
-      const answered = new Set(rs.filter(r => r.status).map(r => r.player_id));
+      // 2026-10-29부터 '미정' 선택지 없음 — 예전 '미정' 응답은 미응답으로 센다
+      const answered = new Set(rs.filter(r => r.status === 'attend' || r.status === 'absent').map(r => r.player_id));
       const base = P.filter(p => p.roster);
       const noAnswer = base.filter(p => !answered.has(p.id));
       const outside = [...answered].filter(id => !base.some(p => p.id === id)).length;
@@ -643,13 +644,11 @@ class AdminApp {
         sub: '총 ' + (attend.length + guestN) + '명 · 참석 명단 ' + base.length + '명' + (outside ? ' 외 ' + outside + '명' : '') + ' · 미응답 ' + noAnswer.length,
         counts: [
           { label: '참석', n: attend.length, bg: '#E4F5EA', fg: '#15803D' },
-          { label: '미정', n: maybe.length, bg: '#FAF3DC', fg: '#A5841B' },
           { label: '불참', n: absent.length, bg: '#FBE9E9', fg: '#C0392B' },
           { label: '용병', n: guestN, bg: '#EEF2FB', fg: '#113C98' }
         ],
         groups: [
           g('참석', names(attend), '#15803D', '#E4F5EA', '#15803D'),
-          g('미정', names(maybe), '#A5841B', '#FAF3DC', '#A5841B'),
           g('불참', names(absent), '#C0392B', '#FBE9E9', '#C0392B'),
           g('용병', guestRows.map(r => (byId(r.player_id)?.name || '?') + ' +' + r.guests), '#113C98', '#EEF2FB', '#113C98'),
           g('미응답', noAnswer.map(p => p.name), '#6B675C', '#F3F1EA', '#6B675C')

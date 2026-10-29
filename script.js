@@ -145,11 +145,11 @@ class WhistleApp {
             me: (() => { try { return Number(localStorage.getItem('whistle_me')) || null; } catch (e) { return null; } })(), pickerOpen: false,
             isMobile: window.innerWidth < 640, mapOpen: false, listOpen: null, voteOpen: false, flash: '' };
 
-  // 카톡 공유 카드의 참석 · 미정 · 불참을 눌러 들어온 경우(?s=일정 id&r=응답). 명단과 응답을 읽은 뒤 한 번만 반영하고,
+  // 카톡 공유 카드의 참석 · 불참을 눌러 들어온 경우(?s=일정 id&r=응답). 명단과 응답을 읽은 뒤 한 번만 반영하고,
   // 새로고침해도 다시 반영되지 않도록 주소에서는 바로 지운다.
   pendingRsvp = (() => {
     const qs = new URLSearchParams(location.search);
-    const p = qs.get('s') && ['attend', 'maybe', 'absent'].includes(qs.get('r')) ? { id: qs.get('s'), status: qs.get('r') } : null;
+    const p = qs.get('s') && ['attend', 'absent'].includes(qs.get('r')) ? { id: qs.get('s'), status: qs.get('r') } : null;
     if (qs.has('s') || qs.has('r')) history.replaceState(null, '', location.pathname);
     return p;
   })();
@@ -320,13 +320,13 @@ class WhistleApp {
     if (!this._roster.some(r => r.id === this.state.me)) { this.setState({ tab: 'home', pickerOpen: true }); return; }
     this.pendingRsvp = null;
     const d = new Date(next.date + 'T00:00:00');
-    const label = { attend: '참석', maybe: '미정', absent: '불참' }[p.status];
+    const label = { attend: '참석', absent: '불참' }[p.status];
     this.setState({ tab: 'home', voteOpen: false });
     this.saveRsvp({ status: p.status }).then(() => this.flash(this._rsvpErr
       ? '저장하지 못했어요. 잠시 후 다시 눌러주세요.'
       : (d.getMonth() + 1) + '/' + d.getDate() + ' 경기 "' + label + '"으로 저장했어요.'));
   }
-  // 단체방에 올릴 카드: 참석 · 미정 · 불참 항목마다 응답이 담긴 주소를 건다
+  // 단체방에 올릴 카드: 참석 · 불참 항목마다 응답이 담긴 주소를 건다
   shareToKakao() {
     const s = this._sched[0], d = new Date(s.date + 'T00:00:00');
     const base = location.origin + location.pathname;
@@ -337,7 +337,7 @@ class WhistleApp {
         objectType: 'list',
         headerTitle: title,
         headerLink: link(''),
-        contents: [['attend', '참석'], ['maybe', '미정'], ['absent', '불참']].map(([k, l]) => ({
+        contents: [['attend', '참석'], ['absent', '불참']].map(([k, l]) => ({
           title: l, description: '눌러서 응답하기', link: link('?s=' + encodeURIComponent(s.id) + '&r=' + k)
         })),
         buttons: [{ title: '참석 현황 보기', link: link('') }]
@@ -441,14 +441,15 @@ class WhistleApp {
     if (!this._rsvp) return { ...off, hasNext: true, next };
 
     const st = this.state;
-    const label = { attend: '참석', maybe: '미정', absent: '불참' };
-    const mark = { attend: '○', maybe: '△', absent: '×' };
-    const pal = { attend: ['#E4F5EA', '#15803D', '#2E7D4F', '#FFFFFF'], maybe: ['#FAF3DC', '#A5841B', '#E0B94B', '#5B4708'], absent: ['#FBE9E9', '#C0392B', '#C0392B', '#FFFFFF'] };
+    const label = { attend: '참석', absent: '불참' };
+    const mark = { attend: '○', absent: '×' };
+    const pal = { attend: ['#E4F5EA', '#15803D', '#2E7D4F', '#FFFFFF'], absent: ['#FBE9E9', '#C0392B', '#C0392B', '#FFFFFF'] };
     const collator = new Intl.Collator('ko');
     const all = [...this._roster].sort((a, b) => collator.compare(a.name, b.name));
     const rowOf = {};
     this._rsvp.forEach(r => { rowOf[r.player_id] = r; });
-    const statusOf = p => (rowOf[p.id] && rowOf[p.id].status) || null;
+    // 2026-10-29부터 '미정' 선택지 없음 — 예전 '미정' 응답은 미응답으로 본다
+    const statusOf = p => { const s = rowOf[p.id] && rowOf[p.id].status; return s === 'attend' || s === 'absent' ? s : null; };
     const guestsOf = p => (rowOf[p.id] && rowOf[p.id].guests) || 0;
     const me = all.find(p => p.id === st.me) || null;
     // 화면에 보이는 명단 = 기본 명단 + 이미 응답한 사람 + 나. 그 밖의 선수는 이름 검색으로 고른다.
@@ -464,7 +465,7 @@ class WhistleApp {
     const by = k => roster.filter(p => statusOf(p) === k).sort((a, b) => (b === me) - (a === me));
     const bringers = roster.filter(p => guestsOf(p) > 0);
     const guests = bringers.reduce((n, p) => n + guestsOf(p), 0);
-    const cnt = { attend: by('attend').length, maybe: by('maybe').length, absent: by('absent').length, none: by(null).length, guests, total: roster.length };
+    const cnt = { attend: by('attend').length, absent: by('absent').length, none: by(null).length, guests, total: roster.length };
     cnt.head = cnt.attend + guests;
     cnt.sub = guests ? `팀원 ${cnt.attend} + 용병 ${guests} · 명단 ${cnt.total}명` : `/ 전체 ${cnt.total}명`;
     const whole = cnt.total + guests || 1;
@@ -477,14 +478,14 @@ class WhistleApp {
     const group = (k, l, color) => { const list = by(k); return { label: l, color, n: list.length, names: list.map(p => chip(p, k)), empty: !list.length }; };
     const groups = [group('attend', '참석', '#15803D')];
     if (guests) groups.push({ label: '용병', color: '#113C98', n: guests, empty: false, names: bringers.map(p => ({ name: p.name + ' +' + guestsOf(p), bg: '#EEF2FB', fg: '#113C98', weight: 600, bd: 'transparent' })) });
-    groups.push(group('maybe', '미정', '#A5841B'), group('absent', '불참', '#C0392B'), group(null, '미응답', '#6B675C'));
+    groups.push(group('absent', '불참', '#C0392B'), group(null, '미응답', '#6B675C'));
 
     const short = MIN_PLAYERS - cnt.head;
     const quorum = short <= 0
       ? { label: '경기 성립 · 여유 ' + (-short) + '명', bg: '#E4F5EA', fg: '#15803D' }
       : { label: short + '명 더 필요', bg: '#FBE9E9', fg: '#C0392B' };
 
-    const last = roster.filter(p => rowOf[p.id]).sort((a, b) => new Date(rowOf[b.id].updated_at) - new Date(rowOf[a.id].updated_at))[0];
+    const last = roster.filter(p => statusOf(p) || guestsOf(p) > 0).sort((a, b) => new Date(rowOf[b.id].updated_at) - new Date(rowOf[a.id].updated_at))[0];
     let lastUpdate = '아직 응답이 없어요';
     if (last) {
       const min = Math.max(0, Math.round((Date.now() - new Date(rowOf[last.id].updated_at)) / 60000));
@@ -492,7 +493,7 @@ class WhistleApp {
       lastUpdate = ago + ' · ' + last.name + ' ' + (statusOf(last) ? label[statusOf(last)] : '용병 +' + guestsOf(last));
     }
 
-    const rsvpButtons = ['attend', 'maybe', 'absent'].map(k => {
+    const rsvpButtons = ['attend', 'absent'].map(k => {
       const on = myStatus === k;
       return {
         label: label[k], mark: mark[k],
@@ -524,7 +525,7 @@ class WhistleApp {
       listToggle: true, showGroups: listOpen,
       listToggleLabel: listOpen ? '명단 접기 \u25B4' : '명단 보기 \u25BE',
       toggleList: () => this.setState({ listOpen: !listOpen }),
-      bar: { attend: pct(cnt.attend), guests: pct(guests), maybe: pct(cnt.maybe), absent: pct(cnt.absent), minPos: 'calc(' + Math.min(100, MIN_PLAYERS / whole * 100).toFixed(1) + '% - 1px)' },
+      bar: { attend: pct(cnt.attend), guests: pct(guests), absent: pct(cnt.absent), minPos: 'calc(' + Math.min(100, MIN_PLAYERS / whole * 100).toFixed(1) + '% - 1px)' },
       pickerOpen: st.pickerOpen,
       pickList: all.map(p => ({
         name: labelOf(p), key: keyOf(p), core: shown.has(p) ? '1' : '', disp: shown.has(p) ? 'flex' : 'none', bg: p === me ? '#113C98' : '#FFFFFF', fg: p === me ? '#FFFFFF' : '#1A1A1A', bd: p === me ? '#113C98' : '#E7E4DB',
