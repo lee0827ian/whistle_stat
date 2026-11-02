@@ -132,7 +132,7 @@ const MAX_GUESTS = 10;   // 한 사람이 올릴 수 있는 용병 수 상한(DB
 // 기기 시간대 기준 오늘 날짜(YYYY-MM-DD). toISOString()은 UTC라 한국 오전 9시 전에는 어제가 된다.
 const localDate = () => { const n = new Date(); return new Date(n - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 
-// 따로 설명이 필요한 경기(날짜 → 사유): 경기 카드 상대명 옆에 ** 표시, 경기 목록 아래에 날짜·사유. 기록 확인 중이면 확정 후 여기서 지운다.
+// 따로 설명이 필요한 경기(날짜 → 사유): 경기 카드 상대명 옆에 (사유 앞부분) 표시 — 예: 유토피아 FC(몰수승), 경기 목록 아래에 날짜·사유. 기록 확인 중이면 확정 후 여기서 지운다.
 const MATCH_FLAGS = {
   '2026-03-22': '몰수승 — 실제 경기 5:6, 상대팀 중도 이탈',
 };
@@ -603,7 +603,7 @@ class WhistleApp {
     const resLabel = { win: '승', draw: '무', loss: '패' };
     const rateColor = v => v >= 60 ? '#15803D' : v >= 40 ? '#A5841B' : '#C0392B';
     const chip = (on, label, onClick) => ({ label, onClick, bg: on ? '#113C98' : '#FFFFFF', color: on ? '#FFFFFF' : '#8A8577', bd: on ? '#113C98' : '#E7E4DB' });
-    const deco = m => ({ ...m, resLabel: resLabel[m.result], resBg: resPal[m.result][0], resColor: resPal[m.result][1], flag: MATCH_FLAGS[m.date] ? '**' : '', flagTip: MATCH_FLAGS[m.date] || '' });
+    const deco = m => ({ ...m, resLabel: resLabel[m.result], resBg: resPal[m.result][0], resColor: resPal[m.result][1], flag: MATCH_FLAGS[m.date] ? '(' + MATCH_FLAGS[m.date].split(' — ')[0] + ')' : '', flagTip: MATCH_FLAGS[m.date] || '' });
 
     const wins = d.matches.filter(m => m.result === 'win').length;
     const draws = d.matches.filter(m => m.result === 'draw').length;
