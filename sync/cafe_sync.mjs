@@ -60,9 +60,9 @@ export function parseMatches(html) {
     if (!cur) continue;
     if (cur.line === null && (l.startsWith('☞') || l.startsWith('*') || l.includes(','))) {
       let body = l.replace(/^☞/, '');
-      const mc = body.match(/\+\s*용\s*병\s*(\d+)/);
-      cur.merc = mc ? +mc[1] : 0;
-      body = body.replace(/\+\s*용\s*병\s*\d+/, '');
+      const mc = body.match(/\+\s*용\s*병\s*(\d*)/);   // '+용병' 숫자 없으면 1명
+      cur.merc = mc ? +(mc[1] || 1) : 0;
+      body = body.replace(/\+\s*용\s*병\s*\d*/, '');
       const names = body.split(/[,.，、]/).map(x => x.trim()).filter(Boolean);
       cur.mvp = [...new Set(names.filter(x => x.startsWith('*')).map(x => x.slice(1).trim()))];
       cur.line = [...new Set(names.map(x => x.replace(/^\*/, '').trim()))];
