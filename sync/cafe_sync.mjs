@@ -157,10 +157,13 @@ async function main() {
   const gName = k => k === 'og' ? '자살골' : k === 'merc' ? '용병' : pName[k];
   const gStr = o => Object.entries(o).map(([k, n]) => gName(k) + (n > 1 ? ' ' + n : '')).sort().join(', ') || '없음';
 
-  const rows = { same: [], change: [], create: [], review: [], locked: [] };
+  // 몰수 경기: 카페 득점자는 실제 경기 기준이라 공식 스코어와 합이 안 맞음 → 검사·반영 건너뜀(사이트 기록 유지). script.js MATCH_FLAGS 와 같은 날짜
+  const FORFEIT = { '2026-03-22': '몰수승(실제 경기 5:6, 상대팀 중도 이탈)' };
+  const rows = { same: [], change: [], create: [], review: [], locked: [], forfeit: [] };
   const notes = [], plans = [];
   for (const g of games) {
     const problems = [];
+    if (FORFEIT[g.date]) { rows.forfeit.push(`${g.no}. ${g.date} vs ${g.opp} ${g.our}:${g.their} — ${FORFEIT[g.date]}`); continue; }
     if (g.line === null) problems.push('출전 명단 줄(☞ …)이 없음');
     const sum = g.goals.reduce((a, [, n]) => a + n, 0);
     if (sum !== g.our) problems.push(`득점자 합계 ${sum}골 ≠ 우리 점수 ${g.our}${g.shootout ? ' (승부차기 기록 있음)' : ''}`);
@@ -301,10 +304,11 @@ async function main() {
 
   const verb = WRITE ? '' : ' 예정';
   say(`## 경기 기록 (카페 ${games.length}경기, 시즌 ${seasons.join(',')}, DB ${matches.length}경기)\n`);
-  say(`- 같음: ${rows.same.length}경기\n- 바뀜${verb}: ${rows.change.length}경기\n- 새로 추가${verb}: ${rows.create.length}경기\n- 확인 필요(반영 안 함): ${rows.review.length}경기\n- 잠금이라 건너뜀: ${rows.locked.length}경기\n`);
+  say(`- 같음: ${rows.same.length}경기\n- 바뀜${verb}: ${rows.change.length}경기\n- 새로 추가${verb}: ${rows.create.length}경기\n- 확인 필요(반영 안 함): ${rows.review.length}경기\n- 잠금이라 건너뜀: ${rows.locked.length}경기\n- 몰수라 건너뜀: ${rows.forfeit.length}경기\n`);
   if (rows.change.length) say(`### 바뀜${verb}\n` + rows.change.map(x => '- ' + x).join('\n') + '\n');
   if (rows.create.length) say(`### 새로 추가${verb}\n` + rows.create.map(x => '- ' + x).join('\n') + '\n');
   if (rows.locked.length) say('### 잠금이라 건너뜀(관리자 페이지에서 잠근 경기 · 카페와 다른 점)\n' + rows.locked.map(x => '- ' + x).join('\n') + '\n');
+  if (rows.forfeit.length) say('### 몰수라 건너뜀(사이트 기록 유지)\n' + rows.forfeit.map(x => '- ' + x).join('\n') + '\n');
   if (rows.review.length) say('### 확인 필요\n' + rows.review.map(x => '- ' + x).join('\n') + '\n');
   if (notes.length) say('### 참고\n' + notes.map(x => '- ' + x).join('\n') + '\n');
   if (stray.length) say('### 읽지 못한 줄\n' + stray.map(x => '- ' + x).join('\n') + '\n');
