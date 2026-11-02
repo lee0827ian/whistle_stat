@@ -779,6 +779,8 @@ class WhistleApp {
         const now = Date.now();
         this._clicks = (this._lastClick && now - this._lastClick < 2000) ? (this._clicks || 0) + 1 : 1;
         this._lastClick = now;
+        // 한 번 누르면 홈 탭으로(세 번 연속은 아래 노리치 그대로)
+        if (this.state.tab !== 'home' || this.state.openMatch) { this.setState({ tab: 'home', openMatch: null }); window.scrollTo({ top: 0 }); }
         if (this._clicks >= 3) {
           this._clicks = 0;
           if (!this._nor) { this._nor = { loading: true }; this.loadNorwich(); }
