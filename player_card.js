@@ -87,14 +87,38 @@
     const stats = c.ovr == null
       ? [['통산 출전', c.ap], ['통산 골', c.goals], ['시즌', c.seasons], ['MVP', c.mvpAll]].map(([k, v]) => `<div><b>${v}</b>${k}</div>`).join('')
       : ORDER.map(k => `<div><b>${c.stats[k]}</b>${k}</div>`).join('');
-    return `<div class="pc-card pc-${t}">
-      <div class="pc-in">
-        <div class="pc-top">${top}<div class="pc-club"><img src="whistle_logo.svg" alt=""><span>${c.num == null ? '' : esc(c.num)}</span></div></div>
+    return `<div class="pc-card pc-${t}"><div class="pc-in">${frontIn(c, top, stats)}</div></div>`;
+  }
+  const topRow = (c, top) => `<div class="pc-top">${top}<div class="pc-club"><img src="whistle_logo.svg" alt=""><span>${c.num == null ? '' : esc(c.num)}</span></div></div>`;
+  function frontIn(c, top, stats) {
+    return `${topRow(c, top)}
         <div class="pc-photo${c.photo ? ' pc-cut' : ''}">${c.photo ? `<img src="${esc(c.photo)}" alt="" onerror="this.parentNode.classList.remove('pc-cut');this.outerHTML=window.WhistleCard.SIL">` : SIL}</div>
         <div class="pc-name">${esc(c.name)}</div>
-        <div class="pc-stats">${stats}</div>
-      </div>
-    </div>`;
+        <div class="pc-stats">${stats}</div>`;
+  }
+  // 뒷면: 육각형 능력치(위 득점부터 시계 방향). 가운데 40점 ~ 끝 99점, 안쪽 선 60·80점
+  const HEX_AX = ['득점', '승리', 'MVP', '경험', '꾸준', '출석'], HEX_LO = 40, HEX_HI = 99;
+  const hexR = v => Math.max(0, Math.min(1, (v - HEX_LO) / (HEX_HI - HEX_LO)));
+  const hexPt = (cx, cy, R, i, r) => { const a = -Math.PI / 2 + i * Math.PI / 3; return [cx + Math.cos(a) * R * r, cy + Math.sin(a) * R * r]; };
+  function hexSVG(s) {
+    const cx = 120, cy = 78, R = 54, f = n => n.toFixed(1);
+    const poly = r => HEX_AX.map((_, i) => hexPt(cx, cy, R, i, r).map(f).join(',')).join(' ');
+    const rings = [60, 80, 99].map(v => `<polygon class="pc-hg" points="${poly(hexR(v))}"/>`).join('');
+    const axes = HEX_AX.map((_, i) => { const [x, y] = hexPt(cx, cy, R, i, 1); return `<line class="pc-ha" x1="${cx}" y1="${cy}" x2="${f(x)}" y2="${f(y)}"/>`; }).join('');
+    const area = HEX_AX.map((k, i) => hexPt(cx, cy, R, i, hexR(s[k])).map(f).join(',')).join(' ');
+    const dots = HEX_AX.map((k, i) => { const [x, y] = hexPt(cx, cy, R, i, hexR(s[k])); return `<circle class="pc-hd" cx="${f(x)}" cy="${f(y)}" r="2.6"/>`; }).join('');
+    const labels = HEX_AX.map((k, i) => {
+      const [x0, y] = hexPt(cx, cy, R, i, 1), side = Math.abs(x0 - cx) < 2 ? 0 : x0 > cx ? 1 : -1;
+      const dy = i === 0 ? -9 : i === 3 ? 20 : 5;
+      return `<text text-anchor="${side === 0 ? 'middle' : side > 0 ? 'start' : 'end'}" x="${f(x0 + side * 8)}" y="${f(y + dy)}"><tspan class="pc-hv">${s[k]}</tspan> ${k}</text>`;
+    }).join('');
+    return `<svg class="pc-hex" viewBox="0 0 240 160" role="img" aria-label="${HEX_AX.map(k => k + ' ' + s[k]).join(', ')}">${rings}${axes}<polygon class="pc-har" points="${area}"/>${dots}${labels}</svg>`;
+  }
+  function backIn(c, Y) {
+    return `${topRow(c, `<div class="pc-ovr">${c.ovr}<small>OVR</small></div>`)}
+        <div class="pc-name pc-name-b">${esc(c.name)}</div>
+        <div class="pc-hexwrap">${hexSVG(c.stats)}</div>
+        <div class="pc-rec">통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌 ${c.recAp}경기 ${c.recGoals}골${c.winPct == null ? '' : ' · 승률 ' + c.winPct + '%'}</div>`;
   }
 
   // ── 카드 이미지 만들기(캔버스에 직접 그림) → 복사·공유·저장 ──
@@ -105,7 +129,7 @@
   };
   const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
 
-  async function renderCard(c) {
+  async function renderCard(c, face) {
     const W = 600, H = 864, t = tier(c.ovr), [c1, c2, c3, ink] = TIER_COLORS[t];
     try { await Promise.all(['700 100px Oswald', '900 40px Pretendard', '500 20px Pretendard'].map(f => document.fonts.load(f))); } catch (e) {}
     const [logo, photo] = await Promise.all([loadImg('whistle_logo.svg'), c.photo ? loadImg(c.photo) : null]);
@@ -123,9 +147,10 @@
     rg.addColorStop(0, t === 'special' ? 'rgba(255,215,90,.5)' : 'rgba(255,255,255,.5)'); rg.addColorStop(.55, 'rgba(255,255,255,0)');
     x.fillStyle = rg; x.fillRect(0, 0, W, H); x.restore();
     const L = W * .08, R = W - L;
-    // 사진(아래로 갈수록 흐려짐) 또는 실루엣
+    // 사진(아래로 갈수록 흐려짐) 또는 실루엣 — 뒷면은 육각형
     const pTop = H * .17, pBot = H * .58, pH = pBot - pTop;
-    if (photo) {
+    const back = face === 'back' && c.ovr != null;
+    if (back) { /* 아래에서 그림 */ } else if (photo) {
       const s = Math.min((R - L) / photo.width, pH / photo.height), pw = photo.width * s, ph = photo.height * s;
       const o = document.createElement('canvas'); o.width = W; o.height = H; const ox = o.getContext('2d');
       ox.shadowColor = 'rgba(0,0,0,.35)'; ox.shadowBlur = 16; ox.shadowOffsetY = 10;
@@ -148,6 +173,28 @@
     const ls = W * .12;
     if (logo) { x.save(); x.translate(R, H * .07); x.scale(-1, 1); x.drawImage(logo, 0, 0, ls, ls); x.restore(); }
     x.textAlign = 'right'; x.font = '700 58px Oswald, sans-serif'; if (c.num != null) x.fillText(String(c.num), R, H * .07 + ls + 58);
+    if (back) {
+      x.textAlign = 'center'; x.font = '900 52px Pretendard, sans-serif'; x.fillText(c.name, W / 2, H * .30);
+      x.fillRect(L, H * .322, R - L, 2);
+      const cx = W / 2, cy = H * .54, RR = W * .19;
+      const path = r => { x.beginPath(); HEX_AX.forEach((_, i) => { const [px, py] = hexPt(cx, cy, RR, i, r); i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.closePath(); };
+      x.save(); x.strokeStyle = ink; x.globalAlpha = .22; x.lineWidth = 2; [60, 80, 99].forEach(v => { path(hexR(v)); x.stroke(); });
+      x.globalAlpha = .18; HEX_AX.forEach((_, i) => { const [px, py] = hexPt(cx, cy, RR, i, 1); x.beginPath(); x.moveTo(cx, cy); x.lineTo(px, py); x.stroke(); }); x.restore();
+      x.beginPath(); HEX_AX.forEach((k, i) => { const [px, py] = hexPt(cx, cy, RR, i, hexR(c.stats[k])); i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.closePath();
+      x.save(); x.globalAlpha = .28; x.fillStyle = ink; x.fill(); x.restore(); x.strokeStyle = ink; x.lineWidth = 4; x.lineJoin = 'round'; x.stroke();
+      x.fillStyle = ink; HEX_AX.forEach((k, i) => { const [px, py] = hexPt(cx, cy, RR, i, hexR(c.stats[k])); x.beginPath(); x.arc(px, py, 6, 0, Math.PI * 2); x.fill(); });
+      HEX_AX.forEach((k, i) => {
+        const [x0, y0] = hexPt(cx, cy, RR, i, 1), side = Math.abs(x0 - cx) < 2 ? 0 : x0 > cx ? 1 : -1, lx = x0 + side * 18, ly = y0 + (i === 0 ? -20 : i === 3 ? 44 : 12);
+        x.font = '700 40px Oswald, sans-serif'; const nv = String(c.stats[k]), nw = x.measureText(nv).width; x.font = '700 26px Pretendard, sans-serif'; const kw = x.measureText(' ' + k).width;
+        const start = side === 0 ? lx - (nw + kw) / 2 : side > 0 ? lx : lx - nw - kw;
+        x.textAlign = 'left'; x.font = '700 40px Oswald, sans-serif'; x.fillText(nv, start, ly); x.font = '700 26px Pretendard, sans-serif'; x.fillText(' ' + k, start + nw, ly);
+      });
+      x.textAlign = 'center'; x.font = '500 24px Pretendard, sans-serif'; x.globalAlpha = .85;
+      x.fillText(`통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌`, W / 2, H * .78);
+      x.fillText(`최근 3시즌 ${c.recAp}경기 ${c.recGoals}골${c.winPct == null ? '' : ' · 승률 ' + c.winPct + '%'}`, W / 2, H * .815); x.globalAlpha = 1;
+      const out = document.createElement('canvas'); out.width = W + 48; out.height = H + 48; out.getContext('2d').drawImage(cv, 24, 24);
+      return new Promise(res => out.toBlob(res, 'image/png'));
+    }
     // 이름·줄
     x.textAlign = 'center'; x.font = '900 52px Pretendard, sans-serif'; x.fillText(c.name, W / 2, H * .645);
     x.fillRect(L, H * .667, R - L, 2);
@@ -167,9 +214,9 @@
     return new Promise(res => out.toBlob(res, 'image/png'));
   }
 
-  async function copyCard(c, btn, note) {
+  async function copyCard(c, face, note) {
     const say = (m) => { note.textContent = m; };
-    const blobP = renderCard(c);
+    const blobP = renderCard(c, face);
     try {
       if (!navigator.clipboard || !window.ClipboardItem) throw new Error('no clipboard');
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
@@ -177,7 +224,7 @@
       return;
     } catch (e) {}
     const blob = await blobP;
-    const file = new File([blob], `휘슬카드_${c.name}.png`, { type: 'image/png' });
+    const file = new File([blob], `휘슬카드_${c.name}${face === 'back' ? '_능력치' : ''}.png`, { type: 'image/png' });
     try {
       if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); say('공유 창을 열었습니다.'); return; }
     } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -204,7 +251,7 @@
     const sub = c.ovr == null
       ? `통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌 ${MIN_APPS}경기 이상이면 능력치 카드가 됩니다`
       : `통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌(${Y - 2}~${Y}) ${c.recAp}경기 ${c.recGoals}골${c.winPct == null ? '' : ' · 승률 ' + c.winPct + '%'}`;
-    stage.innerHTML = cardHTML(c) + `<div class="pc-sub">${sub}</div><div class="pc-btns"><button type="button" class="pc-copy">이미지 복사</button><button type="button" class="pc-close">닫기</button></div><div class="pc-note" aria-live="polite"></div>`;
+    stage.innerHTML = cardHTML(c) + `<div class="pc-sub">${sub}</div><div class="pc-btns">${c.ovr == null ? '' : '<button type="button" class="pc-flipb">뒤집기</button>'}<button type="button" class="pc-copy">이미지 복사</button><button type="button" class="pc-close">닫기</button></div><div class="pc-note" aria-live="polite"></div>`;
     const big = stage.querySelector('.pc-card');
     big.style.setProperty('--w', w + 'px');
     const cx = innerWidth / 2, cy = innerHeight / 2 - 40;
@@ -212,7 +259,22 @@
     big.style.setProperty('--dy', (r.top + r.height / 2 - cy) + 'px');
     stage.querySelector('.pc-close').onclick = close;
     const cb = stage.querySelector('.pc-copy');
-    cb.onclick = () => { cb.disabled = true; copyCard(c, cb, stage.querySelector('.pc-note')).finally(() => { cb.disabled = false; }); };
+    let face = 'front', busy = true;
+    setTimeout(() => { busy = false; }, 1250);   // 날아오는 동안은 뒤집기 막음
+    const inner = big.querySelector('.pc-in'), frontHTML = inner.innerHTML;
+    const flip = () => {
+      if (busy || c.ovr == null) return; busy = true;
+      big.classList.remove('pc-turn-b'); big.classList.add('pc-turn-a');
+      setTimeout(() => {
+        face = face === 'front' ? 'back' : 'front';
+        inner.innerHTML = face === 'back' ? backIn(c, Y) : frontHTML; big.classList.toggle('pc-back', face === 'back');
+        big.classList.remove('pc-turn-a'); big.classList.add('pc-turn-b');
+        setTimeout(() => { busy = false; }, 240);
+      }, 180);
+    };
+    big.addEventListener('click', flip);
+    const fb = stage.querySelector('.pc-flipb'); if (fb) fb.onclick = flip;
+    cb.onclick = () => { cb.disabled = true; copyCard(c, face, stage.querySelector('.pc-note')).finally(() => { cb.disabled = false; }); };
     stage.addEventListener('click', e => { if (e.target === stage) close(); });
     document.body.appendChild(stage);
     document.documentElement.style.overflow = 'hidden';

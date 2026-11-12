@@ -98,6 +98,26 @@ select:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 .pc-sub { position: relative; color: #DCE4F5; font-size: 12.5px; line-height: 1.6; text-align: center; animation: pcFade .4s 1.1s ease both; }
 .pc-close { position: relative; font: 700 14px 'Pretendard', sans-serif; padding: 10px 22px; border-radius: 99px; border: 0; cursor: pointer;
   background: rgba(255, 255, 255, .16); color: #fff; animation: pcFade .4s 1.1s ease both; }
+/* 뒤집기(앞면 사진·숫자 ↔ 뒷면 육각형) */
+.pc-stage .pc-card { cursor: pointer; }
+.pc-card.pc-turn-a { animation: pcTurnA .18s ease-in forwards; }
+.pc-card.pc-turn-b { animation: pcTurnB .24s ease-out forwards; }
+.pc-card.pc-turn-a::after, .pc-card.pc-turn-b::after, .pc-card.pc-back::after { display: none; }
+@keyframes pcTurnA { from { transform: rotateY(0); } to { transform: rotateY(90deg); } }
+@keyframes pcTurnB { from { transform: rotateY(-90deg); } to { transform: rotateY(0); } }
+.pc-name-b { margin-top: calc(var(--w) * .03); }
+.pc-hexwrap { flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.pc-hex { display: block; width: 100%; max-height: 100%; }
+.pc-hg { fill: none; stroke: currentColor; stroke-opacity: .22; stroke-width: 1; }
+.pc-ha { stroke: currentColor; stroke-opacity: .18; stroke-width: 1; }
+.pc-har { fill: currentColor; fill-opacity: .28; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.pc-hd { fill: currentColor; }
+.pc-hex text { fill: currentColor; font-family: 'Pretendard', sans-serif; font-size: 11.5px; font-weight: 700; }
+.pc-hex .pc-hv { font-family: 'Oswald', 'Pretendard', sans-serif; font-size: 16px; font-weight: 700; }
+.pc-rec { text-align: center; font-size: calc(var(--w) * .04); line-height: 1.5; opacity: .85; }
+.pc-flipb { font: 700 14px 'Pretendard', sans-serif; padding: 10px 18px; border-radius: 99px; border: 1.5px solid #F0D281; cursor: pointer; background: transparent; color: #F0D281; }
+.pc-flipb:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .pc-card.pc-turn-a, .pc-card.pc-turn-b { animation-duration: .01s; } }
 .pc-btns { position: relative; display: flex; gap: 10px; animation: pcFade .4s 1.1s ease both; }
 .pc-btns .pc-close { animation: none; }
 .pc-copy { font: 700 14px 'Pretendard', sans-serif; padding: 10px 22px; border-radius: 99px; border: 0; cursor: pointer; background: #F0D281; color: #2A1C00; }
