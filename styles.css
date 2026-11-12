@@ -123,6 +123,10 @@ select:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 .pc-copy { font: 700 14px 'Pretendard', sans-serif; padding: 10px 22px; border-radius: 99px; border: 0; cursor: pointer; background: #F0D281; color: #2A1C00; }
 .pc-copy:disabled { opacity: .6; }
 .pc-copy:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.pc-upb { position: relative; font: 600 12.5px 'Pretendard', sans-serif; background: none; border: 0; color: #C9D6F2; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 8px; animation: pcFade .4s 1.1s ease both; }
+.pc-upb:disabled { opacity: .5; }
+.pc-uphint { position: relative; margin-top: -10px; color: #9FB0D6; font-size: 11px; animation: pcFade .4s 1.1s ease both; }
+.pc-upb:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 .pc-note { position: relative; min-height: 1.4em; color: #F0D281; font-size: 12.5px; text-align: center; }
 .pc-close:focus-visible { outline: 3px solid #F0D281; outline-offset: 2px; }
 @keyframes pcFly { 0% { transform: translate(var(--dx), var(--dy)) scale(.25) rotateY(0); } 70% { transform: translate(0, 0) scale(1.06) rotateY(700deg); } 100% { transform: translate(0, 0) scale(1) rotateY(720deg); } }
