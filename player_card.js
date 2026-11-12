@@ -17,7 +17,7 @@
   let cache = null, loading = null, stage = null, lastFocus = null;
 
   async function load(app, hidden) {
-    const seasonsRows = await app.supaAll('season_player_stats?select=season,name,appearances,goals,mvp');
+    const seasonsRows = await app.supaAll('season_player_stats?select=season,name,appearances,goals,mvp&order=season.asc,name.asc');
     const Y = Math.max(...seasonsRows.map(r => r.season));
     const REC = [Y - 2, Y - 1, Y];
     const photoIds = await fetch('photos/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).catch(() => []);
