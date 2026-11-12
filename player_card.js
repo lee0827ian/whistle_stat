@@ -4,7 +4,8 @@
      MVP = 가림 시즌(시상식 전)을 뺀 최근 3시즌 경기당 MVP, 경험 = 통산 출전, 꾸준 = 출전한 시즌 수
    최근 3시즌 10경기 이상 뛴 선수끼리 순위로 60~99점(꼴찌 60). 승리는 실제 승률로 환산(40%=60, 80%=99).
    경기 수가 적으면 비율이 튀지 않게 평균 쪽으로 당긴다(20경기분). 종합 = 득점·출석 20%, 나머지 15%씩.
-   그 밖의 선수는 점수 없이 통산 기록 카드. */
+   그 밖의 선수는 점수 없이 통산 기록 카드.
+   사진: photos/<선수 id>.webp(배경 뺀 상반신), 있는 선수 목록은 photos/index.json. 없으면 실루엣. */
 (function () {
   const ORDER = ['득점', '출석', '승리', 'MVP', '경험', '꾸준'];
   const W = { 득점: .2, 출석: .2, 승리: .15, MVP: .15, 경험: .15, 꾸준: .15 };
@@ -19,13 +20,14 @@
     const seasonsRows = await app.supaAll('season_player_stats?select=season,name,appearances,goals,mvp');
     const Y = Math.max(...seasonsRows.map(r => r.season));
     const REC = [Y - 2, Y - 1, Y];
+    const photoIds = await fetch('photos/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).catch(() => []);
     const [roster, matches, lineups] = await Promise.all([
       app.supaAll('players?select=id,name,number&order=id.asc'),
       app.supaAll(`matches_with_result?select=id,season,result&season=gte.${Y - 2}&order=id.asc`),
       app.supaAll(`match_lineups?select=match_id,player_id,matches!inner(season)&matches.season=gte.${Y - 2}&player_id=not.is.null&is_mercenary=eq.false&order=id.asc`)
     ]);
-    const idName = {}, number = {};
-    roster.forEach(p => { idName[p.id] = p.name; if (p.number != null) number[p.name] = p.number; });
+    const idName = {}, number = {}, photo = {};
+    roster.forEach(p => { idName[p.id] = p.name; if (p.number != null) number[p.name] = p.number; if (photoIds.includes(p.id)) photo[p.name] = `photos/${p.id}.webp`; });
     const result = {}; matches.forEach(m => { result[m.id] = m.result; });
     const teamGames = matches.length || 1;
 
@@ -66,7 +68,7 @@
     const pct = (k, v) => { const a = sorted[k]; let lo = 0, eq = 0; a.forEach(x => { if (x < v) lo++; else if (x === v) eq++; }); return (lo + eq / 2) / a.length; };
     const cards = {};
     Object.values(P).forEach(p => {
-      const base = { name: p.name, num: number[p.name], ap: p.ap, goals: p.goals, seasons: p.seasons, mvpAll: p.mvpAll, recAp: p.recAp, recGoals: p.recGoals,
+      const base = { name: p.name, num: number[p.name], photo: photo[p.name], ap: p.ap, goals: p.goals, seasons: p.seasons, mvpAll: p.mvpAll, recAp: p.recAp, recGoals: p.recGoals,
         winPct: p.winAp ? Math.round(p.win / p.winAp * 100) : null };
       if (!raw[p.name]) { cards[p.name] = { ...base, ovr: null }; return; }
       const r = raw[p.name], s = {};
@@ -88,7 +90,7 @@
     return `<div class="pc-card pc-${t}">
       <div class="pc-in">
         <div class="pc-top">${top}<div class="pc-club"><img src="whistle_logo.svg" alt=""><span>${c.num == null ? '' : esc(c.num)}</span></div></div>
-        <div class="pc-photo">${SIL}</div>
+        <div class="pc-photo${c.photo ? ' pc-cut' : ''}">${c.photo ? `<img src="${esc(c.photo)}" alt="" onerror="this.parentNode.classList.remove('pc-cut');this.outerHTML=window.WhistleCard.SIL">` : SIL}</div>
         <div class="pc-name">${esc(c.name)}</div>
         <div class="pc-stats">${stats}</div>
       </div>
@@ -143,6 +145,7 @@
       const c = cache.cards[name] || { name, ap: 0, goals: 0, seasons: 0, mvpAll: 0, recAp: 0, recGoals: 0, ovr: null };
       show(c, fromEl, cache.Y);
     },
-    reset() { cache = null; loading = null; }
+    reset() { cache = null; loading = null; },
+    SIL
   };
 })();
