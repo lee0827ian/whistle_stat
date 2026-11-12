@@ -562,11 +562,11 @@ class WhistleApp {
   async loadAll() {
     try {
       const [playerStats, allMatches, regional, legacySeasons, newSeasons] = await Promise.all([
-        this.supaAll('alltime_player_stats?select=*&order=total_goals.desc'),
-        this.supaAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc'),
+        this.supaAll('alltime_player_stats?select=*&order=total_goals.desc,name.asc'),
+        this.supaAll('matches_with_result?select=season,date,opponent,our_score,opp_score,result&order=date.asc,id.asc'),
         this.supa('regional_stats?select=region,matches,wins,draws,losses&order=matches.desc').catch(() => []),
-        this.supaAll('legacy_stats?select=season,players(name)').catch(() => []),
-        this.supaAll('season_player_stats?select=season,name').catch(() => [])
+        this.supaAll('legacy_stats?select=season,players(name)&order=id.asc').catch(() => []),
+        this.supaAll('season_player_stats?select=season,name&order=season.asc,name.asc').catch(() => [])
       ]);
       const debut = {};
       legacySeasons.forEach(r => { const n = r.players && r.players.name; if (n && (!debut[n] || r.season < debut[n])) debut[n] = r.season; });
