@@ -655,7 +655,9 @@ class WhistleApp {
       const badge = st.playerFilter === 'goals' ? { badgeLabel: p.goals + '골', badgeBg: '#EEF2FB', badgeColor: '#113C98' }
         : st.playerFilter === 'mvp' ? { badgeLabel: 'MVP ' + (hide ? 0 : p.mvp) + '회', badgeBg: '#FAF3DC', badgeColor: '#A5841B', badgeBlur: hide ? MVP_BLUR : '' }
         : { badgeLabel: '참석률 ' + rate + '%', badgeBg: rc[0], badgeColor: rc[1] };
-      return { ...p, rate, rank: hideRank ? 0 : i + 1, rankBlur: hideRank ? MVP_BLUR : '', rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: chips, ...badge };
+      const onCard = e => window.WhistleCard && window.WhistleCard.open(p.name, e && e.currentTarget, this, MVP_HIDDEN_SEASONS);
+      const onCardKey = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCard(e); } };
+      return { ...p, onCard, onCardKey, rate, rank: hideRank ? 0 : i + 1, rankBlur: hideRank ? MVP_BLUR : '', rankBg: rk[0], rankColor: rk[1], rateBg: rc[0], rateColor: rc[1], statChips: chips, ...badge };
     });
 
     const tops = k => [...d.players].sort((a, b) => b[k] - a[k])[0];
