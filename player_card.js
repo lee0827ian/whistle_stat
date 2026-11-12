@@ -13,7 +13,8 @@
   const MIN_APPS = 10, SHRINK = 20;
   const SIL = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="34" r="20" fill="currentColor"/><path d="M10 100c2-26 18-38 40-38s38 12 40 38z" fill="currentColor"/></svg>';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const tier = o => o == null ? 'plain' : o >= 86 ? 'special' : o >= 82 ? 'gold' : o >= 76 ? 'silver' : 'bronze';
+  // 등급 색 = 점수 카드 대상 안에서 OVR 순위 비율(같은 점수는 가운데 순위): 상위 15% 스페셜 · 다음 25% 골드 · 다음 35% 실버 · 나머지 브론즈
+  const tier = c => c.ovr == null ? 'plain' : (c.tier || 'silver');
 
   let cache = null, loading = null, stage = null, lastFocus = null;
 
@@ -80,11 +81,17 @@
       s.승리 = Math.round(Math.min(99, Math.max(60, 60 + (r.승리 - .4) / .4 * 39)));
       cards[p.name] = { ...base, stats: s, ovr: Math.round(ORDER.reduce((t, k) => t + s[k] * W[k], 0)) };
     });
+    const ovrs = Object.values(cards).filter(c => c.ovr != null).map(c => c.ovr);
+    Object.values(cards).forEach(c => {
+      if (c.ovr == null) return;
+      const above = ovrs.filter(o => o > c.ovr).length, same = ovrs.filter(o => o === c.ovr).length, q = (above + same / 2) / ovrs.length;
+      c.tier = q < .15 ? 'special' : q < .40 ? 'gold' : q < .75 ? 'silver' : 'bronze';
+    });
     return { cards, Y };
   }
 
   function cardHTML(c) {
-    const t = tier(c.ovr);
+    const t = tier(c);
     const top = c.ovr == null
       ? `<div class="pc-ovr pc-ovr-none">${c.ap}<small>경기</small></div>`
       : `<div class="pc-ovr">${c.ovr}<small>OVR</small></div>`;
@@ -134,7 +141,7 @@
   const loadImg = src => new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
 
   async function renderCard(c, face) {
-    const W = 600, H = 864, t = tier(c.ovr), [c1, c2, c3, ink] = TIER_COLORS[t];
+    const W = 600, H = 864, t = tier(c), [c1, c2, c3, ink] = TIER_COLORS[t];
     try { await Promise.all(['700 100px Oswald', '900 40px Pretendard', '500 20px Pretendard'].map(f => document.fonts.load(f))); } catch (e) {}
     const [logo, photo] = await Promise.all([loadImg('whistle_logo.svg'), c.photo ? loadImg(c.photo) : null]);
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -322,19 +329,21 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
 
-  function show(c, fromEl, Y) {
+  function show(c, fromEl, Y, app) {
     close();
     window.WhistleCard.last = c;
     lastFocus = fromEl;
     const r = fromEl ? fromEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
     const w = Math.min(innerWidth * 0.78, (innerHeight - 170) / 1.44, 340);
+    // 사진 바꾸기는 이 기기에서 고른 '내 이름'(참석 응답용) 카드에서만
+    const myId = app && app.state ? Number(app.state.me) || null : null;
     stage = document.createElement('div');
     stage.className = 'pc-stage';
     stage.setAttribute('role', 'dialog'); stage.setAttribute('aria-modal', 'true'); stage.setAttribute('aria-label', c.name + ' 선수 카드');
     const sub = c.ovr == null
       ? `통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌 ${MIN_APPS}경기 이상이면 능력치 카드가 됩니다`
       : `통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌(${Y - 2}~${Y}) ${c.recAp}경기 ${c.recGoals}골${c.winPct == null ? '' : ' · 승률 ' + c.winPct + '%'}`;
-    stage.innerHTML = cardHTML(c) + `<div class="pc-sub">${sub}</div><div class="pc-btns">${c.ovr == null ? '' : '<button type="button" class="pc-flipb">뒤집기</button>'}<button type="button" class="pc-copy">이미지 복사</button><button type="button" class="pc-close">닫기</button></div><div class="pc-note" aria-live="polite"></div>${c.id ? '<button type="button" class="pc-upb">내 사진 바꾸기</button><div class="pc-uphint">혼자 나온 상반신 사진이 잘 나와요 · 배경은 자동으로 지워져요</div><input type="file" class="pc-file" accept="image/*" hidden>' : ''}`;
+    stage.innerHTML = cardHTML(c) + `<div class="pc-sub">${sub}</div><div class="pc-btns">${c.ovr == null ? '' : '<button type="button" class="pc-flipb">뒤집기</button>'}<button type="button" class="pc-copy">이미지 복사</button><button type="button" class="pc-close">닫기</button></div><div class="pc-note" aria-live="polite"></div>${!c.id ? '' : !myId ? '<div class="pc-uphint">홈에서 “내 이름 선택하기”를 하면 내 카드 사진을 바꿀 수 있어요</div>' : myId !== c.id ? '' : '<button type="button" class="pc-upb">내 사진 바꾸기</button><div class="pc-uphint">혼자 나온 상반신 사진이 잘 나와요 · 배경은 자동으로 지워져요</div><input type="file" class="pc-file" accept="image/*" hidden>'}`;
     const big = stage.querySelector('.pc-card');
     big.style.setProperty('--w', w + 'px');
     const cx = innerWidth / 2, cy = innerHeight / 2 - 40;
@@ -398,7 +407,7 @@
         return;
       } finally { if (fromEl) fromEl.style.opacity = ''; }
       const c = cache.cards[name] || { name, ap: 0, goals: 0, seasons: 0, mvpAll: 0, recAp: 0, recGoals: 0, ovr: null };
-      show(c, fromEl, cache.Y);
+      show(c, fromEl, cache.Y, app);
     },
     reset() { cache = null; loading = null; },
     SIL,
