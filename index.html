@@ -249,7 +249,7 @@
                   <span style="font-size:12px; font-weight:800; color:{{ g.color }}; padding-top:4px;">{{ g.label }} {{ g.n }}</span>
                   <div style="display:flex; flex-wrap:wrap; gap:5px;">
                     <sc-for list="{{ g.names }}" as="p" hint-placeholder-count="6">
-                      <span style="font-size:13.5px; padding:5px 12px; border-radius:10px; background:{{ p.bg }}; color:{{ p.fg }}; font-weight:{{ p.weight }}; border:1px solid {{ p.bd }};">{{ p.name }}</span>
+                      <span onClick="{{ p.onClick }}" class="pc-chip" style="font-size:13.5px; padding:5px 12px; border-radius:10px; background:{{ p.bg }}; color:{{ p.fg }}; font-weight:{{ p.weight }}; border:1px solid {{ p.bd }};">{{ p.name }}</span>
                     </sc-for>
                     <sc-if value="{{ g.empty }}" hint-placeholder-val="{{ false }}">
                       <span style="font-size:13px; color:#8A8577; padding:3px 0;">없음</span>
@@ -420,7 +420,7 @@
                 <div style="width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; background:{{ m.resBg }}; color:{{ m.resColor }};">{{ m.resLabel }}</div>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:9px; border-top:1px solid #F0EEE7;">
-                <span style="font-size:11px; color:#113C98; background:#EEF2FB; padding:3px 9px; border-radius:8px; font-weight:600;">MVP {{ m.mvp }}</span>
+                <span style="font-size:11px; color:#113C98; background:#EEF2FB; padding:3px 9px; border-radius:8px; font-weight:600;">MVP <sc-for list="{{ m.mvpList }}" as="v" hint-placeholder-count="1"><span class="{{ v.cls }}" onClick="{{ v.onClick }}">{{ v.label }}</span>{{ v.sep }}</sc-for></span>
                 <span onClick="{{ m.onToggle }}" style="font-size:11.5px; color:#113C98; font-weight:700; cursor:pointer;">{{ m.toggleLabel }}</span>
               </div>
               <div style="display:{{ m.detailDisplay }}; margin-top:10px; padding-top:10px; border-top:1px solid #E7E4DB;">
@@ -556,7 +556,7 @@
             <span style="font-size:11px; font-weight:800; color:#8A8577;">#</span><span style="font-size:11px; font-weight:800; color:#8A8577;">이름</span><span style="font-size:11px; font-weight:800; color:#8A8577;">데뷔</span><span style="font-size:11px; font-weight:800; color:#8A8577;">총 출장</span><span style="font-size:11px; font-weight:800; color:#8A8577;">총 득점</span><span style="font-size:11px; font-weight:800; color:#8A8577;">총 MVP</span>
           </div>
           <sc-for list="{{ allPlayers }}" as="p" hint-placeholder-count="8">
-            <div class="pc-row" onClick="{{ p.onCard }}" onKeyDown="{{ p.onCardKey }}" role="button" tabindex="0" style="display:grid; grid-template-columns:44px 1.6fr 1fr 1fr 1fr 1fr; align-items:center; padding:8px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
+            <div style="display:grid; grid-template-columns:44px 1.6fr 1fr 1fr 1fr 1fr; align-items:center; padding:8px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
               <span><span style="width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:800; background:{{ p.rankBg }}; color:{{ p.rankColor }};">{{ p.rank }}</span></span>
               <span style="font-weight:700;">{{ p.name }}</span><span style="color:#8A8577;">{{ p.debut }}</span><span>{{ p.ap }}</span><span style="font-weight:700; color:#113C98;">{{ p.goals }}</span><span>{{ p.mvp }}</span>
             </div>

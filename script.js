@@ -194,14 +194,15 @@ class WhistleApp {
       ]);
       const ids = matchesRaw.map(m => m.id).join(',') || '0';
       let mvpRaw = [];
-      try { mvpRaw = await this.supa(`match_mvps?select=raw_name,match_id&match_id=in.(${ids})`); } catch (e) {}
+      try { mvpRaw = await this.supa(`match_mvps?select=raw_name,match_id,players(name)&match_id=in.(${ids})`); } catch (e) {}
       const mvpMap = {};
-      mvpRaw.forEach(r => { (mvpMap[r.match_id] = mvpMap[r.match_id] || []).push(r.raw_name); });
+      mvpRaw.forEach(r => { (mvpMap[r.match_id] = mvpMap[r.match_id] || []).push({ label: r.raw_name, name: r.players ? r.players.name : null }); });
       const matches = matchesRaw.map(m => ({
         id: m.id, date: m.date, opponent: m.opponent,
         gf: m.our_score, ga: m.opp_score, score: m.our_score + ':' + m.opp_score,
         result: m.result === 'W' ? 'win' : m.result === 'D' ? 'draw' : 'loss',
-        mvp: (mvpMap[m.id] || []).join(', ') || '-'
+        mvp: (mvpMap[m.id] || []).map(v => v.label).join(', ') || '-',
+        mvpNames: mvpMap[m.id] || []
       }));
       const players = playersRaw.map(r => ({
         name: s2026 ? r.name : (r.players && r.players.name),
@@ -473,7 +474,8 @@ class WhistleApp {
 
     const chip = (p, k) => {
       const c = k ? pal[k] : ['#F3F1EA', '#6B675C'];
-      return p === me ? { name: p.name, bg: '#113C98', fg: '#FFFFFF', weight: 800, bd: '#113C98' } : { name: p.name, bg: c[0], fg: c[1], weight: 600, bd: 'transparent' };
+      const onClick = e => window.WhistleCard && window.WhistleCard.open(p.name, e.currentTarget, this, MVP_HIDDEN_SEASONS);
+      return p === me ? { name: p.name, bg: '#113C98', fg: '#FFFFFF', weight: 800, bd: '#113C98', onClick } : { name: p.name, bg: c[0], fg: c[1], weight: 600, bd: 'transparent', onClick };
     };
     const group = (k, l, color) => { const list = by(k); return { label: l, color, n: list.length, names: list.map(p => chip(p, k)), empty: !list.length }; };
     const groups = [group('attend', '참석', '#15803D')];
@@ -619,6 +621,10 @@ class WhistleApp {
       const goalChips = det ? det.goalChips : [];
       return {
         ...deco(m), lineup, goalChips,
+        mvpList: (m.mvpNames && m.mvpNames.length ? m.mvpNames : [{ label: '-', name: null }]).map((v, i, a) => ({
+          label: v.label, sep: i < a.length - 1 ? ', ' : '', cls: v.name ? 'pc-link' : '',
+          onClick: v.name ? (e => { e.stopPropagation(); window.WhistleCard && window.WhistleCard.open(v.name, e.currentTarget, this, MVP_HIDDEN_SEASONS); }) : null
+        })),
         lineupLabel: lineup.length ? `출전 선수 (${lineup.length}명${det.merc ? ' + 용병 ' + det.merc + '명' : ''})` : '',
         goalLabel: goalChips.length ? '득점' : '',
         detailNote: !det ? '' : det.loading ? '불러오는 중...' : det.error ? '불러오기 실패' : !lineup.length ? '출전 명단 없음 (레거시 데이터)' : '',
@@ -835,8 +841,6 @@ class WhistleApp {
       ],
       allPlayers: [...A.players].sort((a, b) => b.goals - a.goals).map((p, i) => ({
         ...p, debut: p.debut || '-', rank: i + 1,
-        onCard: e => window.WhistleCard && window.WhistleCard.open(p.name, e && e.currentTarget, this, MVP_HIDDEN_SEASONS),
-        onCardKey: e => { if ((e.key === 'Enter' || e.key === ' ') && window.WhistleCard) { e.preventDefault(); window.WhistleCard.open(p.name, e.currentTarget, this, MVP_HIDDEN_SEASONS); } },
         rankBg: i === 0 ? '#F0D281' : i === 1 ? '#D9D9D9' : i === 2 ? '#CD9B6A' : '#F3F1EA',
         rankColor: i === 0 ? '#113C98' : i === 1 ? '#374151' : i === 2 ? '#5B3A1E' : '#8A8577'
       })),

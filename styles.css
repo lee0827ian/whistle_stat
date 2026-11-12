@@ -53,6 +53,8 @@ select:focus-visible { outline: 2px solid #F0D281; outline-offset: 2px; }
 /* ── 선수 카드(player_card.js): 선수 줄을 누르면 가운데로 날아와 돌며 펼쳐짐 ── */
 .pc-row { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .15s; }
 .pc-row:active { transform: scale(.985); }
+.pc-link { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.pc-chip { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pc-stage { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   padding: env(safe-area-inset-top, 0px) 16px env(safe-area-inset-bottom, 0px); overflow: hidden;
   background: rgba(4, 10, 28, .58); -webkit-backdrop-filter: blur(12px) saturate(.8); backdrop-filter: blur(12px) saturate(.8);
