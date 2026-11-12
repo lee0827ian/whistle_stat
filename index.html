@@ -556,7 +556,7 @@
             <span style="font-size:11px; font-weight:800; color:#8A8577;">#</span><span style="font-size:11px; font-weight:800; color:#8A8577;">이름</span><span style="font-size:11px; font-weight:800; color:#8A8577;">데뷔</span><span style="font-size:11px; font-weight:800; color:#8A8577;">총 출장</span><span style="font-size:11px; font-weight:800; color:#8A8577;">총 득점</span><span style="font-size:11px; font-weight:800; color:#8A8577;">총 MVP</span>
           </div>
           <sc-for list="{{ allPlayers }}" as="p" hint-placeholder-count="8">
-            <div style="display:grid; grid-template-columns:44px 1.6fr 1fr 1fr 1fr 1fr; align-items:center; padding:8px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
+            <div class="pc-row" onClick="{{ p.onCard }}" onKeyDown="{{ p.onCardKey }}" role="button" tabindex="0" style="display:grid; grid-template-columns:44px 1.6fr 1fr 1fr 1fr 1fr; align-items:center; padding:8px 16px; border-top:1px solid #F0EEE7; font-size:13px;">
               <span><span style="width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:800; background:{{ p.rankBg }}; color:{{ p.rankColor }};">{{ p.rank }}</span></span>
               <span style="font-weight:700;">{{ p.name }}</span><span style="color:#8A8577;">{{ p.debut }}</span><span>{{ p.ap }}</span><span style="font-weight:700; color:#113C98;">{{ p.goals }}</span><span>{{ p.mvp }}</span>
             </div>

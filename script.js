@@ -835,6 +835,8 @@ class WhistleApp {
       ],
       allPlayers: [...A.players].sort((a, b) => b.goals - a.goals).map((p, i) => ({
         ...p, debut: p.debut || '-', rank: i + 1,
+        onCard: e => window.WhistleCard && window.WhistleCard.open(p.name, e && e.currentTarget, this, MVP_HIDDEN_SEASONS),
+        onCardKey: e => { if ((e.key === 'Enter' || e.key === ' ') && window.WhistleCard) { e.preventDefault(); window.WhistleCard.open(p.name, e.currentTarget, this, MVP_HIDDEN_SEASONS); } },
         rankBg: i === 0 ? '#F0D281' : i === 1 ? '#D9D9D9' : i === 2 ? '#CD9B6A' : '#F3F1EA',
         rankColor: i === 0 ? '#113C98' : i === 1 ? '#374151' : i === 2 ? '#5B3A1E' : '#8A8577'
       })),

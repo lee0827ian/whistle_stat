@@ -97,6 +97,95 @@
     </div>`;
   }
 
+  // ── 카드 이미지 만들기(캔버스에 직접 그림) → 복사·공유·저장 ──
+  const TIER_COLORS = {
+    gold: ['#F7E3A1', '#D9A93F', '#8A6114', '#3A2806'], silver: ['#F2F4F7', '#B9C0CB', '#6C7480', '#1E2530'],
+    bronze: ['#F0C9A3', '#B9773F', '#6A3A14', '#2B1607'], plain: ['#E9ECF2', '#A9B3C4', '#5D6880', '#1B2333'],
+    special: ['#2A5FD6', '#113C98', '#071A45', '#FFFFFF']
+  };
+  const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+
+  async function renderCard(c) {
+    const W = 600, H = 864, t = tier(c.ovr), [c1, c2, c3, ink] = TIER_COLORS[t];
+    try { await Promise.all(['700 100px Oswald', '900 40px Pretendard', '500 20px Pretendard'].map(f => document.fonts.load(f))); } catch (e) {}
+    const [logo, photo] = await Promise.all([loadImg('whistle_logo.svg'), c.photo ? loadImg(c.photo) : null]);
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const x = cv.getContext('2d');
+    // 카드 모양(위아래 뾰족한 방패)
+    x.beginPath(); x.moveTo(W / 2, 0); x.lineTo(W, H * .06); x.lineTo(W, H * .86); x.lineTo(W / 2, H); x.lineTo(0, H * .86); x.lineTo(0, H * .06); x.closePath(); x.clip();
+    const ang = 155 * Math.PI / 180, dx = Math.sin(ang) * W / 2, dy = -Math.cos(ang) * H / 2;
+    const g = x.createLinearGradient(W / 2 - dx, H / 2 - dy, W / 2 + dx, H / 2 + dy);
+    g.addColorStop(0, c1); g.addColorStop(.48, c2); g.addColorStop(1, c3); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    // 빗살·윗빛
+    x.save(); x.strokeStyle = 'rgba(255,255,255,.07)'; x.lineWidth = 2;
+    for (let k = -H; k < W + H; k += 26) { x.beginPath(); x.moveTo(k, 0); x.lineTo(k - H * .47, H); x.stroke(); }
+    const rg = x.createRadialGradient(W * .2, 0, 0, W * .2, 0, W * 1.1);
+    rg.addColorStop(0, t === 'special' ? 'rgba(255,215,90,.5)' : 'rgba(255,255,255,.5)'); rg.addColorStop(.55, 'rgba(255,255,255,0)');
+    x.fillStyle = rg; x.fillRect(0, 0, W, H); x.restore();
+    const L = W * .08, R = W - L;
+    // 사진(아래로 갈수록 흐려짐) 또는 실루엣
+    const pTop = H * .17, pBot = H * .58, pH = pBot - pTop;
+    if (photo) {
+      const s = Math.min((R - L) / photo.width, pH / photo.height), pw = photo.width * s, ph = photo.height * s;
+      const o = document.createElement('canvas'); o.width = W; o.height = H; const ox = o.getContext('2d');
+      ox.shadowColor = 'rgba(0,0,0,.35)'; ox.shadowBlur = 16; ox.shadowOffsetY = 10;
+      ox.drawImage(photo, (W - pw) / 2, pBot - ph, pw, ph);
+      ox.shadowColor = 'transparent'; ox.globalCompositeOperation = 'destination-in';
+      const fg = ox.createLinearGradient(0, 0, 0, H);
+      fg.addColorStop(0, '#000'); fg.addColorStop((pBot - ph * .14) / H, '#000'); fg.addColorStop(pBot / H, 'rgba(0,0,0,0)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
+      ox.fillStyle = fg; ox.fillRect(0, 0, W, H);
+      x.drawImage(o, 0, 0);
+    } else {
+      x.save(); x.globalAlpha = .38; x.fillStyle = ink; const sh = pH * .92, sx = W / 2, sy = pBot - sh;
+      x.beginPath(); x.arc(sx, sy + sh * .34, sh * .2, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.moveTo(sx - sh * .4, pBot); x.bezierCurveTo(sx - sh * .38, sy + sh * .62, sx - sh * .2, sy + sh * .62, sx, sy + sh * .62);
+      x.bezierCurveTo(sx + sh * .2, sy + sh * .62, sx + sh * .38, sy + sh * .62, sx + sh * .4, pBot); x.closePath(); x.fill(); x.restore();
+    }
+    // 위: 점수 / 로고·등번호
+    x.fillStyle = ink; x.textBaseline = 'alphabetic';
+    if (c.ovr == null) { x.font = '700 92px Oswald, sans-serif'; x.fillText(String(c.ap), L, H * .06 + 92); x.font = '700 26px Oswald, sans-serif'; x.fillText('경기', L + 2, H * .06 + 128); }
+    else { x.font = '700 124px Oswald, sans-serif'; x.fillText(String(c.ovr), L - 4, H * .06 + 112); x.font = '700 30px Oswald, sans-serif'; x.fillText('O V R', L, H * .06 + 150); }
+    const ls = W * .12;
+    if (logo) { x.save(); x.translate(R, H * .07); x.scale(-1, 1); x.drawImage(logo, 0, 0, ls, ls); x.restore(); }
+    x.textAlign = 'right'; x.font = '700 58px Oswald, sans-serif'; if (c.num != null) x.fillText(String(c.num), R, H * .07 + ls + 58);
+    // 이름·줄
+    x.textAlign = 'center'; x.font = '900 52px Pretendard, sans-serif'; x.fillText(c.name, W / 2, H * .645);
+    x.fillRect(L, H * .667, R - L, 2);
+    // 능력치 2열(가운데 맞춤)
+    const rows = c.ovr == null ? [['통산 출전', c.ap], ['통산 골', c.goals], ['시즌', c.seasons], ['MVP', c.mvpAll]] : ORDER.map(k => [k, c.stats[k]]);
+    x.font = '500 30px Pretendard, sans-serif'; const lw = Math.max(...rows.map(r => x.measureText(r[0]).width));
+    const numW = 62, gap = 12, colW = numW + gap + lw, cg = 36, x0 = W / 2 - (colW * 2 + cg * 2) / 2;
+    rows.forEach(([k, v], i) => {
+      const col = i % 2, row = Math.floor(i / 2), bx = x0 + col * (colW + cg * 2), by = H * .725 + row * 52;
+      x.textAlign = 'right'; x.font = '700 44px Oswald, sans-serif'; x.fillText(String(v), bx + numW, by);
+      x.textAlign = 'left'; x.font = '500 30px Pretendard, sans-serif'; x.fillText(k, bx + numW + gap, by);
+    });
+    x.globalAlpha = .35; x.fillRect(W / 2 - 1, H * .69, 2, Math.ceil(rows.length / 2) * 52); x.globalAlpha = 1;
+    // 바깥 여백(투명) 붙여 저장
+    const out = document.createElement('canvas'); out.width = W + 48; out.height = H + 48;
+    out.getContext('2d').drawImage(cv, 24, 24);
+    return new Promise(res => out.toBlob(res, 'image/png'));
+  }
+
+  async function copyCard(c, btn, note) {
+    const say = (m) => { note.textContent = m; };
+    const blobP = renderCard(c);
+    try {
+      if (!navigator.clipboard || !window.ClipboardItem) throw new Error('no clipboard');
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+      say('카드 이미지를 복사했습니다. 카톡 대화창에 붙여넣기 하세요.');
+      return;
+    } catch (e) {}
+    const blob = await blobP;
+    const file = new File([blob], `휘슬카드_${c.name}.png`, { type: 'image/png' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); say('공유 창을 열었습니다.'); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    say('이 브라우저는 복사가 안 돼서 이미지 파일로 저장했습니다.');
+  }
+
   function close() {
     if (!stage) return;
     stage.remove(); stage = null; document.documentElement.style.overflow = '';
@@ -105,6 +194,7 @@
 
   function show(c, fromEl, Y) {
     close();
+    window.WhistleCard.last = c;
     lastFocus = fromEl;
     const r = fromEl ? fromEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
     const w = Math.min(innerWidth * 0.78, (innerHeight - 170) / 1.44, 340);
@@ -114,13 +204,15 @@
     const sub = c.ovr == null
       ? `통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌 ${MIN_APPS}경기 이상이면 능력치 카드가 됩니다`
       : `통산 ${c.ap}경기 ${c.goals}골 · ${c.seasons}시즌<br>최근 3시즌(${Y - 2}~${Y}) ${c.recAp}경기 ${c.recGoals}골${c.winPct == null ? '' : ' · 승률 ' + c.winPct + '%'}`;
-    stage.innerHTML = cardHTML(c) + `<div class="pc-sub">${sub}</div><button type="button" class="pc-close">닫기</button>`;
+    stage.innerHTML = cardHTML(c) + `<div class="pc-sub">${sub}</div><div class="pc-btns"><button type="button" class="pc-copy">이미지 복사</button><button type="button" class="pc-close">닫기</button></div><div class="pc-note" aria-live="polite"></div>`;
     const big = stage.querySelector('.pc-card');
     big.style.setProperty('--w', w + 'px');
     const cx = innerWidth / 2, cy = innerHeight / 2 - 40;
     big.style.setProperty('--dx', (r.left + r.width / 2 - cx) + 'px');
     big.style.setProperty('--dy', (r.top + r.height / 2 - cy) + 'px');
     stage.querySelector('.pc-close').onclick = close;
+    const cb = stage.querySelector('.pc-copy');
+    cb.onclick = () => { cb.disabled = true; copyCard(c, cb, stage.querySelector('.pc-note')).finally(() => { cb.disabled = false; }); };
     stage.addEventListener('click', e => { if (e.target === stage) close(); });
     document.body.appendChild(stage);
     document.documentElement.style.overflow = 'hidden';
@@ -146,6 +238,7 @@
       show(c, fromEl, cache.Y);
     },
     reset() { cache = null; loading = null; },
-    SIL
+    SIL,
+    renderCard   // 확인용
   };
 })();
