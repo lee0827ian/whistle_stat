@@ -288,7 +288,29 @@
     const ci = await decodeImage(cut);
     const c2 = document.createElement('canvas'); c2.width = ci.width; c2.height = ci.height;
     const x2 = c2.getContext('2d'); x2.drawImage(ci, 0, 0);
-    const a = x2.getImageData(0, 0, c2.width, c2.height).data;
+    const id2 = x2.getImageData(0, 0, c2.width, c2.height), a = id2.data, W2 = c2.width, H2 = c2.height;
+    // 배경 부스러기 지우기: 작게 줄인 마스크에서 가장 큰 덩어리(사람)만 남기고 나머지는 투명하게
+    const g = Math.max(1, Math.round(Math.max(W2, H2) / 240)), gw = Math.ceil(W2 / g), gh = Math.ceil(H2 / g);
+    const m = new Uint8Array(gw * gh), lab = new Int32Array(gw * gh);
+    for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) if (a[(y * W2 + x) * 4 + 3] > 80) m[((y / g) | 0) * gw + ((x / g) | 0)] = 1;
+    let best = 0, bestN = 0, cur = 0; const st = [];
+    for (let i = 0; i < m.length; i++) {
+      if (!m[i] || lab[i]) continue;
+      cur++; let n = 0; st.push(i); lab[i] = cur;
+      while (st.length) {
+        const j = st.pop(), jx = j % gw, jy = (j / gw) | 0; n++;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+          const nx = jx + dx, ny = jy + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue;
+          const k = ny * gw + nx; if (m[k] && !lab[k]) { lab[k] = cur; st.push(k); }
+        }
+      }
+      if (n > bestN) { bestN = n; best = cur; }
+    }
+    const keep = new Uint8Array(gw * gh);
+    for (let i = 0; i < keep.length; i++) if (lab[i] === best) { const ix = i % gw, iy = (i / gw) | 0;   // 가장자리 한 칸 여유
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = ix + dx, ny = iy + dy; if (nx >= 0 && ny >= 0 && nx < gw && ny < gh) keep[ny * gw + nx] = 1; } }
+    for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) if (!keep[((y / g) | 0) * gw + ((x / g) | 0)]) a[(y * W2 + x) * 4 + 3] = 0;
+    x2.putImageData(id2, 0, 0);
     let top = -1, left = c2.width, right = -1;
     for (let y = 0; y < c2.height; y++) for (let x = 0; x < c2.width; x++) {
       if (a[(y * c2.width + x) * 4 + 3] > 80) { if (top < 0) top = y; if (x < left) left = x; if (x > right) right = x; }
