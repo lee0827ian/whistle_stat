@@ -139,7 +139,7 @@
               </sc-if>
               <sc-if value="{{ followOn }}" hint-placeholder-val="{{ true }}">
                 <div style="flex-basis:100%; border-top:1px solid rgba(255,255,255,.14); padding-top:10px; margin-top:-2px; font-size:12.5px; color:#CBD8F5; line-height:1.5;">
-                  <span style="display:inline-block; font-size:11px; font-weight:800; color:#113C98; background:#9FB4E4; padding:1px 7px; border-radius:6px; margin-right:6px;">그다음</span><b style="color:#FFFFFF;">{{ follow.date }} ({{ follow.when }})</b> · vs {{ follow.opponent }} · {{ follow.venue }}
+                  <span style="display:inline-block; font-size:11px; font-weight:800; color:#113C98; background:#9FB4E4; padding:1px 7px; border-radius:6px; margin-right:6px;">다음경기</span><b style="color:#FFFFFF;">{{ follow.date }} ({{ follow.when }})</b> · vs {{ follow.opponent }} · {{ follow.venue }}
                 </div>
               </sc-if>
             </div>
@@ -270,7 +270,11 @@
         <sc-if value="{{ laterOn }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:15px; font-weight:800; margin:22px 0 10px;">이후 일정</div>
           <div style="display:flex; flex-direction:column; gap:8px;">
-            <sc-for list="{{ laterSched }}" as="l" hint-placeholder-count="2">
+            <sc-for list="{{ laterSched }}" as="l" hint-placeholder-count="3">
+              <sc-if value="{{ l.blank }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:12px; height:62px;"></div>
+              </sc-if>
+              <sc-if value="{{ l.filled }}" hint-placeholder-val="{{ true }}">
               <div style="display:grid; grid-template-columns:52px 1fr auto; align-items:center; gap:12px; background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:12px; padding:12px 16px;">
                 <div style="text-align:center;">
                   <div style="font-family:'Oswald','Pretendard'; font-size:19px; font-weight:700; color:#113C98; line-height:1.1;">{{ l.date }}</div>
@@ -282,6 +286,7 @@
                 </div>
                 <div style="font-family:'Oswald','Pretendard'; font-size:12.5px; font-weight:700; color:#6B675C; background:#F3F1EA; padding:3px 8px; border-radius:8px;">{{ l.dday }}</div>
               </div>
+              </sc-if>
             </sc-for>
           </div>
         </sc-if>
