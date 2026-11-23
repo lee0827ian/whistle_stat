@@ -412,9 +412,9 @@ class WhistleApp {
     this.setState({ tick: Date.now() });
   }
 
-  // 다음 경기 뒤의 일정(보기만, 투표는 다음 경기 하나만) — 최대 4경기
+  // 다음 경기 뒤의 일정(보기만, 투표는 다음 경기 하나만): 바로 그다음 경기는 상단 카드에 한 줄, 그 뒤는 '이후 일정' 최대 4경기
   laterVals() {
-    const rows = (this._sched || []).slice(1, 5).map(s => {
+    const rows = (this._sched || []).slice(1, 6).map(s => {
       const d = new Date(s.date + 'T00:00:00');
       const days = Math.round((d - new Date(localDate() + 'T00:00:00')) / 86400000);
       return {
@@ -425,7 +425,7 @@ class WhistleApp {
         hasMap: !!(s.address || s.venue)
       };
     });
-    return { laterOn: rows.length > 0, laterSched: rows };
+    return { followOn: rows.length > 0, follow: rows[0] || {}, laterOn: rows.length > 1, laterSched: rows.slice(1) };
   }
 
   // 홈 상단(다가오는 경기 · 참석 투표 · 참석 현황) 템플릿 값
