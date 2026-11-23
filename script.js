@@ -412,6 +412,22 @@ class WhistleApp {
     this.setState({ tick: Date.now() });
   }
 
+  // 다음 경기 뒤의 일정(보기만, 투표는 다음 경기 하나만) — 최대 4경기
+  laterVals() {
+    const rows = (this._sched || []).slice(1, 5).map(s => {
+      const d = new Date(s.date + 'T00:00:00');
+      const days = Math.round((d - new Date(localDate() + 'T00:00:00')) / 86400000);
+      return {
+        date: (d.getMonth() + 1) + '/' + d.getDate(),
+        when: '일월화수목금토'[d.getDay()] + (s.time ? ' ' + String(s.time).slice(0, 5) : ''),
+        opponent: s.opponent || '상대 미정', venue: s.venue || '구장 미정', dday: 'D-' + days,
+        mapUrl: 'https://map.kakao.com/link/search/' + encodeURIComponent(s.address || s.venue || ''),
+        hasMap: !!(s.address || s.venue)
+      };
+    });
+    return { laterOn: rows.length > 0, laterSched: rows };
+  }
+
   // 홈 상단(다가오는 경기 · 참석 투표 · 참석 현황) 템플릿 값
   rsvpVals() {
     const off = { noNext: false, hasNext: false, rsvpOn: false, pickerOpen: false };
@@ -814,6 +830,7 @@ class WhistleApp {
         ? { headPad: '12px 14px', logo: '36px', title: '17px', topTabs: 'none', mainPad: '16px 14px 0', heroPad: '18px 18px 16px', cardPad: '16px', groupCols: 'minmax(0,1fr)', groupGap: '6px' }
         : { headPad: '16px 20px 0', logo: '44px', title: '20px', topTabs: 'flex', mainPad: '22px 20px 0', heroPad: '20px 24px 18px', cardPad: '16px 20px 18px', groupCols: '60px minmax(0,1fr)', groupGap: '10px' },
       ...this.rsvpVals(),
+      ...this.laterVals(),
       flash: st.flash, closeFlash: () => this.setState({ flash: '' }),
       goMatches: () => { this.setState({ tab: 'matches', openMatch: null }); window.scrollTo({ top: 0 }); },
       hasStatus: !!(d.loading || d.error || (st.tab === 'records' && A.loading)),

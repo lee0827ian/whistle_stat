@@ -262,6 +262,25 @@
           </div>
         </sc-if>
 
+        <sc-if value="{{ laterOn }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:15px; font-weight:800; margin:22px 0 10px;">이후 일정</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ laterSched }}" as="l" hint-placeholder-count="2">
+              <div style="display:grid; grid-template-columns:52px 1fr auto; align-items:center; gap:12px; background:#FFFFFF; box-shadow:0 3px 12px rgba(59,52,24,.08); border-radius:12px; padding:12px 16px;">
+                <div style="text-align:center;">
+                  <div style="font-family:'Oswald','Pretendard'; font-size:19px; font-weight:700; color:#113C98; line-height:1.1;">{{ l.date }}</div>
+                  <div style="font-size:11.5px; color:#8A8577; margin-top:2px;">{{ l.when }}</div>
+                </div>
+                <div style="min-width:0;">
+                  <div style="font-size:14.5px; font-weight:700;">vs {{ l.opponent }}</div>
+                  <div style="font-size:12px; color:#8A8577; margin-top:2px;">{{ l.venue }}<sc-if value="{{ l.hasMap }}" hint-placeholder-val="{{ true }}"> · <a href="{{ l.mapUrl }}" target="_blank" rel="noopener" style="color:#113C98; font-weight:700;">지도</a></sc-if></div>
+                </div>
+                <div style="font-family:'Oswald','Pretendard'; font-size:12.5px; font-weight:700; color:#6B675C; background:#F3F1EA; padding:3px 8px; border-radius:8px;">{{ l.dday }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
         <div style="font-family:'Oswald','Pretendard'; font-size:16px; font-weight:700; margin:26px 0 12px; padding-bottom:8px; border-bottom:2px solid #113C98;">시즌 기록</div>
 
         <div class="hero" style="background:#113C98; border-radius:14px; padding:20px 24px; display:flex; flex-wrap:wrap; align-items:center; gap:16px 20px;">
